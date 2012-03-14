@@ -11,7 +11,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os.path
+import sys, os, os.path
+
+# Whether it is built by ReadTheDocs.org
+readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -217,5 +220,12 @@ man_pages = [
 ]
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+if readthedocs:
+    intersphinx_mapping = {
+        'python': ('http://python.readthedocs.org/en/latest/', None)
+    }
+else:
+    intersphinx_mapping = {
+        'python': ('http://docs.python.org/', None)
+    }
+
