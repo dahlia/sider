@@ -1,0 +1,6 @@
+syntax:glob
+MANIFEST
+build
+dist
+.*.swp
+*.pyc
