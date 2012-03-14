@@ -1,6 +1,18 @@
 Design memo
 ===========
 
+Directions
+----------
+
+- Do not reinvent the wheel.  Use redis-py for connection pooling.
+  It already is mature.
+- Don't be implicit.  Hashes aren't entities.  Hash keys aren't fields.
+  Connections aren't sessions.
+
+
+Example
+-------
+
 Schema
 
 ::
@@ -44,8 +56,10 @@ Query
 
 .. sourcecode:: pycon
 
+   >>> from redis import Redis
    >>> from sider.session import Session
-   >>> session = Session('127.0.0.1', 6379)
+   >>> from myapp.user import User
+   >>> session = Session(Redis(host='127.0.0.1', port=6379, db=0))
    >>> user = session.get(User, 'hongminhee')
    >>> user
    <myapp.user.User 'users:hongminhee'>
