@@ -5,6 +5,7 @@ Sider
    :maxdepth: 2
 
    sider
+   memo
 
 
 Indices and tables
