@@ -2,5 +2,6 @@ syntax:glob
 MANIFEST
 build
 dist
+docs/_build
 .*.swp
 *.pyc
