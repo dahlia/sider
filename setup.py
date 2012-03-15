@@ -1,6 +1,9 @@
 from __future__ import with_statement
 import os.path
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 from sider.version import VERSION
 
 
@@ -14,7 +17,6 @@ def readme():
 
 setup(name='Sider',
       packages=['sider'],
-      data_files=[('', ['README.rst'])],
       version=VERSION,
       description='A persistent object library based on Redis',
       long_description=readme(),
@@ -24,6 +26,10 @@ setup(name='Sider',
       maintainer='Hong Minhee',
       maintainer_email='minhee' '@' 'dahlia.kr',
       url='https://bitbucket.org/dahlia/sider',
+      install_requires=['redis'],
+      tests_require=['Attest'],
+      test_loader='attest:auto_reporter.test_loader',
+      test_suite='sidertests.tests',
       classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',

@@ -1,7 +1,10 @@
 syntax:glob
 MANIFEST
+Sider.egg-info
 build
 dist
 docs/_build
+.tox
 .*.swp
+*.egg
 *.pyc
