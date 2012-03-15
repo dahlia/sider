@@ -1,0 +1,4 @@
+
+.. automodule:: sider.datetime
+   :members:
+
