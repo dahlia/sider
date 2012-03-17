@@ -132,7 +132,8 @@ class List(collections.MutableSequence):
         :param iterable: an iterable object that extend the list with
         :type iterable: :class:`collections.Iterable`
         :param _pipe: internal use only.  optional Redis pipe object
-        :raises: :exc:`TypeError` if the given ``iterable`` is not iterable
+        :raises: :exc:`~exceptions.TypeError` if the given ``iterable``
+                 is not iterable
 
         .. warning::
 
@@ -160,7 +161,8 @@ class List(collections.MutableSequence):
                       where ``value`` would be inserted to
         :type index: :class:`numbers.Integral`
         :param value: the value to insert
-        :raises: :exc:`TypeError` if the given ``index`` is not an integer
+        :raises: :exc:`~exceptions.TypeError` if the given ``index``
+                 is not an integer
 
         .. warning::
 
@@ -212,8 +214,10 @@ class List(collections.MutableSequence):
                             default is 1
         :type _stacklevel: :class:`numbers.Integral`
         :returns: the removed element
-        :raises: :exc:`IndexError` if the given ``index`` doesn't exist
-        :raises: :exc:`TypeError` if the given ``index`` is not an integer
+        :raises: :exc:`~exceptions.IndexError` if the given ``index``
+                 doesn't exist
+        :raises: :exc:`~exceptions.TypeError` if the given ``index``
+                 is not an integer
 
         .. warning::
 
