@@ -222,7 +222,7 @@ man_pages = [
 
 if readthedocs:
     intersphinx_mapping = {
-        'python': ('readthedocs.org/docs/python/en/v2.7.2/', None)
+        'python': ('http://readthedocs.org/docs/python/en/v2.7.2/', None)
     }
 else:
     intersphinx_mapping = {
