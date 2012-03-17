@@ -13,6 +13,14 @@ from .list import List
 
 
 class Session(object):
+    """Session is an object which manages Python objects that represent Redis
+    values e.g. lists, sets, hashes.  It maintains identity maps between
+    Redis values and Python objects, and deals with transactions.
+
+    :param client: the Redis client
+    :type client: :class:`redis.client.Client`
+
+    """
 
     def __init__(self, client):
         if not isinstance(client, Redis):
