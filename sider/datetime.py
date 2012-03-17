@@ -8,7 +8,7 @@ e.g. pytz_, Sider had to implement :class:`Utc` class which is a subtype of
 Because :mod:`datetime` module provided by the Python standard library
 doesn't contain UTC or any other :class:`~datetime.tzinfo` subtype
 implementations.  (A funny thing is that the documentation of :mod:`datetime`
-module show an example of how to implement UTC :class:`~datetime.tzinfo`.)
+module shows an example of how to implement UTC :class:`~datetime.tzinfo`.)
 
 If you want more various time zones support use the third-party pytz_
 package.
