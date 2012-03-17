@@ -1,5 +1,7 @@
-""":mod:`sider.warnings` --- Categories warned by Sider
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+""":mod:`sider.warnings` --- Warning categories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This module defines several custom warning category classes.
 
 """
 
