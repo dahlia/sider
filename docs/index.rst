@@ -21,6 +21,14 @@ References
    :maxdepth: 2
 
    sider
+
+
+Further reading
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    memo
 
 
