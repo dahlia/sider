@@ -13,6 +13,10 @@ What was the name 'Sider' originated from?:
 
 .. _Redis: http://redis.io/
 
+
+References
+----------
+
 .. toctree::
    :maxdepth: 2
 
@@ -21,9 +25,9 @@ What was the name 'Sider' originated from?:
 
 
 Indices and tables
-==================
+------------------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+- :ref:`genindex`
+- :ref:`modindex`
+- :ref:`search`
 
