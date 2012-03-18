@@ -72,7 +72,7 @@ class Integer(Bulk):
     Why it doesn't store integers as binaries but decimals is that
     Redis provides :redis:`INCR`, :redis:`INCRBY`, :redis:`DECR` and
     :redis:`DECRBY` for decimal strings.  You can simply add and
-    substract integers.
+    subtract integers.
 
     """
 
