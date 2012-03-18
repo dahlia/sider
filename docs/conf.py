@@ -19,17 +19,19 @@ readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+sys.path[:0] = [os.path.abspath('.'), os.path.abspath('..')]
+from siderdocs import lower_sprintf_str
 from sider.version import VERSION
 
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '1.0'
+needs_sphinx = '1.1'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
+              'sphinx.ext.todo', 'sphinx.ext.extlinks']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -215,8 +217,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'sider', u'Sider Documentation',
-     [u'Hong Minhee'], 1)
+    ('index', 'sider', u'Sider Documentation', [u'Hong Minhee'], 1)
 ]
 
 
@@ -228,4 +229,7 @@ else:
     intersphinx_mapping = {
         'python': ('http://docs.python.org/', None)
     }
+
+
+extlinks = {'redis': (lower_sprintf_str('http://redis.io/commands/%s'), '')}
 

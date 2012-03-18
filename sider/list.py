@@ -138,7 +138,7 @@ class List(collections.MutableSequence):
         .. warning::
 
            Appending multiple values is supported since Redis 2.4.0.
-           This may send ``RPUSH`` multiple times in a transaction
+           This may send :redis:`RPUSH` multiple times in a transaction
            if Redis version is not 2.4.0 nor higher.
 
         """
@@ -168,12 +168,12 @@ class List(collections.MutableSequence):
 
            Redis does not provide any primitive operations for random
            insertion.  You only can prepend or append a value into lists.
-           If index is 0 it'll send ``LPUSH`` command or if index is -1
-           it'll send ``RPUSH`` command, but otherwise it inefficiently
-           ``LRANGE`` the whole list to manipulate it in offline, and then
-           ``DEL`` the key so that empty the whole list, and then ``RPUSH``
-           the whole result again.  Moreover all the commands execute in
-           a transaction.
+           If index is 0 it'll send :redis:`LPUSH` command or if index
+           is -1 it'll send :redis:`RPUSH` command, but otherwise
+           it inefficiently :redis:`LRANGE` the whole list to manipulate
+           it in offline, and then :redis:`DEL` the key so that empty
+           the whole list, and then :redis:`RPUSH` the whole result again.
+           Moreover all the commands execute in a transaction.
 
            So you should not treat this method as the same method of
            Python built-in :class:`list` object.  It is just for being
@@ -229,12 +229,12 @@ class List(collections.MutableSequence):
            Internal emulation routine to pop an other index than -1 or 0
            consists of three commands in a transaction:
 
-           - ``LINDEX``
-           - ``LTRIM``
-           - ``RPUSH`` (In worst case, this command would be sent N times
-             where N is the cardinality of elements placed after popped
-             index.  Because multiple operands for ``RPUSH`` was supported
-             since Redis 2.4.0.)
+           - :redis:`LINDEX`
+           - :redis:`LTRIM`
+           - :redis:`RPUSH` (In worst case, this command would be sent
+             N times where N is the cardinality of elements placed after
+             popped index.  Because multiple operands for :redis:`RPUSH`
+             was supported since Redis 2.4.0.)
 
            So you should not treat this method as the same method of
            Python built-in :class:`list` object.  It is just for being
