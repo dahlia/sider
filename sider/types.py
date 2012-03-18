@@ -23,6 +23,72 @@ class Bulk(object):
 
     """
 
+    @classmethod
+    def ensure_subtype(cls, subtype, parameter=None):
+        """Raises a :exc:`TypeError` if the given ``subtype`` is not
+        a subclass of the class.
+
+        .. sourcecode:: pycon
+
+           >>> Integer.ensure_subtype(Bulk)  # doctest: +NORMALIZE_WHITESPACE
+           Traceback (most recent call last):
+             ...
+           TypeError: expected a subtype of sider.types.Integer,
+                      but sider.types.Bulk was passed
+           >>> Bulk.ensure_subtype(1)  # doctest: +NORMALIZE_WHITESPACE
+           Traceback (most recent call last):
+             ...
+           TypeError: expected a type, not 1
+
+        Otherwise it simply does nothing.
+
+        .. sourcecode:: pycon
+
+           >>> Bulk.ensure_subtype(Bulk)
+           >>> Bulk.ensure_subtype(ByteString)
+           >>> ByteString.ensure_subtype(ByteString)
+
+        If an optional ``parameter`` name has present, the error message
+        becomes better.
+
+        .. sourcecode:: pycon
+
+           >>> Integer.ensure_subtype(Bulk,
+           ...   parameter='argname')  # doctest: +NORMALIZE_WHITESPACE
+           Traceback (most recent call last):
+             ...
+           TypeError: argname must be a subtype of sider.types.Integer,
+                      but sider.types.Bulk was passed
+           >>> Bulk.ensure_subtype(1,
+           ...   parameter='argname')  # doctest: +NORMALIZE_WHITESPACE
+           Traceback (most recent call last):
+             ...
+           TypeError: argname must be a type, not 1
+
+        :param subtype: a type expected to be a subtype of the class
+        :type subtype: :class:`type`
+        :param parameter: an optional parameter name.
+                          if present the error message becomes better
+        :type parameter: :class:`str`
+        :raises: :exc:`TypeError` if the given ``subtype`` is not
+                 a subclass of the class
+
+        """
+        if not isinstance(subtype, type):
+            if parameter:
+                msg = '{0} must be a type, not {1!r}'
+            else:
+                msg = 'expected a type, not {1!r}'
+            raise TypeError(msg.format(parameter, subtype))
+        elif not issubclass(subtype, cls):
+            if parameter:
+                msg = '{0} must be a subtype of {1}, but {2} was passed'
+            else:
+                msg = 'expected a subtype of {1}, but {2} was passed'
+            typename = '.'.join((cls.__module__, cls.__name__))
+            subname = '.'.join((subtype.__module__, subtype.__name__))
+            raise TypeError(msg.format(parameter, typename, subname))
+
     def encode(self, value):
         """Encodes a Python ``value`` into Redis bulk.  Every subclass of
         :class:`Bulk` must implement this method.  By default it raises
