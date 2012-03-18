@@ -103,8 +103,8 @@ class Bulk(object):
         """
         cls = type(self)
         raise NotImplementedError(
-            '{0}.{1}.to_redis() method must be overridden by '
-            'subclass'.format(cls.__module__, cls.__name__)
+            '{0}.{1}.encode() method must be '
+            'implemented'.format(cls.__module__, cls.__name__)
         )
 
     def decode(self, bulk):
@@ -119,8 +119,8 @@ class Bulk(object):
         """
         cls = type(self)
         raise NotImplementedError(
-            '{0}.{1}.to_redis() method must be overridden by '
-            'subclass'.format(cls.__module__, cls.__name__)
+            '{0}.{1}.decode() method must be '
+            'implemented'.format(cls.__module__, cls.__name__)
         )
 
 
