@@ -30,6 +30,7 @@ setup(name='Sider',
       tests_require=['Attest'],
       test_loader='attest:auto_reporter.test_loader',
       test_suite='sidertests.tests',
+      extras_require={'docs': ['Sphinx >= 1.1']},
       classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

@@ -30,6 +30,7 @@ Further reading
    :maxdepth: 2
 
    memo
+   doc
 
 
 Indices and tables
