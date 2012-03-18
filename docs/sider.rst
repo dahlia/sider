@@ -5,6 +5,7 @@
       :maxdepth: 2
 
       sider/session
+      sider/types
       sider/list
       sider/datetime
       sider/warnings
