@@ -70,8 +70,8 @@ class Bulk(object):
         :param parameter: an optional parameter name.
                           if present the error message becomes better
         :type parameter: :class:`str`
-        :raises: :exc:`TypeError` if the given ``subtype`` is not
-                 a subclass of the class
+        :raises: :exc:`~exceptions.TypeError` if the given ``subtype``
+                 is not a subclass of the class
 
         """
         if not isinstance(subtype, type):
