@@ -225,7 +225,7 @@ class List(Value):
         obj = list.List(session, key, value_type=self.value_type)
         pipe = session.client.pipeline()
         pipe.delete(key)
-        obj.extend(value, _pipe=pipe)
+        obj._raw_extend(value, pipe)
         pipe.execute()
         return obj
 
@@ -314,7 +314,7 @@ class ByteString(Bulk):
 
     def encode(self, value):
         if not isinstance(value, str):
-            raise ValueError('expected a byte str, not ' + repr(value))
+            raise TypeError('expected a byte str, not ' + repr(value))
         return value
 
     def decode(self, bulk):
@@ -338,7 +338,7 @@ class UnicodeString(Bulk):
 
     def encode(self, value):
         if not isinstance(value, unicode):
-            raise ValueError('expected a unicode string, not ' + repr(value))
+            raise TypeError('expected a unicode string, not ' + repr(value))
         return value.encode('utf-8')
 
     def decode(self, bulk):

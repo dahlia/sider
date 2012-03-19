@@ -46,22 +46,25 @@ class List(collections.MutableSequence):
         return self.session.client.llen(self.key)
 
     def __getitem__(self, index):
+        decode = self.value_type.decode
         if isinstance(index, numbers.Integral):
             result = self.session.client.lindex(self.key, index)
             if result is None:
                 raise IndexError(index)
-            return result
+            return decode(result)
         elif isinstance(index, slice):
             start = 0 if index.start is None else index.start
             stop = (0 if index.stop is None else index.stop) - 1
             result = self.session.client.lrange(self.key, start, stop)
-            if index.step is None:
-                return result
-            return result[::index.step]
+            if index.step is not None:
+                result = result[::index.step]
+            return map(decode, result)
         raise TypeError('indices must be integers, not ' + repr(index))
 
     def __setitem__(self, index, value):
+        encode = self.value_type.encode
         if isinstance(index, numbers.Integral):
+            value = encode(value)
             try:
                 self.session.client.lset(self.key, index, value)
             except ResponseError:
@@ -71,7 +74,7 @@ class List(collections.MutableSequence):
                 raise ValueError('slice with step is not supported for '
                                  'assignment')
             elif index.start in (0, None) and index.stop == 1:
-                seq = value if isinstance(value, list) else list(value)
+                seq = map(encode, value)
                 seq.reverse()
                 if self.session.server_version_info < (2, 4, 0):
                     pipe = self.session.client.pipeline()
@@ -90,10 +93,10 @@ class List(collections.MutableSequence):
                 )
                 def block(pipe):
                     list_ = pipe.lrange(self.key, 0, -1)
-                    list_[index] = value
+                    list_[index] = map(encode, value)
                     pipe.multi()
                     pipe.delete(self.key)
-                    self.extend(list_, _pipe=pipe)
+                    self._raw_extend(list_, pipe)
                 self.session.client.transaction(block, self.key)
         else:
             raise TypeError('indices must be integers, not ' + repr(index))
@@ -123,21 +126,12 @@ class List(collections.MutableSequence):
                     tail = pipe.lrange(self.key, index.stop, -1)
                     pipe.multi()
                     pipe.ltrim(self.key, 0, index.start - 1)
-                    self.extend(tail, _pipe=pipe)
+                    self._raw_extend(tail, pipe)
                 self.session.client.transaction(block, self.key)
         elif isinstance(index, numbers.Integral):
             self.pop(index, _stacklevel=2)
         else:
             raise TypeError('index must be an integer')
-
-    def initialize_value(self, value):
-        pipe = self.session.client.pipeline()
-        pipe.delete(self.key)
-        tmp = self.value_type
-        self.value_type = Bulk
-        self.extend(value, _pipe=pipe)
-        self.value_type = tmp
-        pipe.execute()
 
     def append(self, value):
         """Inserts the ``value`` at the tail of the list.
@@ -145,14 +139,14 @@ class List(collections.MutableSequence):
         :param value: an value to insert
 
         """
-        self.session.client.rpush(self.key, value)
+        data = self.value_type.encode(value)
+        self.session.client.rpush(self.key, data)
 
-    def extend(self, iterable, _pipe=None):
+    def extend(self, iterable):
         """Extends the list with the ``iterable``.
 
         :param iterable: an iterable object that extend the list with
         :type iterable: :class:`collections.Iterable`
-        :param _pipe: internal use only.  optional Redis pipe object
         :raises: :exc:`~exceptions.TypeError` if the given ``iterable``
                  is not iterable
 
@@ -163,17 +157,17 @@ class List(collections.MutableSequence):
            if Redis version is not 2.4.0 nor higher.
 
         """
-        if _pipe is None:
-            pipe = self.session.client.pipeline()
-        else:
-            pipe = _pipe
+        encode = self.value_type.encode
+        pipe = self.session.client.pipeline()
+        self._raw_extend((encode(v) for v in iterable), pipe)
+        pipe.execute()
+
+    def _raw_extend(self, iterable, pipe):
         if self.session.server_version_info < (2, 4, 0):
             for val in iterable:
                 pipe.rpush(self.key, val)
         else:
             pipe.rpush(self.key, *iterable)
-        if _pipe is None:
-            pipe.execute()
 
     def insert(self, index, value):
         """Inserts the ``value`` right after the offset ``index``.
@@ -206,10 +200,12 @@ class List(collections.MutableSequence):
         """
         if not isinstance(index, numbers.Integral):
             raise TypeError('index must be an integer, not ' + repr(index))
-        elif index == 0:
-            self.session.client.lpush(self.key, value)
         elif index == -1:
             self.append(value)
+            return
+        data = self.value_type.encode(value)
+        if index == 0:
+            self.session.client.lpush(self.key, data)
         else:
             cls = type(self)
             warnings.warn(
@@ -219,10 +215,10 @@ class List(collections.MutableSequence):
             )
             def block(pipe):
                 list_ = pipe.lrange(self.key, 0, -1)
-                list_.insert(index, value)
+                list_.insert(index, data)
                 pipe.multi()
                 pipe.delete(self.key)
-                self.extend(list_, _pipe=pipe)
+                self._raw_extend(list_, pipe)
             self.session.client.transaction(block, self.key)
 
     def pop(self, index=-1, _stacklevel=1):
@@ -287,10 +283,10 @@ class List(collections.MutableSequence):
                 tail = pipe.lrange(self.key, index + 1, -1)
                 pipe.multi()
                 pipe.ltrim(self.key, 0, index - 1)
-                self.extend(tail, _pipe=pipe)
+                self._raw_extend(tail, pipe)
             self.session.client.transaction(block, self.key)
-            return result[0]
+            popped = result[0]
         if popped is None:
             raise IndexError(index)
-        return popped
+        return self.value_type.decode(popped)
 
