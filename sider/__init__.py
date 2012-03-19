@@ -2,3 +2,4 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from .lazyimport import *
