@@ -7,28 +7,40 @@ import collections
 import numbers
 import warnings
 from redis.exceptions import ResponseError
+from .types import Bulk, ByteString
+from .session import Session, View
 from .warnings import PerformanceWarning
 
 
-class List(collections.MutableSequence):
+class List(View, collections.MutableSequence):
     """The Python-side representaion of Redis list value.  It behaves
     alike built-in Python :class:`list` object.  More exactly, it
     implements :class:`collections.MutableSequence` protocol.
 
     """
 
-    def __init__(self, session, key):
+    #: (:class:`type`) The type of list values.  It has to be a subtype
+    #: of :class:`~sider.types.Bulk`.
+    value_type = None
+
+    def __init__(self, session, key, value_type=ByteString):
+        if not isinstance(session, Session):
+            raise TypeError('session must be a sider.session.Session '
+                            'instance, not ' + repr(session))
         self.session = session
         self.key = key
+        self.value_type = Bulk.ensure_value_type(value_type,
+                                                 parameter='value_type')
 
     def __iter__(self):
         i = 0
         step = 100  # FIXME: it is an arbitarary magic number.
         chunk = None
+        decode = self.value_type.decode
         while chunk is None or len(chunk) >= step:
             chunk = self.session.client.lrange(self.key, i, i + step)
             for val in chunk:
-                yield val  # FIXME: needs type conversion
+                yield decode(val)  # FIXME: needs type conversion
 
     def __len__(self):
         return self.session.client.llen(self.key)
@@ -117,6 +129,15 @@ class List(collections.MutableSequence):
             self.pop(index, _stacklevel=2)
         else:
             raise TypeError('index must be an integer')
+
+    def initialize_value(self, value):
+        pipe = self.session.client.pipeline()
+        pipe.delete(self.key)
+        tmp = self.value_type
+        self.value_type = Bulk
+        self.extend(value, _pipe=pipe)
+        self.value_type = tmp
+        pipe.execute()
 
     def append(self, value):
         """Inserts the ``value`` at the tail of the list.

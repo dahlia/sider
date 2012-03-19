@@ -14,59 +14,107 @@ into Python :class:`int` ``3``.
 
 """
 from __future__ import absolute_import
+import collections
 import numbers
+from .lazyimport import list
 
 
-class Bulk(object):
-    """The abstract base class to be subclassed.  You have to implement
-    :meth:`encode()` and :meth:`decode()` methods in subclasses.
+class Value(object):
+    """There are two layers behind Sider types: the lower one is
+    this :class:`Value` and the higher one is :class:`Bulk`.
+
+    :class:`Value` types can be set to Redis keys, but unlike
+    :class:`Bulk` it cannot be a value type of other rich
+    :class:`Value` types e.g. :class:`List`, :class:`Hash`.
+
+    In most cases you (users) don't have to subclass :class:`Value`,
+    and should not.  Direct subclasses of :class:`Value` aren't about
+    encodings/decodings of Python object but simply Python-side
+    representations of `Redis types`__.  It actually doesn't have
+    methods like :meth:`~Bulk.encode()` and :meth:`~Bulk.decode()`.
+    These methods appear under :class:`Bulk` or its subtypes.
+
+    But it's about how to save Python objects into Redis keys and
+    how to load values from associated Redis keys.  There are several
+    commands to save like :redis:`SET`, :redis:`MSET`, :redis:`HSET`,
+    :redis:`RPUSH` and the rest in Redis and subtypes have to decide
+    which command of those to use.
+
+    All subtypes of :class:`Value` implement :meth:`save_value()`
+    and :meth:`load_value()` methods.  The constructor which takes
+    no arguments have to be implemented as well.
+
+    __ http://redis.io/topics/data-types
 
     """
 
     @classmethod
-    def ensure_subtype(cls, subtype, parameter=None):
-        """Raises a :exc:`TypeError` if the given ``subtype`` is not
-        a subclass of the class.
+    def ensure_value_type(cls, value_type, parameter=None):
+        """Raises a :exc:`TypeError` if the given ``value_type`` is not
+        an instance of nor a subclass of the class.
 
         .. sourcecode:: pycon
 
-           >>> Integer.ensure_subtype(Bulk)  # doctest: +NORMALIZE_WHITESPACE
+           >>> Integer.ensure_value_type(Bulk
+           ... )  # doctest: +NORMALIZE_WHITESPACE
            Traceback (most recent call last):
              ...
            TypeError: expected a subtype of sider.types.Integer,
                       but sider.types.Bulk was passed
-           >>> Bulk.ensure_subtype(1)  # doctest: +NORMALIZE_WHITESPACE
+           >>> Integer.ensure_value_type(UnicodeString()
+           ... )  # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+           Traceback (most recent call last):
+             ...
+           TypeError: expected an instance of sider.types.Integer,
+                      but <sider.types.UnicodeString object at ...>
+                      was passed
+           >>> Bulk.ensure_value_type(1)
            Traceback (most recent call last):
              ...
            TypeError: expected a type, not 1
 
-        Otherwise it simply does nothing.
+        Otherwise it simply returns an instance of
+        the given ``value_type``.
 
         .. sourcecode:: pycon
 
-           >>> Bulk.ensure_subtype(Bulk)
-           >>> Bulk.ensure_subtype(ByteString)
-           >>> ByteString.ensure_subtype(ByteString)
+           >>> Bulk.ensure_value_type(Bulk)  # doctest: +ELLIPSIS
+           <sider.types.Bulk object at ...>
+           >>> Bulk.ensure_value_type(ByteString)  # doctest: +ELLIPSIS
+           <sider.types.ByteString object at ...>
+           >>> ByteString.ensure_value_type(ByteString
+           ... )  # doctest: +ELLIPSIS
+           <sider.types.ByteString object at ...>
+           >>> bytestr = ByteString()
+           >>> ByteString.ensure_value_type(bytestr) # doctest: +ELLIPSIS
+           <sider.types.ByteString object at ...>
 
         If an optional ``parameter`` name has present, the error message
         becomes better.
 
         .. sourcecode:: pycon
 
-           >>> Integer.ensure_subtype(Bulk,
+           >>> Integer.ensure_value_type(Bulk,
            ...   parameter='argname')  # doctest: +NORMALIZE_WHITESPACE
            Traceback (most recent call last):
              ...
            TypeError: argname must be a subtype of sider.types.Integer,
                       but sider.types.Bulk was passed
-           >>> Bulk.ensure_subtype(1,
-           ...   parameter='argname')  # doctest: +NORMALIZE_WHITESPACE
+           >>> Integer.ensure_value_type(UnicodeString(),
+           ...   parameter='argname'
+           ... )  # doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+           Traceback (most recent call last):
+             ...
+           TypeError: argname must be an instance of sider.types.Integer,
+                      but <sider.types.UnicodeString object at ...>
+                      was passed
+           >>> Bulk.ensure_value_type(1, parameter='argname')
            Traceback (most recent call last):
              ...
            TypeError: argname must be a type, not 1
 
-        :param subtype: a type expected to be a subtype of the class
-        :type subtype: :class:`type`
+        :param value_type: a type expected to be a subtype of the class
+        :type value_type: :class:`Value`, :class:`type`
         :param parameter: an optional parameter name.
                           if present the error message becomes better
         :type parameter: :class:`str`
@@ -74,20 +122,119 @@ class Bulk(object):
                  is not a subclass of the class
 
         """
-        if not isinstance(subtype, type):
+        typename = '.'.join((cls.__module__, cls.__name__))
+        if isinstance(value_type, type):
+            subname = '.'.join((value_type.__module__, value_type.__name__))
+            if issubclass(value_type, cls):
+                try:
+                    return value_type()
+                except TypeError as e:
+                    raise TypeError(
+                        '{0} must implement the constructor which takes '
+                        'no arguments; {1}'.format(subname, e)
+                    )
+            else:
+                if parameter:
+                    msg = '{0} must be a subtype of {1}, but {2} was passed'
+                else:
+                    msg = 'expected a subtype of {1}, but {2} was passed'
+                raise TypeError(msg.format(parameter, typename, subname))
+        elif isinstance(value_type, Value):
+            if isinstance(value_type, cls):
+                return value_type
+            else:
+                if parameter:
+                    msg = '{0} must be an instance of {1}, ' \
+                          'but {2!r} was passed'
+                else:
+                    msg = 'expected an instance of {1}, but {2!r} was passed'
+                raise TypeError(msg.format(parameter, typename, value_type))
+        else:
             if parameter:
                 msg = '{0} must be a type, not {1!r}'
             else:
                 msg = 'expected a type, not {1!r}'
-            raise TypeError(msg.format(parameter, subtype))
-        elif not issubclass(subtype, cls):
-            if parameter:
-                msg = '{0} must be a subtype of {1}, but {2} was passed'
-            else:
-                msg = 'expected a subtype of {1}, but {2} was passed'
-            typename = '.'.join((cls.__module__, cls.__name__))
-            subname = '.'.join((subtype.__module__, subtype.__name__))
-            raise TypeError(msg.format(parameter, typename, subname))
+            raise TypeError(msg.format(parameter, value_type))
+
+    def load_value(self, session, key):
+        """How to load the value from the given Redis ``key``.
+        Subclasses have to implement it.  By default it raises
+        :exc:`NotImplementedError`.
+
+        :param session: the session object that stores the given ``key``
+        :type session: :class:`sider.session.Session`
+        :param key: the key name to load
+        :type key: :class:`str`
+        :returns: the Python representation of the loaded value
+
+        """
+        cls = type(self)
+        raise NotImplementedError(
+            '{0}.{1}.load_value() method must be '
+            'implemented'.format(cls.__module__, cls.__name__)
+        )
+
+    def save_value(self, session, key, value):
+        """How to save the given ``value`` into the given Redis ``key``.
+        Subclasses have to implement it.  By default it raises
+        :exc:`NotImplementedError`.
+
+        :param session: the session object going to store
+                        the given ``key``--``value`` pair
+        :type session: :class:`sider.session.Session`
+        :param key: the key name to save the ``value``
+        :type key: :class:`str`
+        :param value: the value to save into the ``key``
+        :returns: the Python representation of the saved value.
+                  it is equivalent to the given ``value`` but
+                  may not equal nor the same to
+
+        """
+        cls = type(self)
+        raise NotImplementedError(
+            '{0}.{1}.save_value() method must be '
+            'implemented'.format(cls.__module__, cls.__name__)
+        )
+
+
+class List(Value):
+    """The type object for :class:`sider.list.List` objects and other
+    :class:`collections.Sequence` objects except strings.
+    (Use :class:`ByteString` or :class:`UnicodeString` for strings.)
+
+    :param value_type: the type of values the list will contain.
+                       default is :class:`ByteString`
+    :type value_type: :class:`Value`, :class:`type`
+
+    """
+
+    def __init__(self, value_type=None):
+        if value_type is None:
+            self.value_type = ByteString()
+        else:
+            self.value_type = Bulk.ensure_value_type(value_type,
+                                                     parameter='value_type')
+
+    def load_value(self, session, key):
+        return list.List(session, key, value_type=self.value_type)
+
+    def save_value(self, session, key, value):
+        if not isinstance(value, collections.Sequence):
+            raise TypeError('expected a list-like sequence, not ' +
+                            repr(value))
+        obj = list.List(session, key, value_type=self.value_type)
+        pipe = session.client.pipeline()
+        pipe.delete(key)
+        obj.extend(value, _pipe=pipe)
+        pipe.execute()
+        return obj
+
+
+class Bulk(Value):
+    """The abstract base class to be subclassed.  You have to implement
+    :meth:`encode()` and :meth:`decode()` methods in subclasses.
+
+    """
 
     def encode(self, value):
         """Encodes a Python ``value`` into Redis bulk.  Every subclass of

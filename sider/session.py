@@ -9,7 +9,17 @@ __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 """
 import collections
 from redis.client import Redis
-from .list import List
+from .types import Value, ByteString
+
+
+class View(object):
+
+    def initialize_value(self, value):
+        cls = type(self)
+        raise NotImplementedError(
+            '{0}.{1}.initialize_value() method must be '
+            'implemented'.format(cls.__module__, cls.__name__)
+        )
 
 
 class Session(object):
@@ -46,19 +56,40 @@ class Session(object):
         """
         return tuple(int(v) for v in self.server_version.split('.'))
 
-    def __getitem__(self, key):
-        result = self.client.type(key).lower().strip()
-        if result == 'list':
-            return List(self, key)
+    def get(self, key, value_type=ByteString):
+        """Loads the value from the ``key``.
+        If ``value_type`` is present the value will be treated as it,
+        or :class:`~sider.types.ByteString` by default.
 
-    def __setitem__(self, key, value):
-        pipe = self.client.pipeline()
-        pipe.delete(key)
-        if isinstance(value, collections.Sequence):
-            if self.server_version_info < (2, 4, 0):
-                for val in value:
-                    pipe.rpush(key, val)
-            else:
-                pipe.rpush(key, *value)
-        pipe.execute()
+        :param key: the Redis key to load
+        :type key: :class:`str`
+        :param value_type: the type of the value to load.  default is
+                           :class:`~sider.types.ByteString`
+        :type value_type: :class:`~sider.types.Value`, :class:`type`
+        :returns: the loaded value
+
+        """
+        value_type = Value.ensure_value_type(value_type,
+                                             parameter='value_type')
+        return value_type.load_value(self, key)
+
+    def set(self, key, value, value_type=ByteString):
+        """Stores the ``value`` into the ``key``.
+        If ``value_type`` is present the value will be treated as it,
+        or :class:`~sider.types.ByteString` by default.
+
+        :param key: the Redis key to save the value into
+        :type key: :class:`str`
+        :param value: the value to be saved
+        :param value_type: the type of the ``value``.  default is
+                           :class:`~sider.types.ByteString`
+        :type value_type: :class:`~sider.types.Value`, :class:`type`
+        :returns: the Python representation of the saved value.
+                  it is equivalent to the given ``value`` but
+                  may not equal nor the same to
+
+        """
+        value_type = Value.ensure_value_type(value_type,
+                                             parameter='value_type')
+        return value_type.save_value(self, key, value)
 
