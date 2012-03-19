@@ -29,8 +29,9 @@ Further reading
 .. toctree::
    :maxdepth: 2
 
-   memo
    doc
+   memo
+   todo
 
 
 Indices and tables
