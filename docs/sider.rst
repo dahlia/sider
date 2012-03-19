@@ -9,5 +9,6 @@
       sider/list
       sider/datetime
       sider/warnings
+      sider/lazyimport
       sider/version
 
