@@ -17,6 +17,15 @@ class List(collections.MutableSequence):
     alike built-in Python :class:`list` object.  More exactly, it
     implements :class:`collections.MutableSequence` protocol.
 
+    .. todo::
+
+       The :meth:`__repr__()` method should be implemented.
+
+    .. todo::
+
+       Methods automatically filled by :class:`collections.MutableSequence`
+       should warn :exc:`~sider.list.PerformanceWarning`.
+
     """
 
     #: (:class:`type`) The type of list values.  It has to be a subtype
@@ -40,7 +49,7 @@ class List(collections.MutableSequence):
         while chunk is None or len(chunk) >= step:
             chunk = self.session.client.lrange(self.key, i, i + step)
             for val in chunk:
-                yield decode(val)  # FIXME: needs type conversion
+                yield decode(val)
 
     def __len__(self):
         return self.session.client.llen(self.key)
