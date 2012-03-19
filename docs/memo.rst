@@ -36,13 +36,12 @@ Schema
     class User(Entity):
         """User entity."""
 
-        login = Field(UnicodeString, required=True)
+        login = Field(UnicodeString, required=True, key=True)
         password = Field(UnicodeString, required=True)
         name = Field(UnicodeString, required=True)
-        url = Field(UnicodeString)
+        url = Field(UnicodeString, unique=True)
         dob = Field(Date)
         created_at = Field(TZDateTime, required=True, default=now)
-        __redis_key__ = 'users:{0.login}'
 
         @login.before_set
         def login(self, value):
