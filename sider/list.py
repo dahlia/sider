@@ -8,11 +8,11 @@ import numbers
 import warnings
 from redis.exceptions import ResponseError
 from .types import Bulk, ByteString
-from .session import Session, View
+from .session import Session
 from .warnings import PerformanceWarning
 
 
-class List(View, collections.MutableSequence):
+class List(collections.MutableSequence):
     """The Python-side representaion of Redis list value.  It behaves
     alike built-in Python :class:`list` object.  More exactly, it
     implements :class:`collections.MutableSequence` protocol.
