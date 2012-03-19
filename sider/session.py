@@ -7,19 +7,8 @@ __ http://martinfowler.com/eaaCatalog/identityMap.html
 __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 
 """
-import collections
 from redis.client import Redis
 from .types import Value, ByteString
-
-
-class View(object):
-
-    def initialize_value(self, value):
-        cls = type(self)
-        raise NotImplementedError(
-            '{0}.{1}.initialize_value() method must be '
-            'implemented'.format(cls.__module__, cls.__name__)
-        )
 
 
 class Session(object):
