@@ -56,6 +56,19 @@ class Set(collections.Set):
         return not (self == operand)
 
     def __le__(self, operand):
+        """Less-than or equal to (``<=``) operator.  Tests whether
+        the set is a subset of the given ``operand`` or not.
+
+        It's the same operation to :meth:`issubset()` method except
+        it can take a set-like operand only.  On the other hand
+        :meth:`issubset()` can take an any iterable operand as well.
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Set`
+        :returns: ``True`` if the ``operand`` set contains the set
+        :rtype: :class:`bool`
+
+        """
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for <= must be an instance of '
                             'collections.Set, not ' + repr(operand))
