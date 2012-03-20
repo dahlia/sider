@@ -144,6 +144,67 @@ def issubset():
 
 
 @tests.test
+def issuperset():
+    session = get_session()
+    test_sets = {Set(): 'abcdefg', Set(Integer): range(1, 8)}
+    fixtures = {}
+    for value_type, members in test_sets.iteritems():
+        typeid = str(hash(value_type))
+        f = list(members)
+        e = f[1:-1]
+        d = e[1:-1]
+        g = S(d)
+        h = S(e)
+        i = S(f)
+        a = session.set(key('test_set_issuperset_a' + typeid), g, value_type)
+        b = session.set(key('test_set_issuperset_b' + typeid), h, value_type)
+        c = session.set(key('test_set_issuperset_c' + typeid), i, value_type)
+        fixtures[value_type] = a, b, c
+        assert c.issuperset(a) and c >= a and c > a
+        assert c.issuperset(b) and c >= b and c > b
+        assert c.issuperset(c) and c >= c and not (c > c)
+        assert c.issuperset(d)
+        assert c.issuperset(e)
+        assert c.issuperset(f)
+        assert c.issuperset(g) and c >= g and c > g
+        assert c.issuperset(h) and c >= h and c > h
+        assert c.issuperset(i) and c >= i and not (c > i)
+        assert b.issuperset(a) and b >= a and b > a
+        assert b.issuperset(b) and b >= b and not (b > b)
+        assert not b.issuperset(c) and not (a >= c) and not (a > c)
+        assert b.issuperset(d)
+        assert b.issuperset(e)
+        assert not b.issuperset(f)
+        assert b.issuperset(g) and b >= g and b > g
+        assert b.issuperset(h) and b >= h and not (b > h)
+        assert not b.issuperset(i) and not (b >= i) and not (b > i)
+        assert a.issuperset(a) and a >= a and not (a > a)
+        assert not a.issuperset(b) and not (a >= b) and not (a > b)
+        assert not a.issuperset(c) and not (a >= c) and not (a > c)
+        assert a.issuperset(d)
+        assert not a.issuperset(e)
+        assert not a.issuperset(f)
+        assert a.issuperset(g) and a >= g and not (a > g)
+        assert not a.issuperset(h) and not (a >= h) and not (a > h)
+        assert not a.issuperset(i) and not (a >= i) and not (a > i)
+        with raises(TypeError):
+            a >= d
+        with raises(TypeError):
+            a >= e
+        with raises(TypeError):
+            a >= f
+        with raises(TypeError):
+            a > d
+        with raises(TypeError):
+            a > e
+        with raises(TypeError):
+            a > f
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][0])
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][1])
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][2])
+
+
+@tests.test
 def difference():
     session = get_session()
     set_ = session.set(key('test_set_difference'), S('abcd'), Set)
@@ -254,3 +315,129 @@ def intersection():
     assert set_.intersection(set2, setx, sety) == S([])
     assert set_ & setx == S([])
 
+
+'''
+import warnings
+from sider.warnings import PerformanceWarning
+
+
+@tests.test
+def append():
+    session = get_session()
+    list_ = session.set(key('test_list_append'), 'abcd', List)
+    list_.append('e')
+    assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
+    list_.append('f')
+    assert ['a', 'b', 'c', 'd', 'e', 'f'] == list(list_)
+    with raises(TypeError):
+        list_.append(123)
+    listx = session.set(key('test_listx_append'), range(1, 5), List(Integer))
+    listx.append(5)
+    assert range(1, 6) == list(listx)
+    listx.append(6)
+    assert range(1, 7) == list(listx)
+    with raises(TypeError):
+        listx.append('abc')
+
+
+@tests.test
+def extend():
+    session = get_session()
+    list_ = session.set(key('test_list_extend'), 'ab', List)
+    list_.extend('cde')
+    assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
+    list_.extend(['fg', 'hi'])
+    assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi'] == list(list_)
+    with raises(TypeError):
+        list_.extend([object(), object()])
+    listx = session.set(key('test_listx_extend'), [1, 2], List(Integer))
+    listx.extend([3, 4, 5])
+    assert range(1, 6) == list(listx)
+    listx.extend([67, 89])
+    assert [1, 2, 3, 4, 5, 67, 89] == list(listx)
+    with raises(TypeError):
+        listx.extend([object(), object()])
+
+
+@tests.test
+def insert():
+    session = get_session()
+    list_ = session.set(key('test_list_insert'), ['b'], List)
+    list_.insert(0, 'a')
+    assert ['a', 'b'] == list(list_)
+    list_.insert(-1, 'c')
+    assert ['a', 'b', 'c'] == list(list_)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        list_.insert(1, 'a-b')
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert ['a', 'a-b', 'b', 'c'] == list(list_)
+    with raises(TypeError):
+        list_.insert(0, object())
+    with raises(TypeError):
+        list_.insert(-1, object())
+    with raises(TypeError):
+        list_.insert(1, object())
+    session = get_session()
+    listx = session.set(key('test_listx_insert'), [2], List(Integer))
+    listx.insert(0, 1)
+    assert [1, 2] == list(listx)
+    listx.insert(-1, 3)
+    assert [1, 2, 3] == list(listx)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        listx.insert(1, 12)
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert [1, 12, 2, 3] == list(listx)
+    with raises(TypeError):
+        listx.insert(0, object())
+    with raises(TypeError):
+        listx.insert(-1, object())
+    with raises(TypeError):
+        listx.insert(1, object())
+
+
+@tests.test
+def pop():
+    session = get_session()
+    list_ = session.set(key('test_list_pop'), 'abcdefg', List)
+    popped = list_.pop(0)
+    assert 'a' == popped
+    assert list('bcdefg') == list(list_)
+    popped = list_.pop(-1)
+    assert 'g' == popped
+    assert list('bcdef') == list(list_)
+    popped = list_.pop(2)
+    assert 'd' == popped
+    assert list('bcef') == list(list_)
+    with raises(IndexError):
+        list_.pop(10)
+    with raises(IndexError):
+        list_.pop(-10)
+    del list_[:]
+    with raises(IndexError):
+        list_.pop(0)
+    with raises(IndexError):
+        list_.pop(-1)
+    listx = session.set(key('test_listx_pop'), range(1, 8), List(Integer))
+    popped = listx.pop(0)
+    assert 1 == popped
+    assert range(2, 8) == list(listx)
+    popped = listx.pop(-1)
+    assert 7 == popped
+    assert range(2, 7) == list(listx)
+    popped = listx.pop(2)
+    assert 4 == popped
+    assert [2, 3, 5, 6] == list(listx)
+    with raises(IndexError):
+        listx.pop(10)
+    with raises(IndexError):
+        listx.pop(-10)
+    del listx[:]
+    with raises(IndexError):
+        listx.pop(0)
+    with raises(IndexError):
+        listx.pop(-1)
+#'''

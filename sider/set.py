@@ -117,6 +117,62 @@ class Set(collections.Set):
                             'collections.Set, not ' + repr(operand))
         return self.issubset(operand)
 
+    def __gt__(self, operand):
+        """Greater-than (``>``) operator.  Tests whether the set is
+        a *proper* (or *strict*) superset of the given ``operand``.
+
+        To eleborate, the key difference between this greater-than
+        (``>``) operator and greater-than or equal-to (``>=``)
+        operator, which is equivalent to :meth:`issuperset()` method,
+        is that it returns ``False`` even if two sets are exactly
+        the same.
+
+        Let this show a simple example:
+
+        .. sourcecode:: pycon
+
+           >>> assert isinstance(s, sider.set.Set)  # doctest: +SKIP
+           >>> set(s)  # doctest: +SKIP
+           set([1, 2, 3])
+           >>> s > set([1, 2]), s >= set([1, 2])  # doctest: +SKIP
+           (True, True)
+           >>> s > set([1, 2, 3]), s >= set([1, 2, 3])  # doctest: +SKIP
+           (False, True)
+           >>> s > set([1, 2, 3, 4]), s >= set([1, 2, 3, 4]) # doctest: +SKIP
+           (False, False)
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Set`
+        :returns: ``True`` if the ``operand`` set contains the set
+        :rtype: :class:`bool`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for > must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        if isinstance(operand, Set):
+            return operand < self
+        return frozenset(self) > frozenset(operand)
+
+    def __ge__(self, operand):
+        """Greater-than or equal to (``>=``) operator.  Tests whether
+        the set is a superset of the given ``operand`` or not.
+
+        It's the same operation to :meth:`issuperset()` method except
+        it can take a set-like operand only.  On the other hand
+        :meth:`issuperset()` can take an any iterable operand as well.
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Set`
+        :returns: ``True`` if the set contains the ``operand``
+        :rtype: :class:`bool`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for >= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        return self.issuperset(operand)
+
     def __sub__(self, operand):
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for - must be an instance of '
@@ -168,6 +224,20 @@ class Set(collections.Set):
                 return False
             return len(self) == len(client.sinter(self.key, operand.key))
         return frozenset(self).issubset(operand)
+
+    def issuperset(self, operand):
+        """Tests whether the set is a superset of the given ``operand``.
+        To test proper (strict) superset, use ``>`` operator instead.
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Iterable`
+        :returns: ``True`` if the set contains ``operand``
+        :rtype: :class:`bool`
+
+        """
+        if isinstance(operand, (Set, set, frozenset)):
+            return operand.issubset(self)
+        return frozenset(self).issuperset(operand)
 
     def isdisjoint(self, operand):
         """Tests whether two sets are disjoint or not.
