@@ -55,6 +55,12 @@ class Set(collections.Set):
     def __ne__(self, operand):
         return not (self == operand)
 
+    def __le__(self, operand):
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for <= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        return self.issubset(operand)
+
     def __sub__(self, operand):
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for - must be an instance of '
@@ -73,7 +79,7 @@ class Set(collections.Set):
 
     def __or__(self, operand):
         if not isinstance(operand, collections.Set):
-            raise TypeError('operand for - must be an instance of '
+            raise TypeError('operand for | must be an instance of '
                             'collections.Set, not ' + repr(operand))
         return self.union(operand)
 
@@ -82,7 +88,7 @@ class Set(collections.Set):
 
     def __and__(self, operand):
         if not isinstance(operand, collections.Set):
-            raise TypeError('operand for - must be an instance of '
+            raise TypeError('operand for & must be an instance of '
                             'collections.Set, not ' + repr(operand))
         return self.intersection(operand)
 

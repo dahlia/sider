@@ -99,33 +99,39 @@ def issubset():
         b = session.set(key('test_set_issubset_b' + typeid), h, value_type)
         c = session.set(key('test_set_issubset_c' + typeid), i, value_type)
         fixtures[value_type] = a, b, c
-        assert c.issubset(a)
-        assert c.issubset(b)
-        assert c.issubset(c)
+        assert c.issubset(a) and c <= a
+        assert c.issubset(b) and c <= b
+        assert c.issubset(c) and c <= c
         assert c.issubset(d)
         assert c.issubset(e)
         assert c.issubset(f)
-        assert c.issubset(g)
-        assert c.issubset(h)
-        assert c.issubset(i)
-        assert b.issubset(a)
-        assert b.issubset(b)
-        assert not b.issubset(c)
+        assert c.issubset(g) and c <= g
+        assert c.issubset(h) and c <= h
+        assert c.issubset(i) and c <= i
+        assert b.issubset(a) and b <= a
+        assert b.issubset(b) and b <= b
+        assert not b.issubset(c) and not (a <= c)
         assert b.issubset(d)
         assert b.issubset(e)
         assert not b.issubset(f)
-        assert b.issubset(g)
-        assert b.issubset(h)
-        assert not b.issubset(i)
-        assert a.issubset(a)
-        assert not a.issubset(b)
-        assert not a.issubset(c)
+        assert b.issubset(g) and b <= g
+        assert b.issubset(h) and b <= h
+        assert not b.issubset(i) and not (b <= i)
+        assert a.issubset(a) and a <= a
+        assert not a.issubset(b) and not (a <= b)
+        assert not a.issubset(c) and not (a <= c)
         assert a.issubset(d)
         assert not a.issubset(e)
         assert not a.issubset(f)
-        assert a.issubset(g)
-        assert not a.issubset(h)
-        assert not a.issubset(i)
+        assert a.issubset(g) and a <= g
+        assert not a.issubset(h) and not (a <= h)
+        assert not a.issubset(i) and not (a <= i)
+        with raises(TypeError):
+            a <= d
+        with raises(TypeError):
+            a <= e
+        with raises(TypeError):
+            a <= f
     assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][0])
     assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][1])
     assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][2])
