@@ -55,6 +55,49 @@ class Set(collections.Set):
     def __ne__(self, operand):
         return not (self == operand)
 
+    def __lt__(self, operand):
+        """Less-than (``<``) operator.  Tests whether the set is
+        a *proper* (or *strict*) subset of the given ``operand`` or not.
+
+        To eleborate, the key difference between this less-than (``<``)
+        operator and less-than or equal-to (``<=``) operator, which is
+        equivalent to :meth:`issubset()` method, is that it returns
+        ``False`` even if two sets are exactly the same.
+
+        Let this show a simple example:
+
+        .. sourcecode:: pycon
+
+           >>> assert isinstance(s, sider.set.Set)  # doctest: +SKIP
+           >>> set(s)  # doctest: +SKIP
+           set([1, 2, 3])
+           >>> s < set([1, 2]), s <= set([1, 2])  # doctest: +SKIP
+           (False, False)
+           >>> s < set([1, 2, 3]), s <= set([1, 2, 3])  # doctest: +SKIP
+           (False, True)
+           >>> s < set([1, 2, 3, 4]), s <= set([1, 2, 3, 4]) # doctest: +SKIP
+           (True, True)
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Set`
+        :returns: ``True`` if the ``operand`` set contains the set
+        :rtype: :class:`bool`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for < must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        if (isinstance(operand, Set) and self.session is operand.session and
+            self.value_type == operand.value_type):
+            client = self.session.client
+            for _ in client.sdiff(self.key, operand.key):
+                return False
+            card = len(self)
+            if card != len(client.sinter(self.key, operand.key)):
+                return False
+            return card < client.scard(operand.key)
+        return frozenset(self) < frozenset(operand)
+
     def __le__(self, operand):
         """Less-than or equal to (``<=``) operator.  Tests whether
         the set is a subset of the given ``operand`` or not.
@@ -110,6 +153,7 @@ class Set(collections.Set):
 
     def issubset(self, operand):
         """Tests whether the set is a subset of the given ``operand`` or not.
+        To test proper (strict) subset, use ``<`` operator instead.
 
         :param operand: another set to test
         :type operand: :class:`collections.Iterable`
