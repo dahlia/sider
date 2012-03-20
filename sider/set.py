@@ -61,6 +61,16 @@ class Set(collections.Set):
                             'collections.Set, not ' + repr(operand))
         return self.difference(operand)
 
+    def __rsub__(self, operand):
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for - must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        elif isinstance(operand, (Set, set, frozenset)):
+            return operand.difference(self)
+        operand = set(operand)
+        operand.difference_update(self)
+        return operand
+
     def __or__(self, operand):
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for - must be an instance of '

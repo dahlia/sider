@@ -92,6 +92,7 @@ def difference():
     assert set_.difference(S('bdef')) == S('ac')
     assert set_ - set2 == S('ac')
     assert set_ - S('bdef') == S('ac')
+    assert S('bdef') - set_ == S('ef')
     with raises(TypeError):
         set_ - 'bdef'
     setx = session.set(key('test_setx_difference'), S([1, 2, 3, 4]), IntSet)
@@ -101,6 +102,7 @@ def difference():
     assert setx.difference(S([2, 4, 5, 6])) == S([1, 3])
     assert setx - sety == S([1, 3])
     assert setx - S([2, 4, 5, 6]) == S([1, 3])
+    assert S([2, 4, 5, 6]) -setx == S([5, 6])
     with raises(TypeError):
         setx - [2, 4, 5, 6]
     # mismatched value_type Integer vs. Bulk:
