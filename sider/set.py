@@ -67,11 +67,17 @@ class Set(collections.Set):
                             'collections.Set, not ' + repr(operand))
         return self.union(operand)
 
+    def __ror__(self, operand):
+        return self | operand
+
     def __and__(self, operand):
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for - must be an instance of '
                             'collections.Set, not ' + repr(operand))
         return self.intersection(operand)
+
+    def __rand__(self, operand):
+        return self & operand
 
     def isdisjoint(self, operand):
         """Tests whether two sets are disjoint or not.

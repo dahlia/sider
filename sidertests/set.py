@@ -124,6 +124,7 @@ def union():
     assert set_.union(set2, set3, 'adfg') == S('abcdefg')
     assert set_ | S('cde') == S('abcde')
     assert set_ | set2 == S('abcde')
+    assert S('cde') | set_ == S('abcde')
     with raises(TypeError):
         set_ | 'cde'
     setx = session.set(key('test_setx_union'), S([1, 2, 3]), IntSet)
@@ -139,6 +140,7 @@ def union():
     assert setx.union(sety, setz, [1, 4, 6, 7]) == S([1, 2, 3, 4, 5, 6, 7])
     assert setx | S([3, 4, 5]) == S([1, 2, 3, 4, 5])
     assert setx | sety == S([1, 2, 3, 4, 5])
+    assert S([3, 4, 5]) | setx == S([1, 2, 3, 4, 5])
     with raises(TypeError):
         setx | [3, 4, 5]
     assert set_.union(setx) == S(['a', 'b', 'c', 1, 2, 3])
@@ -165,6 +167,7 @@ def intersection():
     assert set_.intersection(set2, set3, 'acfg') == S()
     assert set_ & S('bcd') == S('bc')
     assert set_ & set2 == S('bc')
+    assert S('bcd') & set_ == S('bc')
     with raises(TypeError):
         set_ & 'cde'
     setx = session.set(key('test_setx_intersection'), S([1, 2, 3]), IntSet)
@@ -180,6 +183,7 @@ def intersection():
     assert setx.intersection(sety, setz, [1, 2, 5]) == S([2])
     assert setx & S([2, 3, 4]) == S([2, 3])
     assert setx & sety == S([2, 3])
+    assert S([2, 3, 4]) & setx == S([2, 3])
     with raises(TypeError):
         setx & [3, 4, 5]
     assert set_.intersection(setx) == S([])
