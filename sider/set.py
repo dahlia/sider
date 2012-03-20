@@ -143,7 +143,7 @@ class Set(collections.Set):
 
         :param operand: another set to test
         :type operand: :class:`collections.Set`
-        :returns: ``True`` if the ``operand`` set contains the set
+        :returns: ``True`` if the set contains the ``operand``
         :rtype: :class:`bool`
 
         """
