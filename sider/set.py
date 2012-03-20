@@ -80,7 +80,7 @@ class Set(collections.Set):
 
         :param operand: another set to test
         :type operand: :class:`collections.Set`
-        :returns: ``True`` if the ``operand`` set contains the set
+        :returns: ``True`` if the set is a proper subset of ``operand``
         :rtype: :class:`bool`
 
         """
@@ -143,7 +143,8 @@ class Set(collections.Set):
 
         :param operand: another set to test
         :type operand: :class:`collections.Set`
-        :returns: ``True`` if the set contains the ``operand``
+        :returns: ``True`` if the set is a proper superset of
+                  ``operand``
         :rtype: :class:`bool`
 
         """
