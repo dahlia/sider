@@ -147,3 +147,43 @@ def union():
             == S(['a', 'b', 'c', 'd', 'e', 1, 2, 3, 4, 5]))
     assert set_ | setx == S(['a', 'b', 'c', 1, 2, 3])
 
+
+@tests.test
+def intersection():
+    session = get_session()
+    set_ = session.set(key('test_set_intersection'), S('abc'), Set)
+    set2 = session.set(key('test_set_intersection2'), S('bcd'), Set)
+    set3 = session.set(key('test_set_intersection3'), S('bef'), Set)
+    assert set_.intersection('bcde') == S('bc')
+    assert set_.intersection('bcde', 'cdef') == S('c')
+    assert set_.intersection(S('bcde')) == S('bc')
+    assert set_.intersection(S('bcde'), 'cdef') == S('c')
+    assert set_.intersection(S('bcde'), S('cdef')) == S('c')
+    assert set_.intersection(set2) == S('bc')
+    assert set_.intersection(set2, set3) == S('b')
+    assert set_.intersection(set2, set3, 'bcfg') == S('b')
+    assert set_.intersection(set2, set3, 'acfg') == S()
+    assert set_ & S('bcd') == S('bc')
+    assert set_ & set2 == S('bc')
+    with raises(TypeError):
+        set_ & 'cde'
+    setx = session.set(key('test_setx_intersection'), S([1, 2, 3]), IntSet)
+    sety = session.set(key('test_setx_intersection2'), S([2, 3, 4]), IntSet)
+    setz = session.set(key('test_setx_intersection3'), S([1, 2, 5]), IntSet)
+    assert setx.intersection([2, 3, 4]) == S([2, 3])
+    assert setx.intersection([2, 3, 4], [1, 2, 5]) == S([2])
+    assert setx.intersection(S([2, 3, 4])) == S([2, 3])
+    assert setx.intersection(S([2, 3, 4]), [1, 2, 5]) == S([2])
+    assert setx.intersection(S([2, 3, 4]), S([1, 2, 5])) == S([2])
+    assert setx.intersection(sety) == S([2, 3])
+    assert setx.intersection(sety, setz) == S([2])
+    assert setx.intersection(sety, setz, [1, 2, 5]) == S([2])
+    assert setx & S([2, 3, 4]) == S([2, 3])
+    assert setx & sety == S([2, 3])
+    with raises(TypeError):
+        setx & [3, 4, 5]
+    assert set_.intersection(setx) == S([])
+    assert set_.intersection(setx, sety) == S([])
+    assert set_.intersection(set2, setx, sety) == S([])
+    assert set_ & setx == S([])
+

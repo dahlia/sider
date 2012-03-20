@@ -67,6 +67,12 @@ class Set(collections.Set):
                             'collections.Set, not ' + repr(operand))
         return self.union(operand)
 
+    def __and__(self, operand):
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for - must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        return self.intersection(operand)
+
     def isdisjoint(self, operand):
         """Tests whether two sets are disjoint or not.
 
@@ -103,9 +109,9 @@ class Set(collections.Set):
         return set(self).difference(operand)
 
     def union(self, *sets):
-        """Gets the union of two sets.
+        """Gets the union of the given sets.
 
-        :param \*sets: one or more operand sets to union.
+        :param \*sets: zero or more operand sets to union.
                        all these must be iterable
         :returns: the union set
         :rtype: :class:`set`
@@ -128,6 +134,39 @@ class Set(collections.Set):
         for operand in offline_sets:
             union.update(operand)
         return union
+
+    def intersection(self, *sets):
+        """Gets the intersection of the given sets.
+
+        :param \*sets: zero or more operand sets to get intersection.
+                       all these must be iterable
+        :returns: the intersection
+        :rtype: :class:`set`
+
+        """
+        online_sets = []
+        offline_sets = []
+        for operand in sets:
+            if (isinstance(operand, Set) and self.session is operand.session):
+                if self.value_type != operand.value_type:
+                    return set()
+                online_sets.append(operand)
+            else:
+                offline_sets.append(operand)
+        keys = frozenset(s.key for s in online_sets)
+        if keys:
+            inter = self.session.client.sinter(self.key, *keys)
+            decode = self.value_type.decode
+            online = set(decode(m) for m in inter)
+        else:
+            online = self
+        if offline_sets:
+            base = offline_sets[0]
+            if not isinstance(base, set):
+                base = set(base)
+            base.intersection_update(online, *offline_sets[1:])
+            return base
+        return online if isinstance(online, set) else set(online)
 
     def _raw_update(self, members, pipe):
         key = self.key
