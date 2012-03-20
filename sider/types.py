@@ -16,7 +16,7 @@ into Python :class:`int` ``3``.
 from __future__ import absolute_import
 import collections
 import numbers
-from .lazyimport import list
+from .lazyimport import list, set
 
 
 class Value(object):
@@ -196,6 +196,12 @@ class Value(object):
             'implemented'.format(cls.__module__, cls.__name__)
         )
 
+    def __eq__(self, operand):
+        return type(self) is type(operand)
+
+    def __ne__(self, operand):
+        return not (self == operand)
+
 
 class List(Value):
     """The type object for :class:`sider.list.List` objects and other
@@ -204,7 +210,7 @@ class List(Value):
 
     :param value_type: the type of values the list will contain.
                        default is :class:`ByteString`
-    :type value_type: :class:`Value`, :class:`type`
+    :type value_type: :class:`Bulk`, :class:`type`
 
     """
 
@@ -228,6 +234,48 @@ class List(Value):
         obj._raw_extend(value, pipe)
         pipe.execute()
         return obj
+
+    def __eq__(self, operand):
+        if super(List, self).__eq__(operand):
+            return self.value_type == operand.value_type
+        return False
+
+
+class Set(Value):
+    """The type object for :class:`sider.set.Set` objects and other
+    :class:`collections.Set` objects.
+
+    :param value_type: the type of values the set will contain.
+                       default is :class:`ByteString`
+    :type value_type: :class:`Bulk`, :class:`type`
+
+    """
+
+    def __init__(self, value_type=None):
+        if value_type is None:
+            self.value_type = ByteString()
+        else:
+            self.value_type = Bulk.ensure_value_type(value_type,
+                                                     parameter='value_type')
+
+    def load_value(self, session, key):
+        return set.Set(session, key, value_type=self.value_type)
+
+    def save_value(self, session, key, value):
+        if not isinstance(value, collections.Set):
+            raise TypeError('expected a set-like object, not ' +
+                            repr(value))
+        obj = set.Set(session, key, value_type=self.value_type)
+        pipe = session.client.pipeline()
+        pipe.delete(key)
+        obj._raw_update(value, pipe)
+        pipe.execute()
+        return obj
+
+    def __eq__(self, operand):
+        if super(List, self).__eq__(operand):
+            return self.value_type == operand.value_type
+        return False
 
 
 class Bulk(Value):

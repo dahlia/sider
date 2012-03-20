@@ -6,6 +6,7 @@
 
       sider/session
       sider/types
+      sider/set
       sider/list
       sider/datetime
       sider/warnings

@@ -40,6 +40,9 @@ types = DeferredModule('sider.types')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.list`.
 list = DeferredModule('sider.list')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.list`.
+set = DeferredModule('sider.set')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.datetime`.
 datetime = DeferredModule('sider.datetime')
 
