@@ -196,6 +196,9 @@ class Value(object):
             'implemented'.format(cls.__module__, cls.__name__)
         )
 
+    def __hash__(self):
+        return hash(type(self))
+
     def __eq__(self, operand):
         return type(self) is type(operand)
 
@@ -235,6 +238,9 @@ class List(Value):
         pipe.execute()
         return obj
 
+    def __hash__(self):
+        return super(List, self).__hash__() * hash(self.value_type)
+
     def __eq__(self, operand):
         if super(List, self).__eq__(operand):
             return self.value_type == operand.value_type
@@ -272,8 +278,11 @@ class Set(Value):
         pipe.execute()
         return obj
 
+    def __hash__(self):
+        return super(Set, self).__hash__() * hash(self.value_type)
+
     def __eq__(self, operand):
-        if super(List, self).__eq__(operand):
+        if super(Set, self).__eq__(operand):
             return self.value_type == operand.value_type
         return False
 
