@@ -83,6 +83,55 @@ def isdisjoint():
 
 
 @tests.test
+def issubset():
+    session = get_session()
+    test_sets = {Set(): 'abcdefg', Set(Integer): range(1, 8)}
+    fixtures = {}
+    for value_type, members in test_sets.iteritems():
+        typeid = str(hash(value_type))
+        d = list(members)
+        e = d[1:-1]
+        f = e[1:-1]
+        g = S(d)
+        h = S(e)
+        i = S(f)
+        a = session.set(key('test_set_issubset_a' + typeid), g, value_type)
+        b = session.set(key('test_set_issubset_b' + typeid), h, value_type)
+        c = session.set(key('test_set_issubset_c' + typeid), i, value_type)
+        fixtures[value_type] = a, b, c
+        assert c.issubset(a)
+        assert c.issubset(b)
+        assert c.issubset(c)
+        assert c.issubset(d)
+        assert c.issubset(e)
+        assert c.issubset(f)
+        assert c.issubset(g)
+        assert c.issubset(h)
+        assert c.issubset(i)
+        assert b.issubset(a)
+        assert b.issubset(b)
+        assert not b.issubset(c)
+        assert b.issubset(d)
+        assert b.issubset(e)
+        assert not b.issubset(f)
+        assert b.issubset(g)
+        assert b.issubset(h)
+        assert not b.issubset(i)
+        assert a.issubset(a)
+        assert not a.issubset(b)
+        assert not a.issubset(c)
+        assert a.issubset(d)
+        assert not a.issubset(e)
+        assert not a.issubset(f)
+        assert a.issubset(g)
+        assert not a.issubset(h)
+        assert not a.issubset(i)
+    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][0])
+    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][1])
+    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][2])
+
+
+@tests.test
 def difference():
     session = get_session()
     set_ = session.set(key('test_set_difference'), S('abcd'), Set)

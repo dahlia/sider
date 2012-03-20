@@ -89,6 +89,23 @@ class Set(collections.Set):
     def __rand__(self, operand):
         return self & operand
 
+    def issubset(self, operand):
+        """Tests whether the set is a subset of the given ``operand`` or not.
+
+        :param operand: another set to test
+        :type operand: :class:`collections.Iterable`
+        :returns: ``True`` if the ``operand`` set contains the set
+        :rtype: :class:`bool`
+
+        """
+        if (isinstance(operand, Set) and self.session is operand.session and
+            self.value_type == operand.value_type):
+            client = self.session.client
+            for _ in client.sdiff(self.key, operand.key):
+                return False
+            return len(self) == len(client.sinter(self.key, operand.key))
+        return frozenset(self).issubset(operand)
+
     def isdisjoint(self, operand):
         """Tests whether two sets are disjoint or not.
 
