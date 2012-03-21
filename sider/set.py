@@ -15,10 +15,6 @@ class Set(collections.Set):
 
     .. todo::
 
-       The :meth:`__repr__()` method should be implemented.
-
-    .. todo::
-
        Implement :class:`collections.MutableSet` protocol.
 
     """
