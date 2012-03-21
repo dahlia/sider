@@ -328,3 +328,17 @@ def pop():
     with raises(IndexError):
         listx.pop(-1)
 
+
+@tests.test
+def repr_():
+    session = get_session()
+    list_ = session.set(key('test_list_repr'), [1, 2, 3], List(Integer))
+    r = repr(list_)
+    assert "<sider.list.List [1, 2, 3]>" == r
+    list_ = session.set(key('test_list_repr'), range(20), List(Integer))
+    r = repr(list_)
+    assert "<sider.list.List {0!r}>".format(range(20)) == r
+    list_.append(50)
+    r = repr(list_)
+    assert "<sider.list.List {0}, ...]>".format(repr(range(20))[:-1]) == r
+

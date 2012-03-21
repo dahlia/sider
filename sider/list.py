@@ -19,10 +19,6 @@ class List(collections.MutableSequence):
 
     .. todo::
 
-       The :meth:`__repr__()` method should be implemented.
-
-    .. todo::
-
        Methods automatically filled by :class:`collections.MutableSequence`
        should warn :exc:`~sider.list.PerformanceWarning`.
 
@@ -298,4 +294,18 @@ class List(collections.MutableSequence):
         if popped is None:
             raise IndexError(index)
         return self.value_type.decode(popped)
+
+    def __repr__(self):
+        def get_50():
+            values = self.session.client.lrange(self.key, 0, 20)
+            length = len(values)
+            decode = self.value_type.decode
+            for i, value in enumerate(values):
+                if i < 20 or i == 20 and length <= 20:
+                    yield repr(decode(value))
+                else:
+                    yield '...'
+        cls = type(self)
+        els = ', '.join(get_50())
+        return '<{0}.{1} [{2}]>'.format(cls.__module__, cls.__name__, els)
 
