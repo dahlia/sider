@@ -15,6 +15,10 @@ class Set(collections.Set):
 
     .. todo::
 
+       Implement :meth:`symmetric_difference()` and :meth:`__xor__()`.
+
+    .. todo::
+
        Implement :class:`collections.MutableSet` protocol.
 
     """
