@@ -315,3 +315,10 @@ def intersection():
     assert set_.intersection(set2, setx, sety) == S([])
     assert set_ & setx == S([])
 
+
+@tests.test
+def repr_():
+    session = get_session()
+    set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)
+    assert "<sider.set.Set {1, 2, 3}>" == repr(set_)
+

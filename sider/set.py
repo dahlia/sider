@@ -349,3 +349,10 @@ class Set(collections.Set):
             else:
                 pipe.sadd(key, *members)
 
+    def __repr__(self):
+        cls = type(self)
+        values = list(self)
+        values.sort()
+        els = ', '.join(repr(v) for v in values)
+        return '<{0}.{1} {{{2}}}>'.format(cls.__module__, cls.__name__, els)
+
