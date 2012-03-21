@@ -221,6 +221,34 @@ class Set(collections.Set):
         operand.difference_update(self)
         return operand
 
+    def __xor__(self, operand):
+        """Bitwise exclusive or (:token:`^`) operator.
+        Returns a new set with elements in either the set or
+        the ``operand`` but not both.
+
+        Mostly equivalent to :meth:`symmetric_difference()` method
+        except it can take a set-like operand only.  On the other hand
+        :meth:`symmetric_difference()` can take an any iterable
+        operand as well.
+
+        :param operand: other set
+        :type operand: :class:`collections.Set`
+        :returns: a new set with elements in either the set or
+                  the ``operand`` but not both
+        :rtype: :class:`set`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for ^ must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        return self.symmetric_difference(operand)
+
+    def __rxor__(self, operand):
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for ^ must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        return self.symmetric_difference(operand)
+
     def __or__(self, operand):
         """Bitwise or (:token:`|`) operator.  Gets the union of
         operands.
@@ -334,6 +362,19 @@ class Set(collections.Set):
             decode = self.value_type.decode
             return set(decode(member) for member in diff)
         return set(self).difference(operand)
+
+    def symmetric_difference(self, operand):
+        """Returns a new set with elements in either the set or
+        the ``operand`` but not both.
+
+        :param operand: other set
+        :type operand: :class:`collections.Iterable`
+        :returns: a new set with elements in either the set or
+                  the ``operand`` but not both
+        :rtype: :class:`set`
+
+        """
+        return set(self).symmetric_difference(operand)
 
     def union(self, *sets):
         """Gets the union of the given sets.

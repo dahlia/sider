@@ -233,6 +233,34 @@ def difference():
 
 
 @tests.test
+def symmetric_difference():
+    session = get_session()
+    set_ = session.set(key('test_set_symmdiff'), S('abcd'), Set)
+    set2 = session.set(key('test_set_symmdiff2'), S('bde1'), Set)
+    assert set_.symmetric_difference(set2) == S('ace1')
+    assert set_.symmetric_difference('bdef') == S('acef')
+    assert set_.symmetric_difference(S('bdef')) == S('acef')
+    assert set_ ^ set2 == S('ace1')
+    assert set_ ^ S('bdef') == S('acef')
+    assert S('bdef') ^ set_ == S('acef')
+    with raises(TypeError):
+        set_ ^ 'bdef'
+    setx = session.set(key('test_setx_symmdiff'), S([1, 2, 3, 4]), IntSet)
+    sety = session.set(key('test_setx_symmdiff2'), S([2, 4, 5, 6]), IntSet)
+    assert setx.symmetric_difference(sety) == S([1, 3, 5, 6])
+    assert setx.symmetric_difference([2, 4, 5, 6]) == S([1, 3, 5, 6])
+    assert setx.symmetric_difference(S([2, 4, 5, 6])) == S([1, 3, 5, 6])
+    assert setx ^ sety == S([1, 3, 5, 6])
+    assert setx ^ S([2, 4, 5, 6]) == S([1, 3, 5, 6])
+    assert S([2, 4, 5, 6]) ^ setx == S([1, 3, 5, 6])
+    with raises(TypeError):
+        setx ^ [2, 4, 5, 6]
+    # mismatched value_type Integer vs. Bulk:
+    assert setx.union(set2) == setx.symmetric_difference(set2)
+    assert set2.union(setx) == set2.symmetric_difference(setx)
+
+
+@tests.test
 def union():
     session = get_session()
     set_ = session.set(key('test_set_union'), S('abc'), Set)
