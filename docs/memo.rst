@@ -10,16 +10,6 @@ Directions
   Connections aren't sessions.
 
 
-Planned modules
----------------
-
-- :mod:`sider.types`: :class:`~sider.types.Bulk` and its subtypes.
-  Implements conversation between Python and Redis data types.
-- :mod:`sider.hash`: :class:`~sider.hash.Hash` implements
-  :class:`collections.MutableMapping` and works like :class:`dict`
-  mostly transparently.
-
-
 Example
 -------
 
