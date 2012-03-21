@@ -69,13 +69,14 @@ class Set(collections.Set):
         return not (self == operand)
 
     def __lt__(self, operand):
-        """Less-than (``<``) operator.  Tests whether the set is
+        """Less-than (:token:`<`) operator.  Tests whether the set is
         a *proper* (or *strict*) subset of the given ``operand`` or not.
 
-        To eleborate, the key difference between this less-than (``<``)
-        operator and less-than or equal-to (``<=``) operator, which is
-        equivalent to :meth:`issubset()` method, is that it returns
-        ``False`` even if two sets are exactly the same.
+        To eleborate, the key difference between this less-than
+        (:token:`<`) operator and less-than or equal-to (:token:`<=`)
+        operator, which is equivalent to :meth:`issubset()` method,
+        is that it returns ``False`` even if two sets are exactly
+        the same.
 
         Let this show a simple example:
 
@@ -112,8 +113,8 @@ class Set(collections.Set):
         return frozenset(self) < frozenset(operand)
 
     def __le__(self, operand):
-        """Less-than or equal to (``<=``) operator.  Tests whether
-        the set is a subset of the given ``operand`` or not.
+        """Less-than or equal to (:token:`<=`) operator.
+        Tests whether the set is a subset of the given ``operand``.
 
         It's the same operation to :meth:`issubset()` method except
         it can take a set-like operand only.  On the other hand
@@ -131,14 +132,14 @@ class Set(collections.Set):
         return self.issubset(operand)
 
     def __gt__(self, operand):
-        """Greater-than (``>``) operator.  Tests whether the set is
-        a *proper* (or *strict*) superset of the given ``operand``.
+        """Greater-than (:token:`>`) operator.  Tests whether the set
+        is a *proper* (or *strict*) superset of the given ``operand``.
 
         To eleborate, the key difference between this greater-than
-        (``>``) operator and greater-than or equal-to (``>=``)
-        operator, which is equivalent to :meth:`issuperset()` method,
-        is that it returns ``False`` even if two sets are exactly
-        the same.
+        (:token:`>`) operator and greater-than or equal-to
+        (:token:`>=`) operator, which is equivalent to
+        :meth:`issuperset()` method, is that it returns ``False``
+        even if two sets are exactly the same.
 
         Let this show a simple example:
 
@@ -169,8 +170,8 @@ class Set(collections.Set):
         return frozenset(self) > frozenset(operand)
 
     def __ge__(self, operand):
-        """Greater-than or equal to (``>=``) operator.  Tests whether
-        the set is a superset of the given ``operand`` or not.
+        """Greater-than or equal to (:token:`>=`) operator.
+        Tests whether the set is a superset of the given ``operand``.
 
         It's the same operation to :meth:`issuperset()` method except
         it can take a set-like operand only.  On the other hand
@@ -188,8 +189,8 @@ class Set(collections.Set):
         return self.issuperset(operand)
 
     def __sub__(self, operand):
-        """Minus (``-``) operator.  Gets the relative complement of
-        the ``operand`` in the set.
+        """Minus (:token:`-`) operator.  Gets the relative complement
+        of the ``operand`` in the set.
 
         Mostly equivalent to :meth:`difference()` method except it
         can take a set-like operand only.  On the other hand
@@ -217,7 +218,8 @@ class Set(collections.Set):
         return operand
 
     def __or__(self, operand):
-        """Bitwise or (``|``) operator.  Gets the union of operands.
+        """Bitwise or (:token:`|`) operator.  Gets the union of
+        operands.
 
         Mostly equivalent to :meth:`union()` method except it can
         take only one set-like operand.  On the other hand
@@ -239,12 +241,13 @@ class Set(collections.Set):
         return self | operand
 
     def __and__(self, operand):
-        """Bitwise and (``&``) operator.  Gets the union of operands.
+        """Bitwise and (:token:`&`) operator.  Gets the union of
+        operands.
 
         Mostly equivalent to :meth:`intersection()` method except it
         can take only one set-like operand.  On the other hand
-        :meth:`intersection()` can take zero or more iterable operands
-        (not only set-like objects).
+        :meth:`intersection()` can take zero or more iterable
+        operands (not only set-like objects).
 
         :param operand: another set to get intersection
         :type operand: :class:`collections.Set`
@@ -262,7 +265,7 @@ class Set(collections.Set):
 
     def issubset(self, operand):
         """Tests whether the set is a subset of the given ``operand`` or not.
-        To test proper (strict) subset, use ``<`` operator instead.
+        To test proper (strict) subset, use :token:`<` operator instead.
 
         :param operand: another set to test
         :type operand: :class:`collections.Iterable`
@@ -279,8 +282,9 @@ class Set(collections.Set):
         return frozenset(self).issubset(operand)
 
     def issuperset(self, operand):
-        """Tests whether the set is a superset of the given ``operand``.
-        To test proper (strict) superset, use ``>`` operator instead.
+        """Tests whether the set is a superset of the given
+        ``operand``.  To test proper (strict) superset,
+        use :token:`>` operator instead.
 
         :param operand: another set to test
         :type operand: :class:`collections.Iterable`
