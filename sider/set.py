@@ -34,9 +34,26 @@ class Set(collections.Set):
             yield decode(member)
 
     def __len__(self):
+        """Gets the cardinality of the set.
+
+        Use this with the built-in :func:`len()` function.
+
+        :returns: the cardinality of the set
+        :rtype: :class:`numbers.Integral`
+
+        """
         return self.session.client.scard(self.key)
 
     def __contains__(self, member):
+        """:keyword:`in` operator.  Tests whether the set contains
+        the given operand ``member``.
+
+        :param member: the value to test
+        :returns: ``True`` if the set contains the given
+                  operand ``member``
+        :rtype: :class:`bool`
+
+        """
         try:
             data = self.value_type.encode(member)
         except TypeError:
@@ -171,6 +188,19 @@ class Set(collections.Set):
         return self.issuperset(operand)
 
     def __sub__(self, operand):
+        """Minus (``-``) operator.  Gets the relative complement of
+        the ``operand`` in the set.
+
+        Mostly equivalent to :meth:`difference()` method except it
+        can take a set-like operand only.  On the other hand
+        :meth:`difference()` can take an any iterable operand as well.
+
+        :param operand: another set to get the relative complement
+        :type operand: :class:`collections.Set`
+        :returns: the relative complement
+        :rtype: :class:`set`
+
+        """
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for - must be an instance of '
                             'collections.Set, not ' + repr(operand))
@@ -187,6 +217,19 @@ class Set(collections.Set):
         return operand
 
     def __or__(self, operand):
+        """Bitwise or (``|``) operator.  Gets the union of operands.
+
+        Mostly equivalent to :meth:`union()` method except it can
+        take only one set-like operand.  On the other hand
+        :meth:`union()` can take zero or more iterable operands
+        (not only set-like objects).
+
+        :param operand: another set to union
+        :type operand: :class:`collections.Set`
+        :returns: the union set
+        :rtype: :class:`set`
+
+        """
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for | must be an instance of '
                             'collections.Set, not ' + repr(operand))
@@ -196,6 +239,19 @@ class Set(collections.Set):
         return self | operand
 
     def __and__(self, operand):
+        """Bitwise and (``&``) operator.  Gets the union of operands.
+
+        Mostly equivalent to :meth:`intersection()` method except it
+        can take only one set-like operand.  On the other hand
+        :meth:`intersection()` can take zero or more iterable operands
+        (not only set-like objects).
+
+        :param operand: another set to get intersection
+        :type operand: :class:`collections.Set`
+        :returns: the intersection
+        :rtype: :class:`set`
+
+        """
         if not isinstance(operand, collections.Set):
             raise TypeError('operand for & must be an instance of '
                             'collections.Set, not ' + repr(operand))
