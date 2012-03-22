@@ -13,6 +13,37 @@ class Set(collections.MutableSet):
     alike built-in Python :class:`set` object.  More exactly, it
     implements :class:`collections.MutableSet` protocol.
 
+    ==================== ======================================================
+    Redis command        :class:`Set` methods
+    ==================== ======================================================
+    :redis:`SADD`        :meth:`Set.add()`,
+                         :meth:`Set.update()`
+    :redis:`SCARD`       :func:`len()` (:meth:`Set.__len__()`)
+    :redis:`SDIFF`       :meth:`Set.difference()`,
+                         :token:`-` (:meth:`Set.__sub__()`)
+    :redis:`SDIFFSTORE`  :meth:`Set.difference_update()`,
+                         :token:`-=` (:meth:`Set.__isub__()`)
+    :redis:`SINTER`      :meth:`Set.intersection()`,
+                         :token:`&` (:meth:`Set.__and__()`)
+    :redis:`SINTERSTORE` :meth:`Set.intersection_update()`,
+                         :token:`&=` (:meth:`Set.__iand__()`)
+    :redis:`SISMEMBER`   :keyword:`in` (:meth:`Set.__contains__()`)
+    :redis:`SMEMBERS`    :func:`iter()` (:meth:`Set.__iter__()`)
+    :redis:`SMOVE`       N/A
+    :redis:`SPOP`        :meth:`Set.pop()`
+    :redis:`SRANDMEMBER` N/A
+    :redis:`SREM`        :meth:`Set.discard()`,
+                         :meth:`Set.remove()`
+    :redis:`SUNION`      :meth:`Set.union()`,
+                         :token:`|` (:meth:`Set.__or__()`)
+    :redis:`SUNIONSTORE` :meth:`Set.update()`,
+                         :token:`|=` (:meth:`Set.__ior__()`)
+    N/A                  :meth:`Set.symmetric_difference()`,
+                         :token:`^` (:meth:`Set.__xor__()`)
+    N/A                  :meth:`Set.symmetric_difference_update()`,
+                         :token:`^=` (:meth:`Set.__ixor__()`)
+    ==================== ======================================================
+
     """
 
     def __init__(self, session, key, value_type=ByteString):
@@ -37,6 +68,11 @@ class Set(collections.MutableSet):
         :returns: the cardinality of the set
         :rtype: :class:`numbers.Integral`
 
+        .. note::
+
+           This method is directly mapped to :redis:`SCARD`
+           command.
+
         """
         return self.session.client.scard(self.key)
 
@@ -48,6 +84,11 @@ class Set(collections.MutableSet):
         :returns: ``True`` if the set contains the given
                   operand ``member``
         :rtype: :class:`bool`
+
+        .. note::
+
+           This method is directly mapped to :redis:`SISMEMBER`
+           command.
 
         """
         try:
@@ -317,6 +358,17 @@ class Set(collections.MutableSet):
         :returns: ``True`` if the ``operand`` set contains the set
         :rtype: :class:`bool`
 
+        .. note::
+
+           This method consists of following Redis commands:
+
+           1. :redis:`SDIFF` for this set and ``operand``
+           2. :redis:`SLEN` for this set
+           3. :redis:`SLEN` for ``operand``
+
+           If the first :redis:`SDIFF` returns anything, it sends
+           no commands of the rest and simply returns ``False``.
+
         """
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
@@ -349,6 +401,10 @@ class Set(collections.MutableSet):
         :returns: ``True`` if two sets have a null intersection
         :rtype: :class:`bool`
 
+        .. note::
+
+           It internally uses :redis:`SINTER` command.
+
         """
         if isinstance(operand, Set) and self.session is operand.session:
             if self.value_type != operand.value_type:
@@ -366,6 +422,10 @@ class Set(collections.MutableSet):
         :type operand: :class:`collections.Iterable`
         :returns: the relative complement
         :rtype: :class:`set`
+
+        .. note::
+
+           This method is mapped to :redis:`SDIFF` command.
 
         """
         if isinstance(operand, Set) and self.session is operand.session:
@@ -385,6 +445,16 @@ class Set(collections.MutableSet):
         :returns: a new set with elements in either the set or
                   the ``operand`` but not both
         :rtype: :class:`set`
+
+        .. note::
+
+           This method consists of following two commands:
+
+           1. :redis:`SUNION` of this set and the ``operand``
+           2. :redis:`SINTER` of this set and the ``operand``
+
+           and then makes a new :class:`set` with elements in
+           the first result are that are not in the second result.
 
         """
         if (isinstance(operand, Set) and self.session is operand.session and
@@ -469,6 +539,10 @@ class Set(collections.MutableSet):
 
         :param element: an element to add
 
+        .. note::
+
+           This method is a direct mapping to :redis:`SADD` comamnd.
+
         """
         member = self.value_type.encode(element)
         self.session.client.sadd(self.key, member)
@@ -478,6 +552,10 @@ class Set(collections.MutableSet):
         If the ``element`` is not a member, does nothing.
 
         :param element: an element to remove
+
+        .. note::
+
+           This method is mapped to :redis:`SREM` command.
 
         """
         try:
