@@ -508,7 +508,7 @@ class Set(collections.MutableSet):
         online_sets = {self.value_type: [self]}
         offline_sets = []
         for operand in sets:
-            if (isinstance(operand, Set) and self.session is operand.session):
+            if isinstance(operand, Set) and self.session is operand.session:
                 group = online_sets.setdefault(operand.value_type, [])
                 group.append(operand)
             else:
