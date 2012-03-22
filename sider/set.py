@@ -351,6 +351,27 @@ class Set(collections.MutableSet):
     def __rand__(self, operand):
         return self & operand
 
+    def __iand__(self, operand):
+        """Bitwise and (:token:`&=`) assignment.  Updates the set
+        with the intersection of itself and the ``operand``.
+
+        Mostly equivalent to :meth:`intersection_update()` method
+        except it can take only one set-like operand.  On the other
+        hand :meth:`intersection_update()` can take zero or more
+        iterable operands (not only set-like objects).
+
+        :param operand: another set to intersection
+        :type operand: :class:`collections.Set`
+        :returns: the set itself
+        :rtype: :class:`Set`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for &= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        self.intersection_update(operand)
+        return self
+
     def issubset(self, operand):
         """Tests whether the set is a subset of the given ``operand`` or not.
         To test proper (strict) subset, use :token:`<` operator instead.
@@ -641,6 +662,58 @@ class Set(collections.MutableSet):
                 pipe.sadd(key, member)
         else:
             pipe.sadd(key, *members)
+
+    def intersection_update(self, *sets):
+        """Updates the set with the intersection of itself and
+        other ``sets``.
+
+        :param \*sets: zero or more operand sets to intersection.
+                       all these must be iterable
+
+        .. note::
+
+           It sends a :redis:`SINTERSTORE` command for other
+           :class:`Set` objects and a :redis:`SREM` command for
+           other ordinary Python iterables.
+
+           Multiple operands of :redis:`SREM` command has been supported
+           since Redis 2.4.0, so it would send multiple :redis:`SREM`
+           commands if the Redis version is less than 2.4.0.
+
+           Used commands: :redis:`SINTERSTORE`, :redis:`SMEMBERS`
+           and :redis:`SREM`.
+
+        """
+        online_sets = []
+        offline_sets = []
+        for operand in sets:
+            if isinstance(operand, Set) and self.session is operand.session:
+                if self.value_type == operand.value_type:
+                    online_sets.append(operand)
+                else:
+                    self.session.client.delete(self.key)
+                    return
+            else:
+                offline_sets.append(operand)
+        pipe = self.session.client.pipeline()
+        if online_sets:
+            keys = (operand.key for operand in online_sets)
+            pipe.sinterstore(self.key, self.key, *keys)
+        try:
+            memory_set = offline_sets.pop()
+        except IndexError:
+            pass
+        else:
+            if offline_sets:
+                memory_set = set(memory_set)
+                memory_set.intersection_update(*offline_sets)
+            excludes = self.difference(memory_set)
+            if self.session.server_version_info < (2, 4, 0):
+                for exclude in excludes:
+                    pipe.srem(self.key, exclude)
+            else:
+                pipe.srem(self.key, *excludes)
+        pipe.execute()
 
     def __repr__(self):
         cls = type(self)

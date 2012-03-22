@@ -492,6 +492,100 @@ def update():
 
 
 @tests.test
+def intersection_update():
+    session = get_session()
+    def reset():
+        return session.set(key('test_set_intersection_update'), S('abc'), Set)
+    set_ = reset()
+    set2 = session.set(key('test_set_intersection_update2'), S('bcd'), Set)
+    set3 = session.set(key('test_set_intersection_update3'), S('bef'), Set)
+    set_.intersection_update('bcde')
+    assert set_ == S('bc')
+    reset()
+    set_.intersection_update('bcde', 'cdef')
+    assert set_ == S('c')
+    reset()
+    set_.intersection_update(S('bcde'))
+    assert set_ == S('bc')
+    reset()
+    set_.intersection_update(S('bcde'), 'cdef')
+    assert set_ == S('c')
+    reset()
+    set_.intersection_update(S('bcde'), S('cdef'))
+    assert set_ == S('c')
+    reset()
+    set_.intersection_update(set2)
+    assert set_ == S('bc')
+    reset()
+    set_.intersection_update(set2, set3)
+    assert set_ == S('b')
+    reset()
+    set_.intersection_update(set2, set3, 'bcfg')
+    assert set_ == S('b')
+    reset()
+    set_.intersection_update(set2, set3, 'acfg')
+    assert set_ == S()
+    reset()
+    set_ &= S('bcd')
+    assert set_ == S('bc')
+    reset()
+    set_ &= set2
+    assert set_ == S('bc')
+    reset()
+    with raises(TypeError):
+        set_ &= 'cde'
+    def resetx():
+        return session.set(key('test_setx_intersection_update'),
+                           S([1, 2, 3]), IntSet)
+    setx = resetx()
+    sety = session.set(key('test_setx_intersection_update2'),
+                       S([2, 3, 4]), IntSet)
+    setz = session.set(key('test_setx_intersection_update3'),
+                       S([1, 2, 5]), IntSet)
+    setx.intersection_update([2, 3, 4])
+    assert setx == S([2, 3])
+    resetx()
+    setx.intersection_update([2, 3, 4], [1, 2, 5])
+    assert setx == S([2])
+    resetx()
+    setx.intersection_update(S([2, 3, 4]))
+    assert setx == S([2, 3])
+    resetx()
+    setx.intersection_update(S([2, 3, 4]), [1, 2, 5])
+    assert setx == S([2])
+    resetx()
+    setx.intersection_update(S([2, 3, 4]), S([1, 2, 5]))
+    assert setx == S([2])
+    resetx()
+    setx.intersection_update(sety)
+    assert setx == S([2, 3])
+    resetx()
+    setx.intersection_update(sety, setz)
+    assert setx == S([2])
+    resetx()
+    setx.intersection_update(sety, setz, [1, 2, 5])
+    assert setx == S([2])
+    resetx()
+    setx &= S([2, 3, 4])
+    assert setx == S([2, 3])
+    resetx()
+    setx &= sety
+    assert setx == S([2, 3])
+    resetx()
+    with raises(TypeError):
+        setx &= [3, 4, 5]
+    resetx()
+    set_.intersection_update(setx)
+    assert set_ == S([])
+    resetx()
+    set_.intersection_update(setx, sety)
+    assert set_ == S([])
+    resetx()
+    set_.intersection_update(set2, setx, sety)
+    assert set_ == S([])
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)
