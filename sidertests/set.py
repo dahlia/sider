@@ -411,6 +411,87 @@ def clear():
 
 
 @tests.test
+def update():
+    session = get_session()
+    def reset():
+        return session.set(key('test_set_update'), S('abc'), Set)
+    set_ = reset()
+    set2 = session.set(key('test_set_update2'), S('cde'), Set)
+    set3 = session.set(key('test_set_update3'), S('def'), Set)
+    set_.update('cde')
+    assert set_ == S('abcde')
+    reset()
+    set_.update('cde', 'def')
+    assert set_ == S('abcdef')
+    reset()
+    set_.update(S('cde'))
+    assert set_ == S('abcde')
+    reset()
+    set_.update(S('cde'), 'def')
+    assert set_ == S('abcdef')
+    reset()
+    set_.update(S('cde'), S('def'))
+    assert set_ == S('abcdef')
+    reset()
+    set_.update(set2)
+    assert set_ == S('abcde')
+    reset()
+    set_.update(set2, set3)
+    assert set_ == S('abcdef')
+    reset()
+    set_.update(set2, set3, 'adfg')
+    assert set_ == S('abcdefg')
+    reset()
+    set_ |= S('cde')
+    assert set_ == S('abcde')
+    reset()
+    set_ |= set2
+    assert set_ == S('abcde')
+    with raises(TypeError):
+        set_ |= 'cde'
+    def resetx():
+        return session.set(key('test_setx_union'), S([1, 2, 3]), IntSet)
+    setx = resetx()
+    sety = session.set(key('test_setx_union2'), S([3, 4, 5]), IntSet)
+    setz = session.set(key('test_setx_union3'), S([4, 5, 6]), IntSet)
+    setx.update([3, 4, 5])
+    assert setx == S([1, 2, 3, 4, 5])
+    resetx()
+    setx.update([3, 4, 5], [4, 5, 6])
+    assert setx == S([1, 2, 3, 4, 5, 6])
+    resetx()
+    setx.update(S([3, 4, 5]))
+    assert setx == S([1, 2, 3, 4, 5])
+    resetx()
+    setx.update(S([3, 4, 5]), [4, 5, 6])
+    assert setx == S([1, 2, 3, 4, 5, 6])
+    resetx()
+    setx.update(S([3, 4, 5]), S([4, 5, 6]))
+    assert setx == S([1, 2, 3, 4, 5, 6])
+    resetx()
+    setx.update(sety)
+    assert setx == S([1, 2, 3, 4, 5])
+    resetx()
+    setx.update(sety, setz)
+    assert setx == S([1, 2, 3, 4, 5, 6])
+    resetx()
+    setx.update(sety, setz, [1, 4, 6, 7])
+    assert setx == S([1, 2, 3, 4, 5, 6, 7])
+    resetx()
+    setx |= S([3, 4, 5])
+    assert setx == S([1, 2, 3, 4, 5])
+    resetx()
+    setx |= sety
+    assert setx == S([1, 2, 3, 4, 5])
+    with raises(TypeError):
+        setx |= [3, 4, 5]
+    with raises(TypeError):
+        set_.update(setx)
+    with raises(TypeError):
+        set_ |= setx == S(['a', 'b', 'c', 1, 2, 3])
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)

@@ -264,6 +264,27 @@ class Set(collections.MutableSet):
     def __ror__(self, operand):
         return self | operand
 
+    def __ior__(self, operand):
+        """Bitwise or (:token:`|=`) assignment.  Updates the set
+        with the union of itself and the ``operand``.
+
+        Mostly equivalent to :meth:`update()` method except it can
+        take only one set-like operand.  On the other hand
+        :meth:`update()` can take zero or more iterable operands
+        (not only set-like objects).
+
+        :param operand: another set to union
+        :type operand: :class:`collections.Set`
+        :returns: the set itself
+        :rtype: :class:`Set`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for |= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        self.update(operand)
+        return self
+
     def __and__(self, operand):
         """Bitwise and (:token:`&`) operator.  Gets the union of
         operands.
@@ -384,6 +405,12 @@ class Set(collections.MutableSet):
         :returns: the union set
         :rtype: :class:`set`
 
+        .. note::
+
+           It sends a :redis:`SUNION` command for other :class:`Set`
+           objects.  For other ordinary Python iterables, it unions
+           all in the memory.
+
         """
         online_sets = {self.value_type: [self]}
         offline_sets = []
@@ -486,19 +513,54 @@ class Set(collections.MutableSet):
         """
         self.session.client.delete(self.key)
 
+    def update(self, *sets):
+        """Updates the set with union of itself and operands.
+
+        :param \*sets: zero or more operand sets to union.
+                       all these must be iterable
+
+        .. note::
+
+           It sends a :redis:`SUNIONSTORE` command for other
+           :class:`Set` objects and a :redis:`SADD` command for
+           other ordinary Python iterables.
+
+           Multiple operands of :redis:`SADD` command was supported
+           since Redis 2.4.0, so it would send multiple :redis:`SADD`
+           commands if the Redis version is less than 2.4.0.
+
+        """
+        online_sets = []
+        offline_sets = []
+        for operand in sets:
+            if isinstance(operand, Set) and self.session is operand.session:
+                if self.value_type == operand.value_type:
+                    online_sets.append(operand)
+                else:
+                    raise TypeError(
+                        'value_type mismatch; tried union of {0!r} and '
+                        '{1!r}'.format(self.value_type, operand.value_type)
+                    )
+            else:
+                offline_sets.append(operand)
+        pipe = self.session.client.pipeline()
+        if online_sets:
+            keys = (operand.key for operand in online_sets)
+            pipe.sunionstore(self.key, self.key, *keys)
+        update = self._raw_update
+        for operand in offline_sets:
+            update(operand, pipe)
+        pipe.execute()
+
     def _raw_update(self, members, pipe):
         key = self.key
-        if (isinstance(members, Set) and self.session is members.session and
-            self.value_type == members.value_type):
-            pipe.sunionstore(key, members.key, key)
+        encode = self.value_type.encode
+        data = (encode(v) for v in members)
+        if self.session.server_version_info < (2, 4, 0):
+            for member in data:
+                pipe.sadd(key, member)
         else:
-            encode = self.value_type.encode
-            data = (encode(v) for v in members)
-            if self.session.server_version_info < (2, 4, 0):
-                for member in data:
-                    pipe.sadd(key, member)
-            else:
-                pipe.sadd(key, *members)
+            pipe.sadd(key, *members)
 
     def __repr__(self):
         cls = type(self)
