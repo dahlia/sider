@@ -100,7 +100,21 @@ class Set(collections.MutableSet):
         return bool(self.session.client.sismember(self.key, data))
 
     def __eq__(self, operand):
-        if isinstance(operand, collections.Set):
+        if isinstance(operand, (set, frozenset)):
+            return frozenset(self) == operand
+        elif isinstance(operand, Set) and self.session is operand.session:
+            length = len(self)
+            if length == 0:
+                return len(operand) == 0
+            elif self.value_type == operand.value_type:
+                for _ in self.session.client.sdiff(self.key, operand.key):
+                    return False
+                for _ in self.session.client.sdiff(operand.key, self.key):
+                    return False
+                return True
+            else:
+                return False
+        elif isinstance(operand, collections.Set):
             return frozenset(self) == frozenset(operand)
         return False
 

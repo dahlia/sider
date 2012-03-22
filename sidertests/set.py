@@ -44,8 +44,19 @@ def contains():
 def equals():
     session = get_session()
     set_ = session.set(key('test_set_equals'), S('abc'), Set)
+    set2 = session.set(key('test_set_equals2'), S('abc'), Set)
+    set3 = session.set(key('test_set_equals3'), S('abcd'), Set)
+    set4 = session.set(key('test_set_equals4'), S([1, 2, 3]), IntSet)
+    emptyset = session.set(key('test_set_equals5'), S(), Set)
+    emptyset2 = session.set(key('test_set_equals5'), S(), IntSet)
     assert set_ == set('abc')
+    assert set_ != set('abcd')
     assert set_ == S('abc')
+    assert set_ != S('abcd')
+    assert set_ == set2 and set2 == set_
+    assert set_ != set3 and set3 != set_
+    assert set_ != set4 and set4 != set_
+    assert emptyset == emptyset2 and emptyset2 == emptyset
 
 
 @tests.test
