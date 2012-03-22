@@ -345,6 +345,25 @@ def intersection():
 
 
 @tests.test
+def add():
+    session = get_session()
+    set_ = session.set(key('test_set_add'), S('abc'), Set)
+    set_.add('d')
+    assert set_ == S('abcd')
+    set_.add('d')
+    assert set_ == S('abcd')
+    with raises(TypeError):
+        set_.add(1)
+    setx = session.set(key('test_setx_add'), S([1, 2, 3]), IntSet)
+    setx.add(4)
+    assert setx == S([1, 2, 3, 4])
+    setx.add(4)
+    assert setx == S([1, 2, 3, 4])
+    with raises(TypeError):
+        setx.add('a')
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)

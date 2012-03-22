@@ -440,6 +440,16 @@ class Set(collections.Set):
             return base
         return online if isinstance(online, set) else set(online)
 
+    def add(self, element):
+        """Adds an ``element`` to the set.  This has no effect
+        if the ``element`` is already present.
+
+        :param element: an element to add
+
+        """
+        member = self.value_type.encode(element)
+        self.session.client.sadd(self.key, member)
+
     def _raw_update(self, members, pipe):
         key = self.key
         if (isinstance(members, Set) and self.session is members.session and
