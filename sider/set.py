@@ -46,6 +46,11 @@ class Set(collections.MutableSet):
                             :token:`^=` (:meth:`Set.__ixor__()`)
        ==================== ==========================================
 
+    .. todo::
+
+       There currently are too many duplications implementations
+       of its methods.  These should be done refactoring.
+
     """
 
     def __init__(self, session, key, value_type=ByteString):
@@ -269,6 +274,28 @@ class Set(collections.MutableSet):
         operand = set(operand)
         operand.difference_update(self)
         return operand
+
+    def __isub__(self, operand):
+        """Minus augmented assignment (:token:`-=`).  Removes all
+        elements of the ``operand`` from this set.
+
+        Mostly equivalent to :meth:`difference_update()` method
+        except it can take only one set-like operand.  On the other
+        hand :meth:`difference_update()` can take zero or more
+        iterable operands (not only set-like objects).
+
+        :param operand: another set which has elements to remove
+                        from this set
+        :type operand: :class:`collections.Set`
+        :returns: the set itself
+        :rtype: :class:`Set`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for -= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        self.difference_update(operand)
+        return self
 
     def __xor__(self, operand):
         """Bitwise exclusive or (:token:`^`) operator.
@@ -729,13 +756,60 @@ class Set(collections.MutableSet):
             if offline_sets:
                 memory_set = set(memory_set)
                 memory_set.intersection_update(*offline_sets)
-            excludes = self.difference(memory_set)
-            if self.session.server_version_info < (2, 4, 0):
-                for exclude in excludes:
-                    pipe.srem(self.key, exclude)
-            else:
-                pipe.srem(self.key, *excludes)
+            self._raw_delete(self.difference(memory_set), pipe)
         pipe.execute()
+
+    def difference_update(self, *sets):
+        """Removes all elements of other ``sets`` from this set.
+
+        :param \*sets: other sets that have elements to remove
+                       from this set
+
+        .. note::
+
+           For :class:`Set` objects of the same session it internally
+           uses :redis:`SDIFFSTORE` command.
+
+           For other ordinary Python iterables, it uses :redis:`SREM`
+           commands.  If the version of Redis is less than 2.4,
+           sends :redis:`SREM` multiple times.  Because multiple
+           operands of :redis:`SREM` command has been supported since
+           Redis 2.4.
+
+        """
+        online_sets = []
+        offline_sets = []
+        for operand in sets:
+            if isinstance(operand, Set) and self.session is operand.session:
+                if self.value_type == operand.value_type:
+                    online_sets.append(operand)
+            else:
+                offline_sets.append(operand)
+        pipe = self.session.client.pipeline()
+        if online_sets:
+            keys = (operand.key for operand in online_sets)
+            pipe.sdiffstore(self.key, self.key, *keys)
+        for elements in offline_sets:
+            self._raw_delete(elements, pipe)
+        pipe.execute()
+
+    def _raw_delete(self, elements, pipe, encoded=False):
+        if not encoded:
+            encode = self.value_type.encode
+            def get_elements():
+                for el in elements:
+                    try:
+                        yield encode(el)
+                    except TypeError:
+                        pass
+            enc_elements = get_elements()
+        else:
+            enc_elements = elements
+        if self.session.server_version_info < (2, 4, 0):
+            for el in enc_elements:
+                pipe.srem(self.key, el)
+        else:
+            pipe.srem(self.key, *elements)
 
     def __repr__(self):
         cls = type(self)
