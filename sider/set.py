@@ -10,8 +10,8 @@ from .types import Bulk, ByteString
 
 class Set(collections.MutableSet):
     """The Python-side representaion of Redis set value.  It behaves
-    alike built-in Python :class:`frozenset` object.  More exactly, it
-    implements :class:`collections.Set` protocol.
+    alike built-in Python :class:`set` object.  More exactly, it
+    implements :class:`collections.MutableSet` protocol.
 
     """
 
@@ -475,6 +475,16 @@ class Set(collections.MutableSet):
         if popped is None:
             raise KeyError('pop from an empty set')
         return self.value_type.decode(popped)
+
+    def clear(self):
+        """Removes all elements from this set.
+
+        .. note::
+
+           Under the hood it simply :redis:`DEL` the key.
+
+        """
+        self.session.client.delete(self.key)
 
     def _raw_update(self, members, pipe):
         key = self.key

@@ -403,6 +403,14 @@ def pop():
 
 
 @tests.test
+def clear():
+    session = get_session()
+    set_ = session.set(key('test_set_clear'), S('abc'), Set)
+    set_.clear()
+    assert len(set_) == 0
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)
