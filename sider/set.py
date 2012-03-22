@@ -605,7 +605,7 @@ class Set(collections.MutableSet):
            :class:`Set` objects and a :redis:`SADD` command for
            other ordinary Python iterables.
 
-           Multiple operands of :redis:`SADD` command was supported
+           Multiple operands of :redis:`SADD` command has been supported
            since Redis 2.4.0, so it would send multiple :redis:`SADD`
            commands if the Redis version is less than 2.4.0.
 
