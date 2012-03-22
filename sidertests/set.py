@@ -747,6 +747,59 @@ def difference_update():
 
 
 @tests.test
+def symmetric_difference_update():
+    session = get_session()
+    def reset():
+        return session.set(key('test_set_symmdiff'), S('abcd'), Set)
+    set_ = reset()
+    set2 = session.set(key('test_set_symmdiff2'), S('bde1'), Set)
+    set_.symmetric_difference_update(set2)
+    assert set_ == S('ace1')
+    reset()
+    set_.symmetric_difference_update('bdef')
+    assert set_ == S('acef')
+    reset()
+    set_.symmetric_difference_update(S('bdef'))
+    assert set_ == S('acef')
+    reset()
+    set_ ^= set2
+    assert set_ == S('ace1')
+    reset()
+    set_ ^= S('bdef')
+    assert set_ == S('acef')
+    reset()
+    with raises(TypeError):
+        set_ ^= 'bdef'
+    def resetx():
+        return session.set(key('test_setx_symmdiff'), S([1, 2, 3, 4]), IntSet)
+    setx = resetx()
+    sety = session.set(key('test_setx_symmdiff2'), S([2, 4, 5, 6]), IntSet)
+    setx.symmetric_difference_update(sety)
+    assert setx == S([1, 3, 5, 6])
+    resetx()
+    setx.symmetric_difference_update([2, 4, 5, 6])
+    assert setx == S([1, 3, 5, 6])
+    resetx()
+    setx.symmetric_difference_update(S([2, 4, 5, 6]))
+    assert setx == S([1, 3, 5, 6])
+    resetx()
+    setx ^= sety
+    assert setx == S([1, 3, 5, 6])
+    resetx()
+    setx ^= S([2, 4, 5, 6])
+    assert setx == S([1, 3, 5, 6])
+    with raises(TypeError):
+        setx ^= [2, 4, 5, 6]
+    # mismatched value_type Integer vs. Bulk:
+    resetx()
+    with raises(TypeError):
+        setx.symmetric_difference_update(set2)
+    reset()
+    with raises(TypeError):
+        set2.symmetric_difference_update(setx)
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)

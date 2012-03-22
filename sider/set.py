@@ -325,6 +325,28 @@ class Set(collections.MutableSet):
                             'collections.Set, not ' + repr(operand))
         return self.symmetric_difference(operand)
 
+    def __ixor__(self, operand):
+        """Bitwise exclusive argumented assignment (:token:`^=`).
+        Updates the set with the symmetric difference of itself
+        and ``operand``.
+
+        Mostly equivalent to :meth:`symmetric_difference_update()`
+        method except it can take a set-like operand only.
+        On the other hand :meth:`symmetric_difference_update()`
+        can take an any iterable operand as well.
+
+        :param operand: another set
+        :type operand: :class:`collections.Set`
+        :returns: the set itself
+        :rtype: :class:`Set`
+
+        """
+        if not isinstance(operand, collections.Set):
+            raise TypeError('operand for ^= must be an instance of '
+                            'collections.Set, not ' + repr(operand))
+        self.symmetric_difference_update(operand)
+        return self
+
     def __or__(self, operand):
         """Bitwise or (:token:`|`) operator.  Gets the union of
         operands.
@@ -598,10 +620,8 @@ class Set(collections.MutableSet):
         else:
             online = self
         if offline_sets:
-            base = offline_sets[0]
-            if not isinstance(base, set):
-                base = set(base)
-            base.intersection_update(online, *offline_sets[1:])
+            base = set(offline_sets.pop())
+            base.intersection_update(online, *offline_sets)
             return base
         return online if isinstance(online, set) else set(online)
 
@@ -793,6 +813,42 @@ class Set(collections.MutableSet):
             self._raw_delete(elements, pipe)
         pipe.execute()
 
+    def symmetric_difference_update(self, operand):
+        """Updates the set with the symmetric difference of itself
+        and ``operand``.
+
+        :param operand: another set to get symmetric difference
+        :type operand: :class:`collections.Iterable`
+
+        .. note::
+
+           This method consists of several Redis commands in a
+           transaction: :redis:`SINTER`, :redis:`SUNIONSTORE` and
+           :redis:`SREM`.
+
+        """
+        if isinstance(operand, Set) and self.session == operand.session:
+            if self.value_type == operand.value_type:
+                def block(pipe):
+                    inter = pipe.sinter(self.key, operand.key)
+                    pipe.multi()
+                    pipe.sunionstore(self.key, self.key, operand.key)
+                    self._raw_delete(inter, pipe, encoded=True)
+                self.session.client.transaction(block, self.key)
+            else:
+                raise TypeError(
+                    'value_type mismatch; tried update {0!r} with '
+                    '{1!r}'.format(self.value_type, operand.value_type)
+                )
+        else:
+            operand = set(operand)
+            inter = self & operand
+            operand.difference_update(inter)
+            pipe = self.session.client.pipeline()
+            self._raw_update(operand, pipe)
+            self._raw_delete(inter, pipe)
+            pipe.execute()
+
     def _raw_delete(self, elements, pipe, encoded=False):
         if not encoded:
             encode = self.value_type.encode
@@ -809,7 +865,7 @@ class Set(collections.MutableSet):
             for el in enc_elements:
                 pipe.srem(self.key, el)
         else:
-            pipe.srem(self.key, *elements)
+            pipe.srem(self.key, *enc_elements)
 
     def __repr__(self):
         cls = type(self)
