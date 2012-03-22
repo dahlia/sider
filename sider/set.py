@@ -13,36 +13,38 @@ class Set(collections.MutableSet):
     alike built-in Python :class:`set` object.  More exactly, it
     implements :class:`collections.MutableSet` protocol.
 
-    ==================== ======================================================
-    Redis command        :class:`Set` methods
-    ==================== ======================================================
-    :redis:`SADD`        :meth:`Set.add()`,
-                         :meth:`Set.update()`
-    :redis:`SCARD`       :func:`len()` (:meth:`Set.__len__()`)
-    :redis:`SDIFF`       :meth:`Set.difference()`,
-                         :token:`-` (:meth:`Set.__sub__()`)
-    :redis:`SDIFFSTORE`  :meth:`Set.difference_update()`,
-                         :token:`-=` (:meth:`Set.__isub__()`)
-    :redis:`SINTER`      :meth:`Set.intersection()`,
-                         :token:`&` (:meth:`Set.__and__()`)
-    :redis:`SINTERSTORE` :meth:`Set.intersection_update()`,
-                         :token:`&=` (:meth:`Set.__iand__()`)
-    :redis:`SISMEMBER`   :keyword:`in` (:meth:`Set.__contains__()`)
-    :redis:`SMEMBERS`    :func:`iter()` (:meth:`Set.__iter__()`)
-    :redis:`SMOVE`       N/A
-    :redis:`SPOP`        :meth:`Set.pop()`
-    :redis:`SRANDMEMBER` N/A
-    :redis:`SREM`        :meth:`Set.discard()`,
-                         :meth:`Set.remove()`
-    :redis:`SUNION`      :meth:`Set.union()`,
-                         :token:`|` (:meth:`Set.__or__()`)
-    :redis:`SUNIONSTORE` :meth:`Set.update()`,
-                         :token:`|=` (:meth:`Set.__ior__()`)
-    N/A                  :meth:`Set.symmetric_difference()`,
-                         :token:`^` (:meth:`Set.__xor__()`)
-    N/A                  :meth:`Set.symmetric_difference_update()`,
-                         :token:`^=` (:meth:`Set.__ixor__()`)
-    ==================== ======================================================
+    .. table:: Mappings of Redis command--:class:`Set` methods
+
+       ==================== ==========================================
+       Redis command        :class:`Set` methods
+       ==================== ==========================================
+       :redis:`SADD`        :meth:`Set.add()`,
+                            :meth:`Set.update()`
+       :redis:`SCARD`       :func:`len()` (:meth:`Set.__len__()`)
+       :redis:`SDIFF`       :meth:`Set.difference()`,
+                            :token:`-` (:meth:`Set.__sub__()`)
+       :redis:`SDIFFSTORE`  :meth:`Set.difference_update()`,
+                            :token:`-=` (:meth:`Set.__isub__()`)
+       :redis:`SINTER`      :meth:`Set.intersection()`,
+                            :token:`&` (:meth:`Set.__and__()`)
+       :redis:`SINTERSTORE` :meth:`Set.intersection_update()`,
+                            :token:`&=` (:meth:`Set.__iand__()`)
+       :redis:`SISMEMBER`   :keyword:`in` (:meth:`Set.__contains__()`)
+       :redis:`SMEMBERS`    :func:`iter()` (:meth:`Set.__iter__()`)
+       :redis:`SMOVE`       N/A
+       :redis:`SPOP`        :meth:`Set.pop()`
+       :redis:`SRANDMEMBER` N/A
+       :redis:`SREM`        :meth:`Set.discard()`,
+                            :meth:`Set.remove()`
+       :redis:`SUNION`      :meth:`Set.union()`,
+                            :token:`|` (:meth:`Set.__or__()`)
+       :redis:`SUNIONSTORE` :meth:`Set.update()`,
+                            :token:`|=` (:meth:`Set.__ior__()`)
+       N/A                  :meth:`Set.symmetric_difference()`,
+                            :token:`^` (:meth:`Set.__xor__()`)
+       N/A                  :meth:`Set.symmetric_difference_update()`,
+                            :token:`^=` (:meth:`Set.__ixor__()`)
+       ==================== ==========================================
 
     """
 
