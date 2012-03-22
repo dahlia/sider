@@ -374,6 +374,14 @@ class Set(collections.Set):
         :rtype: :class:`set`
 
         """
+        if (isinstance(operand, Set) and self.session is operand.session and
+            self.value_type == operand.value_type):
+            union = self.session.client.sunion(self.key, operand.key)
+            inter = self.session.client.sinter(self.key, operand.key)
+            symdiff = set(union)
+            symdiff.difference_update(inter)
+            decode = self.value_type.decode
+            return set(decode(member) for member in symdiff)
         return set(self).symmetric_difference(operand)
 
     def union(self, *sets):
