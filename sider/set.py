@@ -438,11 +438,12 @@ class Set(collections.MutableSet):
         dec = self.value_type.decode
         return super(Set, self).isdisjoint(dec(member) for member in operand)
 
-    def difference(self, operand):
-        """Gets the relative complement of the ``operand`` set in the set.
+    def difference(self, *sets):
+        """Returns the difference of two or more ``sets``
+        as a new :class:`set` i.e. all elements that are in
+        this set but not the others.
 
-        :param operand: another set to get the relative complement
-        :type operand: :class:`collections.Iterable`
+        :param sets: other iterables to get the difference
         :returns: the relative complement
         :rtype: :class:`set`
 
@@ -451,13 +452,20 @@ class Set(collections.MutableSet):
            This method is mapped to :redis:`SDIFF` command.
 
         """
-        if isinstance(operand, Set) and self.session is operand.session:
-            if self.value_type != operand.value_type:
-                return set(self)
-            diff = self.session.client.sdiff(self.key, operand.key)
-            decode = self.value_type.decode
-            return set(decode(member) for member in diff)
-        return set(self).difference(operand)
+        online_sets = []
+        offline_sets = []
+        for operand in sets:
+            if isinstance(operand, Set) and self.session is operand.session:
+                if self.value_type == operand.value_type:
+                    online_sets.append(operand)
+            else:
+                offline_sets.append(operand)
+        keys = (operand.key for operand in online_sets)
+        fetched = self.session.client.sdiff(self.key, *keys)
+        decode = self.value_type.decode
+        diff = set(decode(member) for member in fetched)
+        diff.difference_update(*offline_sets)
+        return diff
 
     def symmetric_difference(self, operand):
         """Returns a new set with elements in either the set or
@@ -508,7 +516,7 @@ class Set(collections.MutableSet):
         online_sets = {self.value_type: [self]}
         offline_sets = []
         for operand in sets:
-            if isinstance(operand, Set) and self.session is operand.session:
+            if (isinstance(operand, Set) and self.session is operand.session):
                 group = online_sets.setdefault(operand.value_type, [])
                 group.append(operand)
             else:
