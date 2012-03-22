@@ -364,6 +364,25 @@ def add():
 
 
 @tests.test
+def discard():
+    session = get_session()
+    set_ = session.set(key('test_set_discard'), S('abc'), Set)
+    set_.discard('a')
+    assert set_ == S('bc')
+    set_.discard('a')
+    assert set_ == S('bc')
+    set_.discard(1)
+    assert set_ == S('bc')
+    setx = session.set(key('test_setx_discard'), S([1, 2, 3]), IntSet)
+    setx.discard(1)
+    assert setx == S([2, 3])
+    setx.discard(1)
+    assert setx == S([2, 3])
+    setx.discard('a')
+    assert setx == S([2, 3])
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)

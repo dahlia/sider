@@ -8,14 +8,10 @@ from .session import Session
 from .types import Bulk, ByteString
 
 
-class Set(collections.Set):
+class Set(collections.MutableSet):
     """The Python-side representaion of Redis set value.  It behaves
     alike built-in Python :class:`frozenset` object.  More exactly, it
     implements :class:`collections.Set` protocol.
-
-    .. todo::
-
-       Implement :class:`collections.MutableSet` protocol.
 
     """
 
@@ -449,6 +445,19 @@ class Set(collections.Set):
         """
         member = self.value_type.encode(element)
         self.session.client.sadd(self.key, member)
+
+    def discard(self, element):
+        """Removes an ``element`` from the set if it is a member.
+        If the ``element`` is not a member, does nothing.
+
+        :param element: an element to remove
+
+        """
+        try:
+            member = self.value_type.encode(element)
+        except TypeError:
+            return
+        self.session.client.srem(self.key, member)
 
     def _raw_update(self, members, pipe):
         key = self.key
