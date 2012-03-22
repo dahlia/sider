@@ -383,6 +383,26 @@ def discard():
 
 
 @tests.test
+def pop():
+    session = get_session()
+    expected = set('abc')
+    set_ = session.set(key('test_set_pop'), expected, Set)
+    popped = set_.pop()
+    assert popped in expected
+    expected.remove(popped)
+    popped = set_.pop()
+    assert popped in expected
+    expected.remove(popped)
+    popped = set_.pop()
+    assert popped in expected
+    assert len(set_) == 0
+    expected.remove(popped)
+    assert len(expected) == 0
+    with raises(KeyError):
+        set_.pop()
+
+
+@tests.test
 def repr_():
     session = get_session()
     set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)

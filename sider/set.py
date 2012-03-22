@@ -459,6 +459,23 @@ class Set(collections.MutableSet):
             return
         self.session.client.srem(self.key, member)
 
+    def pop(self):
+        """Removes an arbitrary element from the set and returns it.
+        Raises :exc:`KeyError` if the set is empty.
+
+        :returns: a removed arbitrary element
+        :raises: :exc:`KeyError` if the set is empty
+
+        .. note::
+
+           This method is directly mapped to :redis:`SPOP` command.
+
+        """
+        popped = self.session.client.spop(self.key)
+        if popped is None:
+            raise KeyError('pop from an empty set')
+        return self.value_type.decode(popped)
+
     def _raw_update(self, members, pipe):
         key = self.key
         if (isinstance(members, Set) and self.session is members.session and
