@@ -327,6 +327,15 @@ class Bulk(Value):
             'implemented'.format(cls.__module__, cls.__name__)
         )
 
+    def load_value(self, session, key):
+        bulk = session.client.get(key)
+        return self.decode(bulk)
+
+    def save_value(self, session, key, value):
+        bulk = self.encode(value)
+        session.client.set(key, bulk)
+        return value
+
 
 class Integer(Bulk):
     """Stores integers as decimal strings.  For example:
