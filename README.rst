@@ -3,7 +3,8 @@ Sider
 
 Sider is a persistent object library based on Redis.
 
-Distributed under `MIT license`__.  See also ``LICENSE`` file.
+Distributed under `MIT license <http://minhee.mit-license.org/>`_.
+See also ``LICENSE`` file.
 
-__ http://minhee.mit-license.org/
+--- `Hong Minhee <http://dahlia.kr/>`_
 
