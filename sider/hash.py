@@ -12,6 +12,28 @@ class Hash(collections.Mapping):
     such as built-in Python :class:`dict` object.  More exactly, it
     implements :class:`collections.Mapping` protocol.
 
+    .. table:: Mappings of Redis commands--:class:`Hash` methods
+
+       ===================== ===========================================
+       Redis commands        :class:`Hash` methods
+       ===================== ===========================================
+       :redis:`DEL`          :meth:`Hash.clear()`
+       :redis:`HDEL`         :keyword:`del` (:meth:`Hash.__delitem__()`)
+       :redis:`HEXISTS`      :keyword:`in` (:meth:`Hash.__contains__()`)
+       :redis:`HGET`         :meth:`Hash.__getitem__()`
+       :redis:`HGETALL`      :meth:`Hash.items()`
+       :redis:`HINCRBY`      N/A
+       :redis:`HINCRBYFLOAT` N/A
+       :redis:`HKEYS`        :func:`iter()` (:meth:`Hash.__iter__()`),
+                             :meth:`Hash.keys()`
+       :redis:`HLEN`         :func:`len()` (:meth:`Hash.__len__()`)
+       :redis:`HMGET`        N/A
+       :redis:`HMSET`        :meth:`Hash.update()`
+       :redis:`HSET`         :token:`=` (:meth:`Hash.__setitem__()`)
+       :redis:`HSETNX`       :meth:`Hash.setdefault()`
+       :redis:`HVALS`        :meth:`Hash.values()`
+       ===================== ===========================================
+
     """
 
     #: (:class:`sider.types.Bulk`) The type of hash keys.
