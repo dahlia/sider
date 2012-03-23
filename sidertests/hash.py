@@ -236,3 +236,63 @@ def setdefault():
     with raises(TypeError):
         hashx.setdefault('key', 1234)
 
+
+@tests.test
+def update():
+    session = get_session()
+    hash_ = session.set(key('test_hash_update'), fixture_a, Hash)
+    hash_.update({'c': 'changed', 'new': 'value'})
+    assert dict(hash_) == {'a': 'b', 'c': 'changed', 'new': 'value'}
+    hash_.update([('new2', 'value'), ('new', 'changed')])
+    assert dict(hash_) == {'a': 'b', 'c': 'changed',
+                           'new': 'changed', 'new2': 'value'}
+    hash_.update({'b': 'new', 'a': 'changed'}, d='new', new2='changed')
+    assert dict(hash_) == {'a': 'changed', 'b': 'new', 'c': 'changed',
+                           'd': 'new', 'new': 'changed', 'new2': 'changed'}
+    hash_.update([('e', 'new'), ('new', 'changed2')],
+                 c='changed2', f='new')
+    assert dict(hash_) == {'a': 'changed', 'b': 'new', 'c': 'changed2',
+                           'd': 'new', 'e': 'new', 'f': 'new',
+                           'new': 'changed2', 'new2': 'changed'}
+    hash_.update(b='changed', g='new')
+    assert dict(hash_) == {'a': 'changed', 'b': 'changed', 'c': 'changed2',
+                           'd': 'new', 'e': 'new', 'f': 'new', 'g': 'new',
+                           'new': 'changed2', 'new2': 'changed'}
+    with raises(TypeError):
+        hash_.update({1: 'val'})
+    with raises(TypeError):
+        hash_.update({'key': 1234})
+    with raises(TypeError):
+        hash_.update([(1, 'val')])
+    with raises(TypeError):
+        hash_.update([('key', 1234)])
+    with raises(TypeError):
+        hash_.update(key=1234)
+    with raises(TypeError):
+        hash_.update([1, 2, 3, 4])
+    with raises(ValueError):
+        hash_.update([(1, 2, 3), (4, 5, 6)])
+    with raises(TypeError):
+        hash_.update(1234)
+    hashx = session.set(key('test_hashx_update'), fixture_b, Hash(NInt))
+    hashx.update({2: 'changed', 3: 'new'})
+    assert dict(hashx) == {1: 'a', 2: 'changed', 3: 'new'}
+    hashx.update([(3, 'changed'), (4, 'new')])
+    assert dict(hashx) == {1: 'a', 2: 'changed', 3: 'changed', 4: 'new'}
+    with raises(TypeError):
+        hashx.update({'invalid': 'val'})
+    with raises(TypeError):
+        hashx.update({1234: 4567})
+    with raises(TypeError):
+        hashx.update([('invalid', 'val')])
+    with raises(TypeError):
+        hashx.update([(1234, 4567)])
+    with raises(TypeError):
+        hashx.update(invalid='val')
+    with raises(TypeError):
+        hashx.update([1, 2, 3, 4])
+    with raises(ValueError):
+        hashx.update([(1, 2, 3), (4, 5, 6)])
+    with raises(TypeError):
+        hashx.update(1234)
+

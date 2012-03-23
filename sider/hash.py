@@ -272,6 +272,52 @@ class Hash(collections.MutableMapping):
         self.session.client.transaction(block, self.key)
         return result[0]
 
+    def update(self, mapping={}, **keywords):
+        """Updates the hash from the given ``mapping`` and keyword
+        arguments.
+
+        - If ``mapping`` has :meth:`~collections.Mapping.keys()`
+          method, it does::
+
+              for k in mapping:
+                  self[k] = mapping[k]
+
+        - If ``mapping`` lacks :meth:`~collections.Mapping.keys()` 
+          method, it does::
+
+              for k, v in mapping:
+                  self[k] = v
+
+        - In either case, this is followed by (where ``keywords``
+          is a :class:`dict` of keyword arguments)::
+
+              for k, v in keywords.items():
+                  self[k] = v
+
+        :param mapping: an iterable object of ``(key, value)``
+                        pairs or a mapping object (which has
+                        :meth:`~collections.Mapping.keys()`
+                        method).  default is empty
+        :type mapping: :class:`collections.Mapping`
+        :param \*\*keywords: the keywords to update as well.
+                             if its :attr:`key_type` doesn't
+                             accept byte strings (:class:`str`)
+                             it raises :exc:`~exceptions.TypeError`
+        :raises exceptions.TypeError:
+           if the ``mapping`` is not actually mapping or iterable,
+           or the given keys and values to update aren't acceptable
+           by its :attr:`key_type` and :attr:`value_type`
+        :raises exceptions.ValueError:
+           if the ``mapping`` is an iterable object which yields
+           non-pair values e.g. ``[(1, 2, 3), (4,)]``
+
+        """
+        if isinstance(mapping, Hash):
+            mapping = mapping.items()
+        value = dict(mapping)
+        value.update(keywords)
+        self._raw_update(value, self.session.client)
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:
