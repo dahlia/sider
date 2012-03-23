@@ -1,3 +1,7 @@
+try:
+    from collections import Counter
+except ImportError:
+    from .counter_recipe import Counter
 from attest import Tests, assert_hook, raises
 from .env import NInt, get_session, key
 from sider.types import Hash
@@ -100,4 +104,22 @@ def keys():
     assert 1 in hashx.keys()
     assert 2 in hashx.keys()
     assert 3 not in hashx.keys()
+
+
+@tests.test
+def values():
+    session = get_session()
+    hash_ = session.set(key('test_hash_values'), fixture_a, Hash)
+    assert Counter(hash_.values()) == Counter('bd')
+    assert len(hash_.values()) == 2
+    assert 'a' not in hash_.values()
+    assert 'b' in hash_.values()
+    assert 'd' in hash_.values()
+    hashx = session.set(key('test_hashx_values'), {1: 2, 3: 4, 5: 2},
+                        Hash(NInt, NInt))
+    assert Counter(hashx.values()) == Counter({2: 2, 4: 1})
+    assert len(hashx.values()) == 3
+    assert 2 in hashx.values()
+    assert 3 not in hashx.values()
+    assert 4 in hashx.values()
 

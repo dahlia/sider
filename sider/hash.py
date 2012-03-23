@@ -115,6 +115,25 @@ class Hash(collections.Mapping):
         """
         return frozenset(self)
 
+    def values(self):
+        """Gets its all values.  It returns a :class:`list` but
+        there isn't any meaningful order of values.
+
+        :returns: its all values
+        :rtype: :class:`collections.ValuesView`
+
+        .. note::
+
+           This method is directly mapped to Redis :redis:`HVALS`
+           command.
+
+        """
+        values = self.session.client.hvals(self.key)
+        decode = self.value_type.decode
+        for i, val in enumerate(values):
+            values[i] = decode(val)
+        return values
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:
