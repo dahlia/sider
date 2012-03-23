@@ -658,10 +658,10 @@ class Set(collections.MutableSet):
 
     def pop(self):
         """Removes an arbitrary element from the set and returns it.
-        Raises :exc:`KeyError` if the set is empty.
+        Raises :exc:`~exceptions.KeyError` if the set is empty.
 
         :returns: a removed arbitrary element
-        :raises: :exc:`KeyError` if the set is empty
+        :raises: :exc:`~exceptions.KeyError` if the set is empty
 
         .. note::
 
