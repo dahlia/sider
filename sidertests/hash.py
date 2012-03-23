@@ -84,3 +84,20 @@ def equals():
     assert hash_ != hash4 and hash4 != hash_
     assert emptyhash == emptyhash2 and emptyhash2 == emptyhash
 
+
+@tests.test
+def keys():
+    session = get_session()
+    hash_ = session.set(key('test_hash_keys'), fixture_a, Hash)
+    assert set(hash_.keys()) == set('ac')
+    assert len(hash_.keys()) == 2
+    assert 'a' in hash_.keys()
+    assert 'b' not in hash_.keys()
+    assert 'c' in hash_.keys()
+    hashx = session.set(key('test_hashx_keys'), fixture_b, Hash(NInt))
+    assert set(hashx.keys()) == set([1, 2])
+    assert len(hashx.keys()) == 2
+    assert 1 in hashx.keys()
+    assert 2 in hashx.keys()
+    assert 3 not in hashx.keys()
+

@@ -99,6 +99,22 @@ class Hash(collections.Mapping):
             raise KeyError(key)
         return self.value_type.decode(value)
 
+    def keys(self):
+        """Gets its all keys.  Equivalent to :meth:`__iter__()` except
+        it returns a :class:`~collections.Set` instead of iterable.
+        There isn't any meaningful order of keys.
+
+        :returns: the set of its all keys
+        :rtype: :class:`collections.KeysView`
+
+        .. note::
+
+           This method is directly mapped to Redis :redis:`HKEYS`
+           command.
+
+        """
+        return frozenset(self)
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:
@@ -109,4 +125,5 @@ class Hash(collections.Mapping):
             flatten = (val for k, v in items
                            for val in (encode_key(k), encode_value(v)))
         pipe.execute_command('HMSET', self.key, *flatten)
+
 
