@@ -18,6 +18,7 @@ class Set(collections.MutableSet):
        ==================== ==========================================
        Redis commands       :class:`Set` methods
        ==================== ==========================================
+       :redis:`DEL`         :meth:`Set.clear()`
        :redis:`SADD`        :meth:`Set.add()`,
                             :meth:`Set.update()`
        :redis:`SCARD`       :func:`len()` (:meth:`Set.__len__()`)
