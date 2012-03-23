@@ -177,6 +177,16 @@ class Hash(collections.Mapping):
         return frozenset((decode_key(k), decode_value(v))
                          for k, v in items.iteritems())
 
+    def clear(self):
+        """Removes all items from this hash.
+
+        .. note::
+
+           Under the hood it simply :redis:`DEL` the key.
+
+        """
+        self.session.client.delete(self.key)
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:

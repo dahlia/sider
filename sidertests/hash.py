@@ -142,3 +142,16 @@ def items():
     assert (2, 'a') not in hashx.items()
     assert (2, 'b') in hashx.items()
 
+
+@tests.test
+def clear():
+    session = get_session()
+    hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
+    hash_.clear()
+    assert len(hash_) == 0
+    assert not list(hash_)
+    hashx = session.set(key('test_hashx_items'), fixture_b, Hash(NInt))
+    hashx.clear()
+    assert len(hashx) == 0
+    assert not list(hashx)
+
