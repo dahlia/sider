@@ -16,7 +16,7 @@ def readme():
 
 
 setup(name='Sider',
-      packages=['sider'],
+      packages=['sider', 'sidertests'],
       version=VERSION,
       description='A persistent object library based on Redis',
       long_description=readme(),
