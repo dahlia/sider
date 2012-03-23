@@ -7,10 +7,10 @@ from .session import Session
 from .types import Bulk, ByteString
 
 
-class Hash(collections.Mapping):
+class Hash(collections.MutableMapping):
     """The Python-side representaion of Redis hash value.  It behaves
     such as built-in Python :class:`dict` object.  More exactly, it
-    implements :class:`collections.Mapping` protocol.
+    implements :class:`collections.MutableMapping` protocol.
 
     .. table:: Mappings of Redis commands--:class:`Hash` methods
 
@@ -123,6 +123,24 @@ class Hash(collections.Mapping):
         if value is None:
             raise KeyError(key)
         return self.value_type.decode(value)
+
+    def __setitem__(self, key, value):
+        """Sets the ``key`` with the ``value``.
+
+        :param key: the key to set
+        :param value: the value to set
+        :raises: :exc:`TypeError` if the given ``key`` is not acceptable
+                 by its :attr:`key_type` or the given ``value`` is not
+                 acceptable by its :attr:`value_type`
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HSET` command.
+
+        """
+        encoded_key = self.key_type.encode(key)
+        encoded_val = self.value_type.encode(value)
+        self.session.client.hset(self.key, encoded_key, encoded_val)
 
     def __delitem__(self, key):
         """Removes the ``key``.

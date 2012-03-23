@@ -176,3 +176,34 @@ def delitem():
     with raises(TypeError):
         del hashx['a']
 
+
+@tests.test
+def setitem():
+    session = get_session()
+    hash_ = session.set(key('test_hash_setitem'), fixture_a, Hash)
+    hash_['a'] = 'changed'
+    assert len(hash_) == 2
+    assert hash_['a'] == 'changed'
+    assert 'a' in hash_.keys()
+    hash_['new'] = 'added'
+    assert len(hash_) == 3
+    assert hash_['new'] == 'added'
+    assert 'new' in hash_.keys()
+    with raises(TypeError):
+        hash_[1] = 'a'
+    with raises(TypeError):
+        hash_['abc'] = 1
+    hashx = session.set(key('test_hashx_setitem'), fixture_b, Hash(NInt))
+    hashx[1] = 'changed'
+    assert len(hashx) == 2
+    assert hashx[1] == 'changed'
+    assert 1 in hashx.keys()
+    hashx[1234] = 'added'
+    assert len(hashx) == 3
+    assert hashx[1234] == 'added'
+    assert 1234 in hashx.keys()
+    with raises(TypeError):
+        hashx[1] = 1234
+    with raises(TypeError):
+        hashx['invalid'] = 'val'
+
