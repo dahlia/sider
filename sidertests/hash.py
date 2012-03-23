@@ -1,6 +1,6 @@
 from attest import Tests, assert_hook, raises
-from .env import get_session, key
-from sider.types import Hash, Integer
+from .env import NInt, get_session, key
+from sider.types import Hash
 
 
 tests = Tests()
@@ -13,7 +13,7 @@ def iterate():
     session = get_session()
     hash_ = session.set(key('test_hash_iterate'), fixture_a, Hash)
     assert set(hash_) == set('ac')
-    hashx = session.set(key('test_hashx_iterate'), fixture_b, Hash(Integer))
+    hashx = session.set(key('test_hashx_iterate'), fixture_b, Hash(NInt))
     assert set(hashx) == set([1, 2])
 
 
@@ -22,7 +22,7 @@ def length():
     session = get_session()
     hash_ = session.set(key('test_hash_length'), fixture_a, Hash)
     assert len(hash_) == 2
-    hashx = session.set(key('test_hashx_length'), fixture_b, Hash(Integer))
+    hashx = session.set(key('test_hashx_length'), fixture_b, Hash(NInt))
     assert len(hashx) == 2
 
 
@@ -34,7 +34,7 @@ def contains():
     assert 'b' not in hash_ 
     assert 'c' in hash_
     assert 1 not in hash_ 
-    hashx = session.set(key('test_hashx_contains'), fixture_b, Hash(Integer))
+    hashx = session.set(key('test_hashx_contains'), fixture_b, Hash(NInt))
     assert 1 in hashx
     assert 2 in hashx
     assert 4 not in hashx
@@ -54,7 +54,7 @@ def getitem():
         hash_[object()]
     with raises(TypeError):
         hash_[1]
-    hashx = session.set(key('test_hashx_getitem'), fixture_b, Hash(Integer))
+    hashx = session.set(key('test_hashx_getitem'), fixture_b, Hash(NInt))
     assert hashx[1] == 'a'
     assert hashx[2] == 'b'
     with raises(KeyError):
@@ -73,9 +73,9 @@ def equals():
     fixture_c = dict(fixture_a)
     fixture_c['e'] = 'f'
     hash3 = session.set(key('test_hash_equals3'), fixture_c, Hash)
-    hash4 = session.set(key('test_hash_equals4'), fixture_b, Hash(Integer))
+    hash4 = session.set(key('test_hash_equals4'), fixture_b, Hash(NInt))
     emptyhash = session.set(key('test_hash_equals5'), {}, Hash)
-    emptyhash2 = session.set(key('test_hash_equals5'), {}, Hash(Integer))
+    emptyhash2 = session.set(key('test_hash_equals5'), {}, Hash(NInt))
     assert hash_ == fixture_a
     assert hash_ != fixture_b
     assert hash_ != fixture_c

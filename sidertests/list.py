@@ -1,7 +1,7 @@
 import warnings
 from attest import Tests, assert_hook, raises
-from .env import get_session, key
-from sider.types import List, Integer
+from .env import NInt, get_session, key
+from sider.types import List
 from sider.warnings import PerformanceWarning
 
 
@@ -13,7 +13,7 @@ def iterate():
     session = get_session()
     view = session.set(key('test_list_iterate'), 'abc', List)
     assert ['a', 'b', 'c'] == list(view)
-    view = session.set(key('test_listx_iterate'), [1, 2, 3], List(Integer))
+    view = session.set(key('test_listx_iterate'), [1, 2, 3], List(NInt))
     assert [1, 2, 3] == list(view)
 
 
@@ -22,7 +22,7 @@ def length():
     session = get_session()
     view = session.set(key('test_list_length'), 'abc', List)
     assert len(view) == 3
-    viewx = session.set(key('test_listx_length'), [1, 2, 3], List(Integer))
+    viewx = session.set(key('test_listx_length'), [1, 2, 3], List(NInt))
     assert len(viewx) == 3
 
 
@@ -40,7 +40,7 @@ def get():
         view[3]
     with raises(IndexError):
         view[-4]
-    viewx = session.set(key('test_listx_get'), [1, 2, 3], List(Integer))
+    viewx = session.set(key('test_listx_get'), [1, 2, 3], List(NInt))
     assert 1 == viewx[0]
     assert 2 == viewx[1]
     assert 3 == viewx[2]
@@ -66,7 +66,7 @@ def slice():
     assert ['d', 'e', 'f', 'g'] == list(list_[3:])
     assert ['e', 'f', 'g'] == list(list_[-3:])
     assert ['a', 'b', 'c', 'd', 'e', 'f', 'g'] == list(list_[:])
-    listx = session.set(key('test_listx_slice'), range(1, 8), List(Integer))
+    listx = session.set(key('test_listx_slice'), range(1, 8), List(NInt))
     assert [1] == list(listx[:1])
     assert [1, 2, 3, 4] == list(listx[:-3])
     assert [1, 2] == list(listx[:2])
@@ -88,7 +88,7 @@ def set():
     assert ['a', 'B', 'c'] == list(list_)
     with raises(IndexError):
         list_[3] = 'D'
-    listx = session.set(key('test_listx_set'), [1, 2, 3], List(Integer))
+    listx = session.set(key('test_listx_set'), [1, 2, 3], List(NInt))
     listx[1] = -2
     with raises(TypeError):
         listx[2] = 'c'
@@ -117,7 +117,7 @@ def set_slice():
         assert len(w) == 1
         assert issubclass(w[0].category, PerformanceWarning)
     assert ['-2', '-1', 'a', 'B', 'C'] == list(list_)
-    listx = session.set(key('test_listx_set_slice'), [1, 2, 3], List(Integer))
+    listx = session.set(key('test_listx_set_slice'), [1, 2, 3], List(NInt))
     listx[:0] = [-2, -1]
     with raises(TypeError):
         list_[:] = [object(), object()]
@@ -155,7 +155,7 @@ def delete():
         del list_[-1]
     with raises(IndexError):
         del list_[0]
-    listx = session.set(key('test_listx_delete'), range(1, 8), List(Integer))
+    listx = session.set(key('test_listx_delete'), range(1, 8), List(NInt))
     del listx[0]
     assert range(2, 8) == list(listx)
     del listx[-1]
@@ -191,7 +191,7 @@ def delete_slice():
         assert issubclass(w[0].category, PerformanceWarning)
     assert list('abfg') == list(list_)
     listx = session.set(key('test_listx_delete_slice'), range(1, 8),
-                        value_type=List(Integer))
+                        value_type=List(NInt))
     del listx[:2]
     assert range(3, 8) == list(listx)
     del listx[3:]
@@ -199,7 +199,7 @@ def delete_slice():
     del listx[:]
     assert 0 == len(listx)
     listx = session.set(key('test_listx_delete_slice2'), range(1, 8),
-                        value_type=List(Integer))
+                        value_type=List(NInt))
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
         del listx[2:5]
@@ -218,7 +218,7 @@ def append():
     assert ['a', 'b', 'c', 'd', 'e', 'f'] == list(list_)
     with raises(TypeError):
         list_.append(123)
-    listx = session.set(key('test_listx_append'), range(1, 5), List(Integer))
+    listx = session.set(key('test_listx_append'), range(1, 5), List(NInt))
     listx.append(5)
     assert range(1, 6) == list(listx)
     listx.append(6)
@@ -237,7 +237,7 @@ def extend():
     assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi'] == list(list_)
     with raises(TypeError):
         list_.extend([object(), object()])
-    listx = session.set(key('test_listx_extend'), [1, 2], List(Integer))
+    listx = session.set(key('test_listx_extend'), [1, 2], List(NInt))
     listx.extend([3, 4, 5])
     assert range(1, 6) == list(listx)
     listx.extend([67, 89])
@@ -267,7 +267,7 @@ def insert():
     with raises(TypeError):
         list_.insert(1, object())
     session = get_session()
-    listx = session.set(key('test_listx_insert'), [2], List(Integer))
+    listx = session.set(key('test_listx_insert'), [2], List(NInt))
     listx.insert(0, 1)
     assert [1, 2] == list(listx)
     listx.insert(-1, 3)
@@ -308,7 +308,7 @@ def pop():
         list_.pop(0)
     with raises(IndexError):
         list_.pop(-1)
-    listx = session.set(key('test_listx_pop'), range(1, 8), List(Integer))
+    listx = session.set(key('test_listx_pop'), range(1, 8), List(NInt))
     popped = listx.pop(0)
     assert 1 == popped
     assert range(2, 8) == list(listx)
@@ -332,10 +332,10 @@ def pop():
 @tests.test
 def repr_():
     session = get_session()
-    list_ = session.set(key('test_list_repr'), [1, 2, 3], List(Integer))
+    list_ = session.set(key('test_list_repr'), [1, 2, 3], List(NInt))
     r = repr(list_)
     assert "<sider.list.List [1, 2, 3]>" == r
-    list_ = session.set(key('test_list_repr'), range(20), List(Integer))
+    list_ = session.set(key('test_list_repr'), range(20), List(NInt))
     r = repr(list_)
     assert "<sider.list.List {0!r}>".format(range(20)) == r
     list_.append(50)

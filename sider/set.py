@@ -498,8 +498,7 @@ class Set(collections.MutableSet):
             for _ in self.session.client.sinter(self.key, operand.key):
                 return False
             return True
-        dec = self.value_type.decode
-        return super(Set, self).isdisjoint(dec(member) for member in operand)
+        return super(Set, self).isdisjoint(operand)
 
     def difference(self, *sets):
         """Returns the difference of two or more ``sets``

@@ -1,12 +1,12 @@
 from attest import Tests, assert_hook, raises
-from .env import get_session, key
-from sider.types import Set, Integer
+from .env import NInt, get_session, key
+from sider.types import Set
 
 
 tests = Tests()
 
 S = frozenset
-IntSet = Set(Integer)
+IntSet = Set(NInt)
 
 
 @tests.test
@@ -14,7 +14,7 @@ def iterate():
     session = get_session()
     set_ = session.set(key('test_set_iterate'), S('abc'), Set)
     assert S(['a', 'b', 'c']) == S(set_)
-    setx = session.set(key('test_setx_iterate'), S([1, 2, 3]), Set(Integer))
+    setx = session.set(key('test_setx_iterate'), S([1, 2, 3]), IntSet)
     assert S([1, 2, 3]) == S(setx)
 
 
@@ -23,7 +23,7 @@ def length():
     session = get_session()
     set_ = session.set(key('test_set_length'), S('abc'), Set)
     assert len(set_) == 3
-    setx = session.set(key('test_setx_length'), S([1, 2, 3]), Set(Integer))
+    setx = session.set(key('test_setx_length'), S([1, 2, 3]), IntSet)
     assert len(setx) == 3
 
 
@@ -33,7 +33,7 @@ def contains():
     set_ = session.set(key('test_set_contains'), S('abc'), Set)
     assert 'a' in set_
     assert 'd' not in set_
-    setx = session.set(key('test_setx_contains'), S([1, 2, 3]), Set(Integer))
+    setx = session.set(key('test_setx_contains'), S([1, 2, 3]), IntSet)
     assert 1 in setx
     assert 4 not in setx
     assert '1' not in setx
@@ -84,7 +84,7 @@ def isdisjoint():
     assert setx.isdisjoint(setxd)
     assert not setxj.isdisjoint(setx)
     assert setxd.isdisjoint(setx)
-    # mismatched value_type Integer vs. Bulk:
+    # mismatched value_type NInt vs. Bulk:
     assert setd.isdisjoint(setx)
     assert setx.isdisjoint(setd)
     assert setd.isdisjoint(setxj)
@@ -96,7 +96,7 @@ def isdisjoint():
 @tests.test
 def issubset():
     session = get_session()
-    test_sets = {Set(): 'abcdefg', Set(Integer): range(1, 8)}
+    test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
     for value_type, members in test_sets.iteritems():
         typeid = str(hash(value_type))
@@ -149,15 +149,15 @@ def issubset():
             a < e
         with raises(TypeError):
             a < f
-    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][0])
-    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][1])
-    assert not fixtures[Set()][0].issubset(fixtures[Set(Integer)][2])
+    assert not fixtures[Set()][0].issubset(fixtures[Set(NInt)][0])
+    assert not fixtures[Set()][0].issubset(fixtures[Set(NInt)][1])
+    assert not fixtures[Set()][0].issubset(fixtures[Set(NInt)][2])
 
 
 @tests.test
 def issuperset():
     session = get_session()
-    test_sets = {Set(): 'abcdefg', Set(Integer): range(1, 8)}
+    test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
     for value_type, members in test_sets.iteritems():
         typeid = str(hash(value_type))
@@ -210,9 +210,9 @@ def issuperset():
             a > e
         with raises(TypeError):
             a > f
-    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][0])
-    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][1])
-    assert not fixtures[Set()][0].issuperset(fixtures[Set(Integer)][2])
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(NInt)][0])
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(NInt)][1])
+    assert not fixtures[Set()][0].issuperset(fixtures[Set(NInt)][2])
 
 
 @tests.test
@@ -259,7 +259,7 @@ def difference():
     assert S([2, 4, 5, 6]) -setx == S([5, 6])
     with raises(TypeError):
         setx - [2, 4, 5, 6]
-    # mismatched value_type Integer vs. Bulk:
+    # mismatched value_type NInt vs. Bulk:
     assert set2 == set2.difference(setx)
     assert set2 == set2.difference(setx, setz)
     assert setx == setx.difference(set2)
@@ -289,7 +289,7 @@ def symmetric_difference():
     assert S([2, 4, 5, 6]) ^ setx == S([1, 3, 5, 6])
     with raises(TypeError):
         setx ^ [2, 4, 5, 6]
-    # mismatched value_type Integer vs. Bulk:
+    # mismatched value_type NInt vs. Bulk:
     assert setx.union(set2) == setx.symmetric_difference(set2)
     assert set2.union(setx) == set2.symmetric_difference(setx)
 
@@ -729,7 +729,7 @@ def difference_update():
     resetx()
     with raises(TypeError):
         setx - [2, 4, 5, 6]
-    # mismatched value_type Integer vs. Bulk:
+    # mismatched value_type NInt vs. Bulk:
     reset()
     resetx()
     set2.difference_update(setx)
@@ -790,7 +790,7 @@ def symmetric_difference_update():
     assert setx == S([1, 3, 5, 6])
     with raises(TypeError):
         setx ^= [2, 4, 5, 6]
-    # mismatched value_type Integer vs. Bulk:
+    # mismatched value_type NInt vs. Bulk:
     resetx()
     with raises(TypeError):
         setx.symmetric_difference_update(set2)

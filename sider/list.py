@@ -101,7 +101,7 @@ class List(collections.MutableSequence):
                     list_[index] = map(encode, value)
                     pipe.multi()
                     pipe.delete(self.key)
-                    self._raw_extend(list_, pipe)
+                    self._raw_extend(list_, pipe, encoded=True)
                 self.session.client.transaction(block, self.key)
         else:
             raise TypeError('indices must be integers, not ' + repr(index))
@@ -131,7 +131,7 @@ class List(collections.MutableSequence):
                     tail = pipe.lrange(self.key, index.stop, -1)
                     pipe.multi()
                     pipe.ltrim(self.key, 0, index.start - 1)
-                    self._raw_extend(tail, pipe)
+                    self._raw_extend(tail, pipe, encoded=True)
                 self.session.client.transaction(block, self.key)
         elif isinstance(index, numbers.Integral):
             self.pop(index, _stacklevel=2)
@@ -162,16 +162,22 @@ class List(collections.MutableSequence):
            if Redis version is not 2.4.0 nor higher.
 
         """
-        encode = self.value_type.encode
         pipe = self.session.client.pipeline()
-        self._raw_extend((encode(v) for v in iterable), pipe)
+        self._raw_extend(iterable, pipe)
         pipe.execute()
 
-    def _raw_extend(self, iterable, pipe):
+    def _raw_extend(self, iterable, pipe, encoded=False):
+        encode = self.value_type.encode
         if self.session.server_version_info < (2, 4, 0):
-            for val in iterable:
-                pipe.rpush(self.key, val)
+            if encoded:
+                for val in iterable:
+                    pipe.rpush(self.key, val)
+            else:
+                for val in iterable:
+                    pipe.rpush(self.key, encode(val))
         else:
+            if not encoded:
+                iterable = (encode(v) for v in iterable)
             pipe.rpush(self.key, *iterable)
 
     def insert(self, index, value):
@@ -223,7 +229,7 @@ class List(collections.MutableSequence):
                 list_.insert(index, data)
                 pipe.multi()
                 pipe.delete(self.key)
-                self._raw_extend(list_, pipe)
+                self._raw_extend(list_, pipe, encoded=True)
             self.session.client.transaction(block, self.key)
 
     def pop(self, index=-1, _stacklevel=1):
@@ -288,7 +294,7 @@ class List(collections.MutableSequence):
                 tail = pipe.lrange(self.key, index + 1, -1)
                 pipe.multi()
                 pipe.ltrim(self.key, 0, index - 1)
-                self._raw_extend(tail, pipe)
+                self._raw_extend(tail, pipe, encoded=True)
             self.session.client.transaction(block, self.key)
             popped = result[0]
         if popped is None:

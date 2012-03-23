@@ -49,8 +49,14 @@ class Hash(collections.Mapping):
             raise KeyError(key)
         return self.value_type.decode(value)
 
-    def _raw_update(self, value, pipe):
+    def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
-        flatten = (val for pair in items for val in pair)
+        if encoded:
+            flatten = (val for k, v in items for val in (k, v))
+        else:
+            encode_key = self.key_type.encode
+            encode_value = self.value_type.encode
+            flatten = (val for k, v in items
+                           for val in (encode_key(k), encode_value(v)))
         pipe.execute_command('HMSET', self.key, *flatten)
 
