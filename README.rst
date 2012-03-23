@@ -1,10 +1,11 @@
 Sider
 =====
 
-Sider is a persistent object library based on Redis.
+Sider is a persistent object library based on Redis.  See more details
+in the `documentation <http://sider.readthedocs.org/>`.
 
 Distributed under `MIT license <http://minhee.mit-license.org/>`_.
 See also ``LICENSE`` file.
 
---- `Hong Minhee <http://dahlia.kr/>`_
+Written by `Hong Minhee <http://dahlia.kr/>`_.
 
