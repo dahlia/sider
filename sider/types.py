@@ -207,6 +207,17 @@ class Value(object):
 
 
 class Hash(Value):
+    """The type object for :class:`sider.hash.Hash` objects and other
+    :class:`collections.Mapping` objects.
+
+    :param key_type: the type of keys the hash will contain.
+                     default is :class:`ByteString`
+    :type key_type: :class:`Bulk`, :class:`type`
+    :param value_type: the type of values the hash will contain.
+                       default is :class:`ByteString`
+    :type value_type: :class:`Bulk`, :class:`type`
+
+    """
 
     def __init__(self, key_type=None, value_type=None):
         if key_type is None:

@@ -14,6 +14,12 @@ class Hash(collections.Mapping):
 
     """
 
+    #: (:class:`sider.types.Bulk`) The type of hash keys.
+    key_type = None
+
+    #: (:class:`sider.types.Bulk`) The type of hash values.
+    value_type = None
+
     def __init__(self, session, key,
                  key_type=ByteString, value_type=ByteString):
         if not isinstance(session, Session):
@@ -26,15 +32,46 @@ class Hash(collections.Mapping):
                                                  parameter='value_type')
 
     def __iter__(self):
+        """Iterates over its :meth:`keys()`.
+
+        :returns: the iterator which yields its keys
+        :rtype: :class:`collections.Iterator`
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HKEYS` command.
+
+        """
         keys = self.session.client.hkeys(self.key)
         decode = self.key_type.decode
         for key in keys:
             yield decode(key)
 
     def __len__(self):
+        """Gets the number of items.
+
+        :returns: the number of items
+        :rtype: :class:`numbers.Integral`
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HLEN` command.
+
+        """
         return self.session.client.hlen(self.key)
 
     def __contains__(self, key):
+        """Tests whether the given ``key`` exists.
+
+        :param key: the key
+        :returns: ``True`` if the ``key`` exists or ``False``
+        :rtype: :class:`bool`
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HEXISTS` command.
+
+        """
         try:
             encoded_key = self.key_type.encode(key)
         except TypeError:
@@ -43,6 +80,19 @@ class Hash(collections.Mapping):
         return bool(exists)
 
     def __getitem__(self, key):
+        """Gets the value of the given ``key``.
+
+        :param key: the key to get its value
+        :returns: the value of the ``key``
+        :raises: :exc:`TypeError` if the given ``key`` is not acceptable
+                 by its :attr:`key_type`
+        :raises: :exc:`KeyError` if there's no such ``key``
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HGET` command.
+
+        """
         field = self.key_type.encode(key)
         value = self.session.client.hget(self.key, field)
         if value is None:
