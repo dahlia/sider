@@ -155,3 +155,24 @@ def clear():
     assert len(hashx) == 0
     assert not list(hashx)
 
+
+@tests.test
+def delitem():
+    session = get_session()
+    hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
+    del hash_['a']
+    assert len(hash_) == 1
+    assert 'a' not in hash_.keys()
+    with raises(KeyError):
+        del hash_['a']
+    with raises(TypeError):
+        del hash_[1]
+    hashx = session.set(key('test_hashx_items'), fixture_b, Hash(NInt))
+    del hashx[1]
+    assert len(hashx) == 1
+    assert 1 not in hashx.keys()
+    with raises(KeyError):
+        del hashx[1]
+    with raises(TypeError):
+        del hashx['a']
+

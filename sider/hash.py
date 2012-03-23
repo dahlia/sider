@@ -124,6 +124,24 @@ class Hash(collections.Mapping):
             raise KeyError(key)
         return self.value_type.decode(value)
 
+    def __delitem__(self, key):
+        """Removes the ``key``.
+
+        :param key: the key to delete
+        :raises: :exc:`TypeError` if the given ``key`` is not acceptable
+                 by its :attr:`key_type`
+        :raises: :exc:`KeyError` if there's no such ``key``
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`HDEL` command.
+
+        """
+        encoded = self.key_type.encode(key)
+        ok = self.session.client.hdel(self.key, encoded)
+        if not ok:
+            raise KeyError(key)
+
     def keys(self):
         """Gets its all keys.  Equivalent to :meth:`__iter__()` except
         it returns a :class:`~collections.Set` instead of iterable.
