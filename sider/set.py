@@ -13,10 +13,10 @@ class Set(collections.MutableSet):
     alike built-in Python :class:`set` object.  More exactly, it
     implements :class:`collections.MutableSet` protocol.
 
-    .. table:: Mappings of Redis command--:class:`Set` methods
+    .. table:: Mappings of Redis commands--:class:`Set` methods
 
        ==================== ==========================================
-       Redis command        :class:`Set` methods
+       Redis commands       :class:`Set` methods
        ==================== ==========================================
        :redis:`SADD`        :meth:`Set.add()`,
                             :meth:`Set.update()`
