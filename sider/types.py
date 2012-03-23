@@ -206,6 +206,42 @@ class Value(object):
         return not (self == operand)
 
 
+class Hash(Value):
+
+    def __init__(self, key_type=None, value_type=None):
+        if key_type is None:
+            key_type = ByteString()
+        else:
+            key_type = Bulk.ensure_value_type(key_type, parameter='key_type')
+        if value_type is None:
+            value_type = ByteString()
+        else:
+            value_type = Bulk.ensure_value_type(value_type,
+                                                parameter='value_type')
+        self.key_type = key_type
+        self.value_type = value_type
+
+    def load_value(self, session, key):
+        from .hash import Hash
+        return Hash(session, key,
+                    key_type=self.key_type, value_type=self.value_type)
+
+    def save_value(self, session, key, value):
+        if not isinstance(value, collections.Mapping):
+            raise TypeError('expected a mapping object, not ' + repr(value))
+        from .hash import Hash
+        obj = Hash(session, key,
+                   key_type=self.key_type, value_type=self.value_type)
+        if value:
+            pipe = session.client.pipeline()
+            pipe.delete(key)
+            obj._raw_update(value, pipe)
+            pipe.execute()
+        else:
+            session.client.delete(key)
+        return obj
+
+
 class List(Value):
     """The type object for :class:`sider.list.List` objects and other
     :class:`collections.Sequence` objects except strings.

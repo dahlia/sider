@@ -1,11 +1,12 @@
 import doctest
 from attest import Tests
-from . import session, list, set
+from . import session, hash, list, set
 from sider import datetime, types
 
 
 tests = Tests()
 tests.register(session.tests)
+tests.register(hash.tests)
 tests.register(list.tests)
 tests.register(set.tests)
 
