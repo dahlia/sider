@@ -661,7 +661,7 @@ class Set(collections.MutableSet):
         Raises :exc:`~exceptions.KeyError` if the set is empty.
 
         :returns: a removed arbitrary element
-        :raises: :exc:`~exceptions.KeyError` if the set is empty
+        :raises exceptions.KeyError: if the set is empty
 
         .. note::
 

@@ -118,8 +118,8 @@ class Value(object):
         :param parameter: an optional parameter name.
                           if present the error message becomes better
         :type parameter: :class:`str`
-        :raises: :exc:`~exceptions.TypeError` if the given ``subtype``
-                 is not a subclass of the class
+        :raises exceptions.TypeError:
+           if the given ``subtype`` is not a subclass of the class
 
         """
         typename = '.'.join((cls.__module__, cls.__name__))
@@ -348,8 +348,8 @@ class Bulk(Value):
         :param value: a Python value to encode into Redis bulk
         :returns: an encoded Redis bulk
         :rtype: :class:`str`
-        :raises: :exc:`~exceptions.TypeError` if the type of a given
-                 value is not acceptable by this type
+        :raises exceptions.TypeError:
+           if the type of a given value is not acceptable by this type
 
         """
         cls = type(self)

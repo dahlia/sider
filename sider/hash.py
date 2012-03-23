@@ -109,10 +109,11 @@ class Hash(collections.MutableMapping):
 
         :param key: the key to get its value
         :returns: the value of the ``key``
-        :raises: :exc:`~exceptions.TypeError` if the given ``key``
-                 is not acceptable by its :attr:`key_type`
-        :raises: :exc:`~exceptions.KeyError` if there's no
-                 such ``key``
+        :raises exceptions.TypeError:
+           if the given ``key`` is not acceptable by
+           its :attr:`key_type`
+        :raises exceptions.KeyError:
+           if there's no such ``key``
 
         .. note::
 
@@ -130,10 +131,10 @@ class Hash(collections.MutableMapping):
 
         :param key: the key to set
         :param value: the value to set
-        :raises: :exc:`~exceptions.TypeError` if the given ``key``
-                 is not acceptable by its :attr:`key_type` or
-                 the given ``value`` is not acceptable by
-                 its :attr:`value_type`
+        :raises exceptions.TypeError:
+           if the given ``key`` is not acceptable by
+           its :attr:`key_type` or the given ``value``
+           is not acceptable by its :attr:`value_type`
 
         .. note::
 
@@ -148,10 +149,11 @@ class Hash(collections.MutableMapping):
         """Removes the ``key``.
 
         :param key: the key to delete
-        :raises: :exc:`~exceptions.TypeError` if the given ``key``
-                 is not acceptable by its :attr:`key_type`
-        :raises: :exc:`~exceptions.KeyError` if there's no
-                 such ``key``
+        :raises exceptions.TypeError:
+           if the given ``key`` is not acceptable by
+           its :attr:`key_type`
+        :raises exceptions.KeyError:
+           if there's no such ``key``
 
         .. note::
 
@@ -247,10 +249,10 @@ class Hash(collections.MutableMapping):
         :param key: the key to get or set
         :param default: the value to be set if the ``key``
                         doesn't exist
-        :raises: :exc:`~exceptions.TypeError` when the given ``key``
-                 is not acceptable by its :attr:`key_type` or the
-                 given ``default`` value is not acceptable by
-                 its :attr:`value_type`
+        :raises exceptions.TypeError:
+           when the given ``key`` is not acceptable by its
+           :attr:`key_type` or the given ``default`` value
+           is not acceptable by its :attr:`value_type`
 
         .. note::
 
