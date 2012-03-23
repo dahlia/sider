@@ -146,11 +146,11 @@ def items():
 @tests.test
 def clear():
     session = get_session()
-    hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
+    hash_ = session.set(key('test_hash_clear'), fixture_a, Hash)
     hash_.clear()
     assert len(hash_) == 0
     assert not list(hash_)
-    hashx = session.set(key('test_hashx_items'), fixture_b, Hash(NInt))
+    hashx = session.set(key('test_hashx_clear'), fixture_b, Hash(NInt))
     hashx.clear()
     assert len(hashx) == 0
     assert not list(hashx)
@@ -159,7 +159,7 @@ def clear():
 @tests.test
 def delitem():
     session = get_session()
-    hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
+    hash_ = session.set(key('test_hash_delitem'), fixture_a, Hash)
     del hash_['a']
     assert len(hash_) == 1
     assert 'a' not in hash_.keys()
@@ -167,7 +167,7 @@ def delitem():
         del hash_['a']
     with raises(TypeError):
         del hash_[1]
-    hashx = session.set(key('test_hashx_items'), fixture_b, Hash(NInt))
+    hashx = session.set(key('test_hashx_delitem'), fixture_b, Hash(NInt))
     del hashx[1]
     assert len(hashx) == 1
     assert 1 not in hashx.keys()
