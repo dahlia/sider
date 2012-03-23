@@ -134,6 +134,24 @@ class Hash(collections.Mapping):
             values[i] = decode(val)
         return values
 
+    def items(self):
+        """Gets its all ``(key, value)`` pairs.
+        There isn't any meaningful order of pairs.
+
+        :returns: the set of ``(key, value)`` pairs (:class:`tuple`)
+        :rtype: :class:`collections.ItemsView`
+
+        .. note::
+
+           This method is mapped to Redis :redis:`HGETALL` command.
+
+        """
+        items = self.session.client.hgetall(self.key)
+        decode_key = self.key_type.decode
+        decode_value = self.value_type.decode
+        return frozenset((decode_key(k), decode_value(v))
+                         for k, v in items.iteritems())
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:

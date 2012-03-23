@@ -123,3 +123,22 @@ def values():
     assert 3 not in hashx.values()
     assert 4 in hashx.values()
 
+
+@tests.test
+def items():
+    session = get_session()
+    hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
+    assert set(hash_.items()) == set([('a', 'b'), ('c', 'd')])
+    assert len(hash_.items()) == 2
+    assert ('a', 'b') in hash_.items()
+    assert ('b', 'b') not in hash_.items()
+    assert ('c', 'c') not in hash_.items()
+    assert ('c', 'd') in hash_.items()
+    hashx = session.set(key('test_hashx_items'), fixture_b, Hash(NInt))
+    assert set(hashx.items()) == set([(1, 'a'), (2, 'b')])
+    assert len(hashx.items()) == 2
+    assert (1, 'a') in hashx.items()
+    assert (1, 'b') not in hashx.items()
+    assert (2, 'a') not in hashx.items()
+    assert (2, 'b') in hashx.items()
+
