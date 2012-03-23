@@ -226,6 +226,52 @@ class Hash(collections.MutableMapping):
         """
         self.session.client.delete(self.key)
 
+    def setdefault(self, key, default=None):
+        """Sets the given ``default`` value to the ``key``
+        if it doesn't exist and then returns the current value
+        of the ``key``.
+
+        For example, the following code is::
+
+            val = hash.setdefault('key', 'set this if not exist')
+
+        equivalent to::
+
+            try:
+                val = hash['key']
+            except KeyError:
+                val = hash['key'] = 'set this if not exist'
+
+        except :meth:`setdefault()` method is an atomic operation.
+
+        :param key: the key to get or set
+        :param default: the value to be set if the ``key``
+                        doesn't exist
+        :raises: :exc:`~exceptions.TypeError` when the given ``key``
+                 is not acceptable by its :attr:`key_type` or the
+                 given ``default`` value is not acceptable by
+                 its :attr:`value_type`
+
+        .. note::
+
+           This method internally uses Redis :redis:`HSETNX`
+           command which is atomic.
+
+        """
+        encoded_key = self.key_type.encode(key)
+        encoded_val = self.value_type.encode(default)
+        result = [None]
+        def block(pipe):
+            ok = pipe.hsetnx(self.key, encoded_key, encoded_val)
+            if ok:
+                result[0] = default
+            else:
+                value = pipe.hget(self.key, encoded_key)
+                result[0] = self.value_type.decode(value)
+            pipe.multi()
+        self.session.client.transaction(block, self.key)
+        return result[0]
+
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
         if encoded:

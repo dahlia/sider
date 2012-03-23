@@ -207,3 +207,32 @@ def setitem():
     with raises(TypeError):
         hashx['invalid'] = 'val'
 
+
+@tests.test
+def setdefault():
+    session = get_session()
+    hash_ = session.set(key('test_hash_setdefault'), fixture_a, Hash)
+    curval = hash_.setdefault('a', 'would not get changed')
+    assert curval == hash_['a'] == 'b'
+    assert len(hash_) == 2
+    curval = hash_.setdefault('added', 'default value')
+    assert len(hash_) == 3
+    assert 'added' in hash_
+    assert curval == hash_['added'] == 'default value'
+    with raises(TypeError):
+        hash_.setdefault(1, 'default')
+    with raises(TypeError):
+        hash_.setdefault('key', 1234)
+    hashx = session.set(key('test_hashx_setdefault'), fixture_b, Hash(NInt))
+    curval = hashx.setdefault(1, 'would not get changed')
+    assert curval == hashx[1] == 'a'
+    assert len(hashx) == 2
+    curval = hashx.setdefault(1234, 'default value')
+    assert len(hashx) == 3
+    assert 1234 in hashx
+    assert curval == hashx[1234] == 'default value'
+    with raises(TypeError):
+        hashx.setdefault('invalid', 'default')
+    with raises(TypeError):
+        hashx.setdefault('key', 1234)
+
