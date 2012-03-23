@@ -20,7 +20,8 @@ class Hash(collections.Mapping):
        :redis:`DEL`          :meth:`Hash.clear()`
        :redis:`HDEL`         :keyword:`del` (:meth:`Hash.__delitem__()`)
        :redis:`HEXISTS`      :keyword:`in` (:meth:`Hash.__contains__()`)
-       :redis:`HGET`         :meth:`Hash.__getitem__()`
+       :redis:`HGET`         :meth:`Hash.__getitem__()`,
+                             :meth:`Hash.get()`
        :redis:`HGETALL`      :meth:`Hash.items()`
        :redis:`HINCRBY`      N/A
        :redis:`HINCRBYFLOAT` N/A
@@ -32,6 +33,8 @@ class Hash(collections.Mapping):
        :redis:`HSET`         :token:`=` (:meth:`Hash.__setitem__()`)
        :redis:`HSETNX`       :meth:`Hash.setdefault()`
        :redis:`HVALS`        :meth:`Hash.values()`
+       N/A                   :meth:`Hash.pop()`
+       N/A                   :meth:`Hash.popitem()`
        ===================== ===========================================
 
     """
