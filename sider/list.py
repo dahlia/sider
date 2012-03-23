@@ -24,8 +24,7 @@ class List(collections.MutableSequence):
 
     """
 
-    #: (:class:`type`) The type of list values.  It has to be a subtype
-    #: of :class:`~sider.types.Bulk`.
+    #: (:class:`sider.types.Bulk`) The type of list values.
     value_type = None
 
     def __init__(self, session, key, value_type=ByteString):
