@@ -461,6 +461,26 @@ class UnicodeString(Bulk):
         return bulk.decode('utf-8')
 
 
+class Boolean(Integer):
+    """Stores :class:`bool` values as ``'1'`` or ``'0'``.
+
+    .. sourcecode:: pycon
+
+       >>> boolean = Boolean()
+       >>> boolean.encode(True)
+       '1'
+       >>> boolean.encode(False)
+       '0'
+
+    """
+
+    def encode(self, value):
+        return super(Boolean, self).encode(1 if value else 0)
+
+    def decode(self, bulk):
+        return bool(super(Boolean, self).decode(bulk))
+
+
 class Date(Bulk):
     """Stores :class:`datetime.date` values.  Dates are internally
     formatted in :rfc:`3339` format e.g. ``2012-03-28``.

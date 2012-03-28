@@ -1,11 +1,22 @@
 import datetime
 from attest import Tests, assert_hook, raises
 from .env import get_session, key
-from sider.types import ByteString, Date, DateTime,TZDateTime
+from sider.types import Boolean, ByteString, Date, DateTime,TZDateTime
 from sider.datetime import FixedOffset
 
 
 tests = Tests()
+
+
+@tests.test
+def boolean():
+    session = get_session()
+    session.set(key('test_types_boolean_t'), True, Boolean)
+    assert session.get(key('test_types_boolean_t'), Boolean) is True
+    session.set(key('test_types_boolean_t2'), 2, Boolean)
+    assert session.get(key('test_types_boolean_t2'), Boolean) is True
+    session.set(key('test_types_boolean_f'), False, Boolean)
+    assert session.get(key('test_types_boolean_f'), Boolean) is False
 
 
 @tests.test
