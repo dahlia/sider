@@ -111,8 +111,14 @@ class upload(Command):
         bb = BitbucketClient(self.bb_username,
                              self.bb_password,
                              self.bb_repository)
+        sdist_url = None
         for command, pyversion, filename in self.distribution.dist_files:
-            bb.upload(filename)
+            url = bb.upload(filename)
+            if command == 'sdist':
+                sdist_url = url
+        if sdist_url:
+            url = sdist_url
+        self.distribution.metadata.download_url = url
 
 
 setup(name='Sider',
