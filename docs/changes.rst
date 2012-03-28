@@ -10,6 +10,8 @@ To be released.
 - Added :class:`sider.datetime.FixedOffset` tzinfo subtype.
 - Added :class:`sider.types.DateTime` and
   :class:`~sider.types.TZDateTime` types.
+- Now you can check the version by this command:
+  ``python -m sider.version``.
 
 
 Version 0.1.0
