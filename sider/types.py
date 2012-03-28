@@ -478,7 +478,7 @@ class Date(Bulk):
     #: The :mod:`re` pattern that matches to :rfc:`3339` formatted date
     #: string e.g. ``'2012-03-28'``.
     DATE_PATTERN = re.compile(
-        r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$'
+        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)$'
     )
 
     #: (:class:`str`) The :meth:`~datetime.date.strftime()` format string
