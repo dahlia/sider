@@ -19,6 +19,7 @@ import collections
 import numbers
 import datetime
 from .lazyimport import list, set
+from .datetime import UTC, FixedOffset
 
 
 class Value(object):
@@ -500,4 +501,119 @@ class Date(Bulk):
         fmt = self.DATE_FORMAT
         msg = 'expected a {0!r} format, not {1!r}'.format(fmt, bulk)
         raise ValueError(msg)
+
+
+class DateTime(Bulk):
+    """Stores naive :class:`datetime.datetime` values.
+    Values are internally formatted in :rfc:`3339` format
+    e.g. ``2012-03-28T09:21:34.638972``.
+
+    .. sourcecode:: pycon
+
+       >>> dt = DateTime()
+       >>> dt.decode('2012-03-28T09:21:34.638972')
+       datetime.datetime(2012, 3, 28, 9, 21, 34, 638972)
+       >>> dt.encode(_)
+       '2012-03-28T09:21:34.638972'
+
+    It doesn't store :attr:`~datetime.datetime.tzinfo` data.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import UTC
+       >>> decoded = dt.decode('2012-03-28T09:21:34.638972Z')
+       >>> decoded
+       datetime.datetime(2012, 3, 28, 9, 21, 34, 638972)
+       >>> dt.encode(decoded.replace(tzinfo=UTC))
+       '2012-03-28T09:21:34.638972'
+
+    .. note::
+
+       If you must be aware of time zone, use :class:`TZDateTime`
+       instead.
+
+    """
+
+    DATETIME_PATTERN = re.compile(
+        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
+        r'(?P<minute>\d\d):(?P<second>\d\d)(?:.(?P<microsecond>\d{6}))?'
+        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+    )
+
+    def encode(self, value):
+        if not isinstance(value, datetime.datetime):
+            raise TypeError('expected a datetime.datetime, not ' + repr(value))
+        if value.tzinfo is not None:
+            value = value.replace(tzinfo=None)
+        return value.isoformat()
+
+    def decode(self, bulk):
+        parsed = self.parse_datetime(bulk)
+        if parsed.tzinfo:
+            return parsed.replace(tzinfo=None)
+        return parsed
+
+    def parse_datetime(self, bulk):
+        r"""Parses a :rfc:`3339` formatted string into
+        :class:`datetime.datetime`.
+
+        .. sourcecode:: pycon
+
+           >>> dt = DateTime()
+           >>> dt.parse_datetime('2012-03-28T09:21:34.638972')
+           datetime.datetime(2012, 3, 28, 9, 21, 34, 638972)
+
+        Unlike :meth:`decode()` it is aware of
+        :attr:`~datetime.datetime.tzinfo` data if the string contains
+        time zone notation.
+
+        .. sourcecode:: pycon
+
+           >>> a = dt.parse_datetime('2012-03-28T09:21:34.638972Z')
+           >>> a  # doctest: +NORMALIZE_WHITESPACE
+           datetime.datetime(2012, 3, 28, 9, 21, 34, 638972,
+                             tzinfo=sider.datetime.Utc())
+           >>> b = dt.parse_datetime('2012-03-28T18:21:34.638972+09:00')
+           >>> b  # doctest: +NORMALIZE_WHITESPACE
+           datetime.datetime(2012, 3, 28, 18, 21, 34, 638972,
+                             tzinfo=sider.datetime.FixedOffset(540))
+           >>> a == b
+           True
+
+        :param bulk: a :ref:`3339` formatted string
+        :type bulk: :class:`basestring`
+        :returns: a parsing result
+        :rtype: :class:`datetime.datetime`
+
+        .. note::
+
+           It is for internal use and :meth:`decode()` method actually
+           uses this method.
+
+        """
+        match = self.DATETIME_PATTERN.search(bulk)
+        if match:
+            year = int(match.group('year'))
+            month = int(match.group('month'))
+            day = int(match.group('day'))
+            hour = int(match.group('hour'))
+            minute = int(match.group('minute'))
+            second = int(match.group('second'))
+            microsecond = int(match.group('microsecond'))
+            if match.group('tz'):
+                if match.group('tz_utc'):
+                    tzinfo = UTC
+                else:
+                    tzplus = match.group('tz_offset_sign') == '+'
+                    tzhour = int(match.group('tz_offset_hour'))
+                    tzmin = int(match.group('tz_offset_minute'))
+                    tzoffset = datetime.timedelta(hours=tzhour, minutes=tzmin)
+                    tzinfo = FixedOffset(tzoffset if tzplus else -tzoffset)
+            else:
+                tzinfo = None
+            return datetime.datetime(year, month, day, hour, minute, second,
+                                     microsecond, tzinfo=tzinfo)
+        raise ValueError('expected a RFC 3339 compliant datetime.datetime '
+                         'string, not ' + repr(bulk))
 
