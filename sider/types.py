@@ -162,7 +162,7 @@ class Value(object):
     def load_value(self, session, key):
         """How to load the value from the given Redis ``key``.
         Subclasses have to implement it.  By default it raises
-        :exc:`NotImplementedError`.
+        :exc:`~exceptions.NotImplementedError`.
 
         :param session: the session object that stores the given ``key``
         :type session: :class:`sider.session.Session`
@@ -180,7 +180,7 @@ class Value(object):
     def save_value(self, session, key, value):
         """How to save the given ``value`` into the given Redis ``key``.
         Subclasses have to implement it.  By default it raises
-        :exc:`NotImplementedError`.
+        :exc:`~exceptions.NotImplementedError`.
 
         :param session: the session object going to store
                         the given ``key``--``value`` pair
