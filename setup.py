@@ -87,11 +87,9 @@ class upload(Command):
     user_options = [
         ('bb-repository=', 'R',
          'Bitbucket repository name [default: %s]' % DEFAULT_REPOSITORY),
-        ('bb-username=', 'U', 'Bitbucket username'),
-        ('bb-password=', 'p', 'Bitbucket password'),
-        ('bb-password-prompt', 'P', 'Show prompt for Bitbucket password')
+        ('bb-username=', 'u', 'Bitbucket username'),
+        ('bb-password=', 'p', 'Bitbucket password')
     ]
-    boolean_options = ['bb-password-password']
 
     def initialize_options(self):
         self.bb_repository = self.DEFAULT_REPOSITORY
@@ -101,15 +99,11 @@ class upload(Command):
 
     def finalize_options(self):
         if not self.bb_username:
-            raise DistutilsOptionError('Require -U/--bb-username option')
-        elif not (self.bb_password or self.bb_password_prompt):
-            raise DistutilsOptionError(
-                'Require -p/--bb-password or -P/--bb-password-prompt option'
-            )
-        elif not re.match(r'^[-_.a-z]+/[-_.a-z]+$', self.bb_repository):
-            raise DistutilsOptionError('-R/--bb-repository option is incorrect')
-        if self.bb_password_prompt:
+            self.bb_username = raw_input('Bitbucket username: ')
+        if not self.bb_password:
             self.bb_password = getpass.getpass('Bitbucket password: ')
+        if not re.match(r'^[-_.a-z]+/[-_.a-z]+$', self.bb_repository):
+            raise DistutilsOptionError('-R/--bb-repository option is incorrect')
 
     def run(self):
         if not self.distribution.dist_files:
