@@ -86,7 +86,7 @@ class upload(Command):
     description = __doc__
     user_options = [
         ('bb-repository=', 'R',
-         'Bitbucket repository name [default: %s' % DEFAULT_REPOSITORY),
+         'Bitbucket repository name [default: %s]' % DEFAULT_REPOSITORY),
         ('bb-username=', 'U', 'Bitbucket username'),
         ('bb-password=', 'p', 'Bitbucket password'),
         ('bb-password-prompt', 'P', 'Show prompt for Bitbucket password')
