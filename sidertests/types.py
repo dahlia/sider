@@ -1,7 +1,7 @@
 import datetime
 from attest import Tests, assert_hook, raises
 from .env import get_session, key
-from sider.types import ByteString, Date, DateTime
+from sider.types import ByteString, Date, DateTime,TZDateTime
 from sider.datetime import FixedOffset
 
 
@@ -38,4 +38,23 @@ def datetime_():
     session.set(key('test_types_datetime'), '1988-08-04', ByteString)
     with raises(ValueError):
         session.get(key('test_types_datetime'), DateTime)
+
+
+@tests.test
+def tzdatetime():
+    session = get_session()
+    aware = datetime.datetime(2012, 3, 28, 18, 21, 34, 638972,
+                              tzinfo=FixedOffset(540))
+    session.set(key('test_types_tzdatetime'), aware, TZDateTime)
+    dt = session.get(key('test_types_tzdatetime'), TZDateTime)
+    assert dt.tzinfo is not None
+    assert dt == aware
+    with raises(TypeError):
+        session.set(key('test_types_tzdatetime'), 1234, TZDateTime)
+    naive = datetime.datetime(2012, 3, 28, 9, 21, 34, 638972)
+    with raises(ValueError):
+        session.set(key('test_types_tzdatetime'), naive, TZDateTime)
+    session.set(key('test_types_tzdatetime'), '1988-08-04', ByteString)
+    with raises(ValueError):
+        session.get(key('test_types_tzdatetime'), TZDateTime)
 

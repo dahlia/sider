@@ -617,3 +617,40 @@ class DateTime(Bulk):
         raise ValueError('expected a RFC 3339 compliant datetime.datetime '
                          'string, not ' + repr(bulk))
 
+
+class TZDateTime(DateTime):
+    """Similar to :class:`DateTime` except it accepts only tz-aware
+    :class:`datetime.datetime` values.  All values are internally
+    stored in :const:`~sider.datetime.UTC`.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import FixedOffset
+       >>> dt = datetime.datetime(2012, 3, 28, 18, 21, 34, 638972,
+       ...                        tzinfo=FixedOffset(540))
+       >>> tzdt = TZDateTime()
+       >>> tzdt.encode(dt)
+       '2012-03-28T09:21:34.638972Z'
+       >>> tzdt.decode(_)  # doctest: +NORMALIZE_WHITESPACE
+       datetime.datetime(2012, 3, 28, 9, 21, 34, 638972,
+                         tzinfo=sider.datetime.Utc())
+
+    If any naive :class:`datetime.datetime` has passed it will
+    raise :exc:`~exceptions.ValueError`.
+
+    """
+
+    def encode(self, value):
+        if not isinstance(value, datetime.datetime):
+            raise TypeError('expected a datetime.datetime, not ' + repr(value))
+        elif value.tzinfo is None:
+            raise ValueError('datetime.datetime must be aware of tzinfo')
+        encoded = super(TZDateTime, self).encode(value.astimezone(UTC))
+        return encoded + 'Z'
+
+    def decode(self, bulk):
+        parsed = self.parse_datetime(bulk)
+        if parsed.tzinfo is None:
+            raise ValueError('datetime.datetime must be aware of tzinfo')
+        return parsed
+
