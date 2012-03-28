@@ -461,7 +461,7 @@ class UnicodeString(Bulk):
 
 
 class Date(Bulk):
-    """Stores :class:`datetime.date` values.  Internally dates are
+    """Stores :class:`datetime.date` values.  Dates are internally
     formatted in :rfc:`3339` format e.g. ``2012-03-28``.
 
     .. sourcecode:: pycon
