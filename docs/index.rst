@@ -50,6 +50,7 @@ Further reading
    doc
    memo
    todo
+   changes
 
 
 Open source
