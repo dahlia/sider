@@ -1,11 +1,11 @@
 import doctest
 from attest import Tests
-from . import session, hash, list, set
-from sider import datetime, types
+from . import session, types, hash, list, set
 
 
 tests = Tests()
 tests.register(session.tests)
+tests.register(types.tests)
 tests.register(hash.tests)
 tests.register(list.tests)
 tests.register(set.tests)
@@ -13,10 +13,12 @@ tests.register(set.tests)
 
 @tests.test
 def doctest_types():
+    from sider import types
     assert 0 == doctest.testmod(types)[0]
 
 
 @tests.test
 def doctest_datetime():
+    from sider import datetime
     assert 0 == doctest.testmod(datetime)[0]
 

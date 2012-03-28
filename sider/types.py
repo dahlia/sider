@@ -14,8 +14,10 @@ into Python :class:`int` ``3``.
 
 """
 from __future__ import absolute_import
+import re
 import collections
 import numbers
+import datetime
 from .lazyimport import list, set
 
 
@@ -456,4 +458,46 @@ class UnicodeString(Bulk):
 
     def decode(self, bulk):
         return bulk.decode('utf-8')
+
+
+class Date(Bulk):
+    r"""Stores :class:`datetime.date` values.  Internally dates are
+    formatted in :rfc:`3339` format e.g. ``2012-03-28``.
+
+    .. sourcecode:: pycon
+
+       >>> import datetime
+       >>> date = Date()
+       >>> date.encode(datetime.date(2012, 3, 28))
+       '2012-03-28'
+       >>> date.decode(_)
+       datetime.date(2012, 3, 28)
+
+    """
+
+    #: The :mod:`re` pattern that matches to :rfc:`3339` formatted date
+    #: string e.g. ``'2012-03-28'``.
+    DATE_PATTERN = re.compile(
+        r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$'
+    )
+
+    #: (:class:`str`) The :meth:`~datetime.date.strftime()` format string
+    #: for :rfc:`3339`.
+    DATE_FORMAT = '%Y-%m-%d'
+
+    def encode(self, value):
+        if not isinstance(value, datetime.date):
+            raise TypeError('expected a datetime.date, not ' + repr(value))
+        return value.strftime(self.DATE_FORMAT)
+
+    def decode(self, bulk):
+        match = self.DATE_PATTERN.search(bulk)
+        if match:
+            year = int(match.group('year'))
+            month = int(match.group('month'))
+            day = int(match.group('day'))
+            return datetime.date(year, month, day)
+        fmt = self.DATE_FORMAT
+        msg = 'expected a {0!r} format, not {1!r}'.format(fmt, bulk)
+        raise ValueError(msg)
 
