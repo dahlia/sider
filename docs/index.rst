@@ -22,6 +22,15 @@ and heavily under development currently.
    >>> session.get('my_int_key', Integer)
    1234
 
+You can install it from PyPI_:
+
+.. sourcecode:: console
+
+   $ pip install Sider  # or
+   $ easy_install Sider
+   $ python -m sider.version
+   0.1.1
+
 What was the name 'Sider' originated from?:
 
 .. sourcecode:: pycon
@@ -29,6 +38,7 @@ What was the name 'Sider' originated from?:
    >>> 'redis'[::-1]
    'sider'
 
+.. _PyPI: http://pypi.python.org/pypi/Sider
 .. _Redis: http://redis.io/
 
 
