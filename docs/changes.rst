@@ -1,10 +1,16 @@
 Sider Changelog
 ===============
 
-Version 0.1.1
+Version 0.1.2
 -------------
 
 To be released.
+
+
+Version 0.1.1
+-------------
+
+Released on March 29, 2012.  Pre-alpha release.
 
 - Added :class:`sider.types.Boolean` type.
 - Added :class:`sider.types.Date` type.
