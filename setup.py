@@ -122,7 +122,7 @@ class upload(Command):
 
 
 setup(name='Sider',
-      packages=['sider', 'sidertests'],
+      packages=['sider', 'sider.entity', 'sidertests'],
       version=VERSION,
       description='A persistent object library based on Redis',
       long_description=readme(),
