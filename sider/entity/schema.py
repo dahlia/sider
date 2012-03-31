@@ -82,7 +82,7 @@ class Schema(object):
 
     :param \*\*fields: the :class:`Field` objects for these names.
                        there must be one key field
-    :raises sider.exceptions.KeyFieldError:
+    :raises sider.entity.exceptions.KeyFieldError:
         when there's no key field or two or more key fields
 
     """
