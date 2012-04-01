@@ -5,4 +5,5 @@
       :maxdepth: 2
 
       entity/schema
+      entity/map
       entity/exceptions

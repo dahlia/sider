@@ -1,8 +1,7 @@
 import doctest
 import os
 from attest import Tests
-from . import session, types, hash, list, set
-from .entity import schema
+from . import session, types, hash, list, set, entity
 
 
 tests = Tests()
@@ -11,7 +10,7 @@ tests.register(types.tests)
 tests.register(hash.tests)
 tests.register(list.tests)
 tests.register(set.tests)
-tests.register(schema.tests)
+tests.register(entity.tests)
 
 
 @tests.test

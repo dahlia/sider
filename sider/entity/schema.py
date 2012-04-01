@@ -29,7 +29,8 @@ class Field(object):
                     of the field.  by default default value is just
                     ``None``.  if it's callable, the default value
                     will be made by it.  or if it's not callable,
-                    it will just become the default value.
+                    it will just become the default value except
+                    ``None``.  ``None`` means "no default".
                     to disambiguate it you can pass a function that
                     simply returns the value e.g. ``lambda: value``
                     or use :class:`ConstantFunction`
@@ -53,7 +54,8 @@ class Field(object):
     key = None
 
     #: (:class:`collections.Callable`) The nullary function that takes
-    #: no arguments and simply returns a default value.
+    #: no arguments and simply returns a default value.  It can be
+    #: ``None`` if there's no function that returns default value.
     default = None
 
     def __init__(self, value_type, required=None, unique=None, key=False,

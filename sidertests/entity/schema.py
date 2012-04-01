@@ -1,11 +1,11 @@
 import pickle
 import datetime
 from attest import Tests, assert_hook, raises
-from ..env import get_session, key
 from sider.entity.schema import Field, Schema, ConstantFunction
 from sider.entity.exceptions import KeyFieldError
 from sider.types import UnicodeString, Date, TZDateTime
 from sider.datetime import utcnow
+from ..env import get_session, key
 
 
 tests = Tests()
@@ -30,6 +30,8 @@ def field_default():
     assert abs(utcnow() - field.default()) < datetime.timedelta(minutes=1)
     field2 = Field(UnicodeString, default=u'default string')
     assert field2.default() == u'default string'
+    field3 = Field(UnicodeString)
+    assert field3.default is None
 
 
 def make_schema():

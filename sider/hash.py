@@ -329,6 +329,5 @@ class Hash(collections.MutableMapping):
             encode_value = self.value_type.encode
             flatten = (val for k, v in items
                            for val in (encode_key(k), encode_value(v)))
-        pipe.execute_command('HMSET', self.key, *flatten)
-
+        pipe.execute_command('HMSET', self.key, *tuple(flatten))
 
