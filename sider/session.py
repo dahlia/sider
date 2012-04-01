@@ -21,11 +21,23 @@ class Session(object):
 
     """
 
+    #: (:class:`redis.client.Redis`) The Redis client object.
+    client = None
+
+    #: (:class:`collections.Mapping`) The identity map of entities.
+    #: Keys are :class:`~sider.entity.map.Map` objects and values
+    #: are :class:`~collections.Mapping` objects.
+    #: Inner :class:`~collections.Mapping` objects consist of
+    #: entity keys (the values of key fields) and its associated
+    #: entity objects.
+    identity_map = None
+
     def __init__(self, client):
         if not isinstance(client, Redis):
             raise TypeError('client must be a redis.client.Redis object, not '
                             + repr(client))
         self.client = client
+        self.identity_map = {}
 
     @property
     def server_version(self):

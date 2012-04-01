@@ -2,7 +2,7 @@ import datetime
 import hashlib
 from attest import Tests, assert_hook, raises
 from sider.entity.map import Map
-from sider.types import Value
+from sider.types import Value, Hash
 from sider.datetime import utcnow
 from ..env import get_session, key
 from .schema import make_schema
@@ -92,4 +92,21 @@ def map_object():
     assert loaded.url == u'http://dahlia.kr/'
     assert loaded.dob == datetime.date(1988, 8, 4)
     assert utcnow() - loaded.created_at < datetime.timedelta(minutes=1)
+    hash_ = session.get(key('test_entity_map_object'), Hash)
+    assert hash_['password'] == Password.hash('secret')
+
+
+@tests.test
+def identity_map():
+    mapper, schema = make_mapper()
+    user = User(u'dahlia', 'secret', u'Hong Minhee', url=u'http://dahlia.kr/',
+                dob=datetime.date(1988, 8, 4))
+    session = get_session()
+    stored = session.set(key('test_entity_map_identity_map'), user, mapper)
+    assert stored is user
+    assert session.identity_map[mapper]['dahlia'] is user
+    loaded = session.get(key('test_entity_map_identity_map'), mapper)
+    assert loaded is user
+    loaded2 = session.get(key('test_entity_map_identity_map'), mapper)
+    assert loaded2 is user
 
