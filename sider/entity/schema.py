@@ -34,8 +34,18 @@ class Field(object):
                     to disambiguate it you can pass a function that
                     simply returns the value e.g. ``lambda: value``
                     or use :class:`ConstantFunction`
+    :param name: the actual key name of Redis hash.  it would be
+                 automatically determined by :class:`Schema`
+                 according to its keyword name if it is kept
+                 to ``None``.  the default is ``None``
+    :type name: :class:`str`
 
     """
+
+    #: (:class:`str`) The actual key name of Redis hash.  It would be
+    #: automatically determined by :class:`Schema` according to its
+    #: keyword name if it is kept to ``None``.
+    name = None
 
     #: (:class:`sider.types.Bulk`) The type of the field value.
     value_type = None
@@ -59,9 +69,11 @@ class Field(object):
     default = None
 
     def __init__(self, value_type, required=None, unique=None, key=False,
-                 default=None):
+                 default=None, name=None):
         self.value_type = Bulk.ensure_value_type(value_type,
                                                  parameter='value_type')
+        if not (name is None or isinstance(name, basestring)):
+            raise TypeError('name must be a string, not ' + repr(name))
         if default is not None and not callable(default):
             default = ConstantFunction(default)
         if key:
@@ -73,6 +85,7 @@ class Field(object):
                 raise TypeError('the key field cannot be optional')
             elif not unique:
                 raise TypeError('the key field must be unique')
+        self.name = str(name) if name else None
         self.required = required
         self.unique = unique
         self.key = bool(key)
@@ -90,7 +103,12 @@ class Schema(object):
     """
 
     #: (:class:`collections.Mapping`) The map of fields.
+    #: Keys are mapped attribute names.
     fields = None
+
+    #: (:class:`collections.Mapping`) The map of fields.
+    #: Keys are Redis hash key names.
+    names = None
 
     #: (:class:`Field`) The key field.
     key_field = None
@@ -100,9 +118,17 @@ class Schema(object):
 
     def __init__(self, **fields):
         self.fields = fields
-        key_fields = dict((name, field)
-                          for name, field in fields.iteritems()
-                          if field.key)
+        names = {}
+        key_fields = {}
+        for name, field in fields.iteritems():
+            if field.key:
+                key_fields[name] = field
+                self.key_field_name = name
+                self.key_field = field
+            if not field.name:
+                field.name = name
+            names[field.name] = field
+        self.names = names
         if not key_fields:
             raise KeyFieldError('the key field is missing; there must be '
                                 'a key field for every schema')
@@ -112,8 +138,6 @@ class Schema(object):
                              for name, field in key_fields.iteritems())
             raise KeyFieldError('the key field must be one, but {0} fields '
                                 'were marked as key: {1}'.format(key_len, keys))
-        else:
-            self.key_field_name, self.key_field = key_fields.popitem()
 
 
 class ConstantFunction(collections.Callable):
