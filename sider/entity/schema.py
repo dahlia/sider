@@ -139,6 +139,22 @@ class Schema(object):
             raise KeyFieldError('the key field must be one, but {0} fields '
                                 'were marked as key: {1}'.format(key_len, keys))
 
+    def get_key(self, entity):
+        """Gets the value of the given ``entity`` object's key field.
+
+        :param entity: the entity object to find the key
+        :returns: the value of ``entity`` object's key field
+        :raises sider.entity.exceptions.KeyFieldError:
+            when ``entity`` hasn't the key field
+
+        """
+        key_field = self.key_field_name
+        try:
+            return getattr(entity, key_field)
+        except AttributeError:
+            raise KeyFieldError('could not find key field {0!r} from the '
+                                'object {1!r}'.format(key_field, entity))
+
 
 class ConstantFunction(collections.Callable):
     """The simple function object that returns a specific :attr:`value`.

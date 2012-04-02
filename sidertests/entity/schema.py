@@ -92,6 +92,11 @@ def schema_key_field():
             a=Field(UnicodeString),
             b=Field(UnicodeString)
         )
+    class UserLike:
+        login = u'hello'
+    assert user_schema.get_key(UserLike) == u'hello'
+    with raises(KeyFieldError):
+        user_schema.get_key(1)
 
 
 @tests.test

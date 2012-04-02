@@ -4,7 +4,7 @@
 """
 from ..types import Hash, ByteString
 from .schema import Schema
-from .exceptions import FieldError
+from .exceptions import KeyFieldError, FieldError
 
 
 class Map(Hash):
@@ -61,25 +61,40 @@ class Map(Hash):
         return instance
 
     def save_value(self, session, key, value):
+        if not isinstance(value, self.cls):
+            msg = 'expected an instance of {0}.{1}, not {2!r}'.format(
+                self.cls.__module__, self.cls.__name__, value
+            )
+            raise TypeError(msg)
         hash_ = {}
-        entity_key = None
+        entity_key = self.schema.get_key(value)
+        identity_map = session.identity_map.setdefault(self, {})
+        try:
+            already_exists = identity_map[entity_key]
+        except KeyError:
+            pass
+        else:
+            if already_exists is not value:
+                raise KeyFieldError(
+                    'there is already an entity of the same key: ' +
+                    repr(already_exists)
+                )
         for name, field in self.schema.fields.iteritems():
             try:
                 field_value = object.__getattribute__(value, name)
             except AttributeError:
                 field_value = None
             if field_value is None:
-                if field.default is None and field.required:
+                if field.default is not None:
+                    field_value = field.default()
+                    object.__setattr__(value, name, field_value)
+                elif field.required:
                     raise FieldError('{0} field is required but missing in '
                                      '{1!r}'.format(name, value))
-                field_value = field.default()
-                object.__setattr__(value, name, field_value)
-            hash_[field.name] = field.value_type.encode(field_value)
-            if field.key:
-                entity_key = field_value
+            if field_value is not None:
+                hash_[field.name] = field.value_type.encode(field_value)
         super(Map, self).save_value(session, key, hash_)
-        assert entity_key is not None
-        session.identity_map.setdefault(self, {})[entity_key] = value
+        identity_map[entity_key] = value
         return value
 
     def __hash__(self):

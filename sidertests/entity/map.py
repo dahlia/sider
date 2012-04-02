@@ -2,6 +2,7 @@ import datetime
 import hashlib
 from attest import Tests, assert_hook, raises
 from sider.entity.map import Map
+from sider.entity.exceptions import KeyFieldError
 from sider.types import Value, Hash
 from sider.datetime import utcnow
 from ..env import get_session, key
@@ -94,6 +95,11 @@ def map_object():
     assert utcnow() - loaded.created_at < datetime.timedelta(minutes=1)
     hash_ = session.get(key('test_entity_map_object'), Hash)
     assert hash_['password'] == Password.hash('secret')
+    user2 = User(u'dahlia', 'secret', u'Doppelg\xe4nger')
+    with raises(KeyFieldError):
+        session.set(key('test_entity_map_object'), user2, mapper)
+    with raises(TypeError):
+        session.set(key('test_entity_map_object'), 1234, mapper)
 
 
 @tests.test
