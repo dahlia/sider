@@ -1,6 +1,21 @@
 """:mod:`sider.entity.map` --- Mapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. todo::
+
+   There's no polymorphic mapping --- :class:`PolymorphicMap`::
+
+       PolymorphicMap(
+           schema, Character,
+           polymorphic_field='race',
+           polymorphic_mapping={
+               'elf': Elf,
+               'dwarf': Dwarf,
+               'dragon': Dragon,
+               'human': Human
+           }
+       )
+
 """
 from ..types import Hash, ByteString
 from .schema import Schema
