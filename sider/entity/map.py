@@ -17,6 +17,7 @@
        )
 
 """
+import types
 from ..types import Hash, ByteString
 from .schema import Schema
 from .exceptions import KeyFieldError, FieldError
@@ -29,6 +30,15 @@ class Map(Hash):
     :type schema: :class:`~sider.entity.schema.Schema`
     :param cls: the class to map to the ``schema``
     :type cls: :class:`type`
+
+    .. note::
+
+       It doesn't support old-style classes.  The ``cls`` to map to
+       the ``schema`` has to explicitly extends :class:`object`
+       class e.g.::
+
+           class NewStyleClass(object):
+               pass
 
     .. todo::
 
@@ -51,6 +61,9 @@ class Map(Hash):
         if not isinstance(schema, Schema):
             raise TypeError('schema must be a sider.entity.schema.Schema, not '
                             + repr(schema))
+        elif isinstance(cls, types.ClassType):
+            raise TypeError('old-style class is not supported; use new-style '
+                            'class which explicitly extends object class')
         elif not isinstance(cls, type):
             raise TypeError('cls must be a class object, not ' + repr(cls))
         super(Map, self).__init__(key_type=ByteString, value_type=ByteString)

@@ -76,6 +76,10 @@ def map_arg_error():
         Map((), User)
     with raises(TypeError):
         Map(make_schema(), ())
+    class OldStyleClass:
+        pass
+    with raises(TypeError):
+        Map(make_schema(), OldStyleClass)
 
 
 @tests.test
