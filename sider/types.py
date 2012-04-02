@@ -12,6 +12,16 @@ defines two basic methods: :meth:`~Bulk.encode()` and
 :class:`int` ``3`` into Redis bulk ``"3"`` and decodes Redis bulk ``"3"``
 into Python :class:`int` ``3``.
 
+.. todo::
+
+   - :class:`Time` that takes naive :class:`datetime.time`.
+   - :class:`TZTime` that takes tz-aware :class:`datetime.time`.
+   - :class:`TimeDelta` that takes :class:`datetime.timedelta`.
+   - :class:`Complex` that takes :class:`complex`.
+   - :class:`Real` that takes real numbers (:class:`numbers.Real`).
+
+   Anything more?
+
 """
 from __future__ import absolute_import
 import re
