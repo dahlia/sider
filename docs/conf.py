@@ -90,7 +90,7 @@ exclude_patterns = ['_build']
 # The name of the Pygments (syntax highlighting) style to use.
 # - solarized: https://github.com/altercation/solarized
 # - solarized-dark-pygments: https://github.com/gthank/solarized-dark-pygments
-pygments_style = 'solarized.SolarizedStyle'
+#pygments_style = 'solarized.SolarizedStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -100,15 +100,15 @@ pygments_style = 'solarized.SolarizedStyle'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'solarized'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'codebgcolor': '#002B36', 'codetextcolor': '#586E75'}
+#html_theme_options = {'codebgcolor': '#002B36', 'codetextcolor': '#586E75'}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
