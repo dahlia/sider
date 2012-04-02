@@ -88,7 +88,9 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+# - solarized: https://github.com/altercation/solarized
+# - solarized-dark-pygments: https://github.com/gthank/solarized-dark-pygments
+pygments_style = 'solarized.SolarizedStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -103,7 +105,7 @@ html_theme = 'default'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {'codebgcolor': '#002B36', 'codetextcolor': '#586E75'}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
