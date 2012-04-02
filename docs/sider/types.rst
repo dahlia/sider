@@ -4,5 +4,6 @@
    :show-inheritance:
 
    .. inheritance-diagram:: sider.types
-      :parts: 1
+                            sider.entity.map.Map
+      :parts: 4
 
