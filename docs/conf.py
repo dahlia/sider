@@ -238,3 +238,4 @@ extlinks = {'redis': (lower_sprintf_str('http://redis.io/commands/%s'), '')}
 
 todo_include_todos = not readthedocs
 
+inheritance_graph_attrs = {'bgcolor': 'transparent'}
