@@ -17,7 +17,7 @@ class Session(object):
     Redis values and Python objects, and deals with transactions.
 
     :param client: the Redis client
-    :type client: :class:`redis.client.Client`
+    :type client: :class:`redis.client.Redis`
 
     """
 
