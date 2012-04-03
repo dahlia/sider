@@ -1,11 +1,32 @@
+import warnings
+from redis.client import StrictRedis, Redis
 from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, key
+from .env import NInt, get_client, get_session, key
+from sider.session import Session
 from sider.types import (Set as SetT, List as ListT, Integer)
 from sider.set import Set
 from sider.list import List
 
 
 tests = Tests()
+
+
+class CustomRedis(StrictRedis):
+    """A custom subclass of StrictRedis for test."""
+
+
+@tests.test
+def warn_old_client():
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        Session(get_client(cls=CustomRedis))
+        assert len(w) == 0
+    old_client = get_client(cls=Redis)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        Session(old_client)
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
 
 
 @tests.test
