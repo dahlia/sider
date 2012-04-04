@@ -1,16 +1,16 @@
 import warnings
 from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, key
+from .env import NInt, init_session, key
 from sider.types import List
 from sider.warnings import PerformanceWarning
 
 
 tests = Tests()
+tests.context(init_session)
 
 
 @tests.test
-def iterate():
-    session = get_session()
+def iterate(session):
     view = session.set(key('test_list_iterate'), 'abc', List)
     assert ['a', 'b', 'c'] == list(view)
     view = session.set(key('test_listx_iterate'), [1, 2, 3], List(NInt))
@@ -18,8 +18,7 @@ def iterate():
 
 
 @tests.test
-def length():
-    session = get_session()
+def length(session):
     view = session.set(key('test_list_length'), 'abc', List)
     assert len(view) == 3
     viewx = session.set(key('test_listx_length'), [1, 2, 3], List(NInt))
@@ -27,8 +26,7 @@ def length():
 
 
 @tests.test
-def get():
-    session = get_session()
+def get(session):
     view = session.set(key('test_list_get'), 'abc', List)
     assert 'a' == view[0]
     assert 'b' == view[1]
@@ -54,8 +52,7 @@ def get():
 
 
 @tests.test
-def slice():
-    session = get_session()
+def slice(session):
     list_ = session.set(key('test_list_slice'), 'abcdefg', List)
     assert ['a'] == list(list_[:1])
     assert ['a', 'b', 'c', 'd'] == list(list_[:-3])
@@ -79,8 +76,7 @@ def slice():
 
 
 @tests.test
-def set():
-    session = get_session()
+def set(session):
     list_ = session.set(key('test_list_set'), 'abc', List)
     list_[1] = 'B'
     with raises(TypeError):
@@ -98,8 +94,7 @@ def set():
 
 
 @tests.test
-def set_slice():
-    session = get_session()
+def set_slice(session):
     list_ = session.set(key('test_list_set_slice'), 'abc', List)
     list_[:0] = ['-2', '-1']
     with raises(TypeError):
@@ -137,8 +132,7 @@ def set_slice():
 
 
 @tests.test
-def delete():
-    session = get_session()
+def delete(session):
     list_ = session.set(key('test_list_delete'), 'abcdefg', List)
     del list_[0]
     assert list('bcdefg') == list(list_)
@@ -174,8 +168,7 @@ def delete():
 
 
 @tests.test
-def delete_slice():
-    session = get_session()
+def delete_slice(session):
     list_ = session.set(key('test_list_delete_slice'), 'abcdefg', List)
     del list_[:2]
     assert list('cdefg') == list(list_)
@@ -209,8 +202,7 @@ def delete_slice():
 
 
 @tests.test
-def append():
-    session = get_session()
+def append(session):
     list_ = session.set(key('test_list_append'), 'abcd', List)
     list_.append('e')
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
@@ -228,8 +220,7 @@ def append():
 
 
 @tests.test
-def extend():
-    session = get_session()
+def extend(session):
     list_ = session.set(key('test_list_extend'), 'ab', List)
     list_.extend('cde')
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
@@ -247,8 +238,7 @@ def extend():
 
 
 @tests.test
-def insert():
-    session = get_session()
+def insert(session):
     list_ = session.set(key('test_list_insert'), ['b'], List)
     list_.insert(0, 'a')
     assert ['a', 'b'] == list(list_)
@@ -266,7 +256,6 @@ def insert():
         list_.insert(-1, object())
     with raises(TypeError):
         list_.insert(1, object())
-    session = get_session()
     listx = session.set(key('test_listx_insert'), [2], List(NInt))
     listx.insert(0, 1)
     assert [1, 2] == list(listx)
@@ -287,8 +276,7 @@ def insert():
 
 
 @tests.test
-def pop():
-    session = get_session()
+def pop(session):
     list_ = session.set(key('test_list_pop'), 'abcdefg', List)
     popped = list_.pop(0)
     assert 'a' == popped
@@ -330,8 +318,7 @@ def pop():
 
 
 @tests.test
-def repr_():
-    session = get_session()
+def repr_(session):
     list_ = session.set(key('test_list_repr'), [1, 2, 3], List(NInt))
     r = repr(list_)
     assert "<sider.list.List [1, 2, 3]>" == r
