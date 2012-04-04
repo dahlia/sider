@@ -12,6 +12,10 @@ def get_client(cls=StrictRedis):
     return cls(host=host, port=port, db=db)
 
 
+def get_session():
+    return Session(get_client())
+
+
 prefix = 'sidertests_{0:%Y%m%d%H%M%S%f}_'.format(datetime.datetime.now())
 
 
