@@ -7,7 +7,9 @@ __ http://martinfowler.com/eaaCatalog/identityMap.html
 __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 
 """
-from redis.client import Redis
+from __future__ import absolute_import
+import warnings
+from redis.client import StrictRedis, Redis
 from .types import Value, ByteString
 
 
@@ -17,14 +19,18 @@ class Session(object):
     Redis values and Python objects, and deals with transactions.
 
     :param client: the Redis client
-    :type client: :class:`redis.client.Redis`
+    :type client: :class:`redis.client.StrictRedis`
 
     """
 
     def __init__(self, client):
-        if not isinstance(client, Redis):
-            raise TypeError('client must be a redis.client.Redis object, not '
-                            + repr(client))
+        if not isinstance(client, StrictRedis):
+            raise TypeError('client must be a redis.client.StrictRedis object'
+                            ', not ' + repr(client))
+        elif isinstance(client, Redis):
+            warnings.warn('redis.client.Redis is deprecated and would be '
+                          'broken in the future; use redis.client.StrictRedis '
+                          'instead', DeprecationWarning)
         self.client = client
 
     @property

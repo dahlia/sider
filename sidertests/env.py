@@ -1,15 +1,15 @@
 import os
 import datetime
-from redis.client import Redis
+from redis.client import StrictRedis
 from sider.session import Session
 from sider.types import Integer
 
 
-def get_client():
+def get_client(cls=StrictRedis):
     host = os.environ.get('SIDERTEST_HOST', 'localhost')
     port = int(os.environ.get('SIDERTEST_PORT', 6379))
     db = int(os.environ.get('SIDERTEST_DB', 0))
-    return Redis(host=host, port=port, db=db)
+    return cls(host=host, port=port, db=db)
 
 
 prefix = 'sidertests_{0:%Y%m%d%H%M%S%f}_'.format(datetime.datetime.now())
