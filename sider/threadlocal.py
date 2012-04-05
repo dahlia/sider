@@ -19,7 +19,7 @@
 
       However that's all only an implementation detail and so
       it may changed in the future.  Client codes that use
-      :func:`sider.threadlocal.get_ident()` has to be written
+      :func:`sider.threadlocal.get_ident()` have to be written
       on only assumptions that it guarantees: *it returns an object
       that identify of the current thread/greenlet and be used as
       dictionary keys.*
