@@ -725,12 +725,13 @@ class Set(collections.MutableSet):
     def _raw_update(self, members, pipe):
         key = self.key
         encode = self.value_type.encode
-        data = (encode(v) for v in members)
-        if self.session.server_version_info < (2, 4, 0):
-            for member in data:
-                pipe.sadd(key, member)
-        else:
-            pipe.sadd(key, *members)
+        members = [encode(v) for v in members]
+        if members:
+            if self.session.server_version_info < (2, 4, 0):
+                for member in members:
+                    pipe.sadd(key, member)
+            else:
+                pipe.sadd(key, *members)
 
     def intersection_update(self, *sets):
         """Updates the set with the intersection of itself and
