@@ -1,6 +1,14 @@
 Sider Changelog
 ===============
 
+Branch ``transaction``
+----------------------
+
+Experiements about transactions.
+
+- Added :mod:`sider.threadlocal` module.
+
+
 Version 0.1.2
 -------------
 

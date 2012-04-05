@@ -1,7 +1,7 @@
 import doctest
 import os
 from attest import Tests
-from . import session, types, hash, list, set
+from . import session, types, hash, list, set, threadlocal
 
 
 tests = Tests()
@@ -10,6 +10,7 @@ tests.register(types.tests)
 tests.register(hash.tests)
 tests.register(list.tests)
 tests.register(set.tests)
+tests.register(threadlocal.tests)
 
 
 @tests.test

@@ -9,6 +9,7 @@
       sider/hash
       sider/set
       sider/list
+      sider/threadlocal
       sider/datetime
       sider/warnings
       sider/lazyimport
