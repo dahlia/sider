@@ -24,6 +24,25 @@ def key(key):
     return prefix + str(key)
 
 
+def init_session():
+    client = get_client()
+    try:
+        session = Session(client)
+        yield session
+    finally:
+        #: .. note::
+        #:
+        #:    Using ``FLUSHALL`` command is more easier and faster, but it's
+        #:    also harmful because it flushes all data in the selected db.
+        #:
+        #:    However if it is assumed that there is no meaningful data in the
+        #:    db, ``client.flushall()`` can be used safely and the testing
+        #:    speed will be improved.
+        used_keys = client.keys(prefix + '*')
+        if used_keys:
+            client.delete(*used_keys)
+
+
 class NInt(Integer):
     """Saves integers as its negative number.  Testing purpose."""
 

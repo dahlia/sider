@@ -3,18 +3,19 @@ try:
 except ImportError:
     from .counter_recipe import Counter
 from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, key
+from .env import NInt, init_session, key
 from sider.types import Hash
 
 
 tests = Tests()
+tests.context(init_session)
+
 fixture_a = {'a': 'b', 'c': 'd'}
 fixture_b = {1: 'a', 2: 'b'}
 
 
 @tests.test
-def iterate():
-    session = get_session()
+def iterate(session):
     hash_ = session.set(key('test_hash_iterate'), fixture_a, Hash)
     assert set(hash_) == set('ac')
     hashx = session.set(key('test_hashx_iterate'), fixture_b, Hash(NInt))
@@ -22,8 +23,7 @@ def iterate():
 
 
 @tests.test
-def length():
-    session = get_session()
+def length(session):
     hash_ = session.set(key('test_hash_length'), fixture_a, Hash)
     assert len(hash_) == 2
     hashx = session.set(key('test_hashx_length'), fixture_b, Hash(NInt))
@@ -31,8 +31,7 @@ def length():
 
 
 @tests.test
-def contains():
-    session = get_session()
+def contains(session):
     hash_ = session.set(key('test_hash_contains'), fixture_a, Hash)
     assert 'a' in hash_
     assert 'b' not in hash_ 
@@ -47,8 +46,7 @@ def contains():
 
 
 @tests.test
-def getitem():
-    session = get_session()
+def getitem(session):
     hash_ = session.set(key('test_hash_getitem'), fixture_a, Hash)
     assert hash_['a'] == 'b'
     with raises(KeyError):
@@ -70,8 +68,7 @@ def getitem():
 
 
 @tests.test
-def equals():
-    session = get_session()
+def equals(session):
     hash_ = session.set(key('test_hash_equals'), fixture_a, Hash)
     hash2 = session.set(key('test_hash_equals2'), fixture_a, Hash)
     fixture_c = dict(fixture_a)
@@ -90,8 +87,7 @@ def equals():
 
 
 @tests.test
-def keys():
-    session = get_session()
+def keys(session):
     hash_ = session.set(key('test_hash_keys'), fixture_a, Hash)
     assert set(hash_.keys()) == set('ac')
     assert len(hash_.keys()) == 2
@@ -107,8 +103,7 @@ def keys():
 
 
 @tests.test
-def values():
-    session = get_session()
+def values(session):
     hash_ = session.set(key('test_hash_values'), fixture_a, Hash)
     assert Counter(hash_.values()) == Counter('bd')
     assert len(hash_.values()) == 2
@@ -125,8 +120,7 @@ def values():
 
 
 @tests.test
-def items():
-    session = get_session()
+def items(session):
     hash_ = session.set(key('test_hash_items'), fixture_a, Hash)
     assert set(hash_.items()) == set([('a', 'b'), ('c', 'd')])
     assert len(hash_.items()) == 2
@@ -144,8 +138,7 @@ def items():
 
 
 @tests.test
-def clear():
-    session = get_session()
+def clear(session):
     hash_ = session.set(key('test_hash_clear'), fixture_a, Hash)
     hash_.clear()
     assert len(hash_) == 0
@@ -157,8 +150,7 @@ def clear():
 
 
 @tests.test
-def delitem():
-    session = get_session()
+def delitem(session):
     hash_ = session.set(key('test_hash_delitem'), fixture_a, Hash)
     del hash_['a']
     assert len(hash_) == 1
@@ -178,8 +170,7 @@ def delitem():
 
 
 @tests.test
-def setitem():
-    session = get_session()
+def setitem(session):
     hash_ = session.set(key('test_hash_setitem'), fixture_a, Hash)
     hash_['a'] = 'changed'
     assert len(hash_) == 2
@@ -209,8 +200,7 @@ def setitem():
 
 
 @tests.test
-def setdefault():
-    session = get_session()
+def setdefault(session):
     hash_ = session.set(key('test_hash_setdefault'), fixture_a, Hash)
     curval = hash_.setdefault('a', 'would not get changed')
     assert curval == hash_['a'] == 'b'
@@ -238,8 +228,7 @@ def setdefault():
 
 
 @tests.test
-def update():
-    session = get_session()
+def update(session):
     hash_ = session.set(key('test_hash_update'), fixture_a, Hash)
     hash_.update({'c': 'changed', 'new': 'value'})
     assert dict(hash_) == {'a': 'b', 'c': 'changed', 'new': 'value'}
