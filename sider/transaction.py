@@ -1,6 +1,17 @@
 """:mod:`sider.transaction` --- Transaction handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. todo::
+
+   Roughly planned roadmap:
+
+   - Make :meth:`~Transaction.begin_commit()` implicit.
+   - Mark methods whether it is query or manipulative.
+   - Make an explicit method for watching and
+     make :meth:`~Transaction.__enter__()` to use that method.
+   - Make it iterative; it loops until it commit successfully without any
+     conflicts.
+
 """
 from redis.client import WatchError
 from .session import Session
