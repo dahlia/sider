@@ -6,6 +6,9 @@ Version 0.1.2
 
 To be released.
 
+- Added :mod:`sider.exceptions` module.
+- Added :class:`sider.warnings.SiderWarning` base class.
+
 
 Version 0.1.1
 -------------
