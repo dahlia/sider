@@ -9,6 +9,7 @@
       sider/hash
       sider/set
       sider/list
+      sider/transaction
       sider/threadlocal
       sider/datetime
       sider/warnings

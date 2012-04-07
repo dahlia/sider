@@ -10,6 +10,7 @@ __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 from __future__ import absolute_import
 import warnings
 from redis.client import StrictRedis, Redis
+from .threadlocal import LocalDict
 from .types import Value, ByteString
 
 
@@ -32,6 +33,8 @@ class Session(object):
                           'broken in the future; use redis.client.StrictRedis '
                           'instead', DeprecationWarning)
         self.client = client
+        self.basic_client = client
+        self.context_locals = LocalDict(transaction=None)
 
     @property
     def server_version(self):

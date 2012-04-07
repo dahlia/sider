@@ -6,6 +6,7 @@ Branch ``transaction``
 
 Experiements about transactions.
 
+- Added :mod:`sider.transaction` module.
 - Added :mod:`sider.threadlocal` module.
 
 
