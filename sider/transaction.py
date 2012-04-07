@@ -4,6 +4,7 @@
 """
 from redis.client import WatchError
 from .session import Session
+from .exceptions import DoubleTransactionError
 
 
 class Transaction(object):
@@ -52,20 +53,8 @@ class Transaction(object):
     def begin_commit(self):
         """Explicitly marks the transaction beginning to commit from this.
         From this to end of a transaction, any query operations will raise
-        :exc:`CommitError`.
+        :exc:`~sider.exceptions.CommitError`.
 
         """
         self.session.client.multi()
-
-
-class TransactionError(Exception):
-    """Transaction-related error."""
-
-
-class DoubleTransactionError(TransactionError):
-    """Error raised when transactions are doubly tried for a session."""
-
-
-class CommitError(TransactionError):
-    """Error raised when any query operations are tried during commit phase."""
 

@@ -1,7 +1,8 @@
 from attest import Tests, assert_hook, raises
 from .env import NInt, get_session, key
 from sider.types import List
-from sider.transaction import Transaction, DoubleTransactionError
+from sider.transaction import Transaction
+from sider.exceptions import DoubleTransactionError
 
 
 tests = Tests()

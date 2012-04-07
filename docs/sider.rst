@@ -12,6 +12,7 @@
       sider/transaction
       sider/threadlocal
       sider/datetime
+      sider/exceptions
       sider/warnings
       sider/lazyimport
       sider/version
