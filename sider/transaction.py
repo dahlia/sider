@@ -43,7 +43,7 @@ class Transaction(object):
         context = self.session.context_locals
         if context['transaction'] is not None:
             raise DoubleTransactionError('there is already a transaction for '
-                                         ' the session ' + repr(self.session))
+                                         'the session ' + repr(self.session))
         context['transaction'] = self
         client = self.session.client
         context['original_client'] = client
