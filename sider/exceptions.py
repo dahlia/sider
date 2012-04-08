@@ -21,3 +21,7 @@ class DoubleTransactionError(TransactionError):
 class CommitError(TransactionError):
     """Error raised when any query operations are tried during commit phase."""
 
+
+class ConflictError(TransactionError):
+    """Error rasied when the transaction has met conflicts."""
+

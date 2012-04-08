@@ -13,9 +13,10 @@
      conflicts.
 
 """
+from __future__ import absolute_import
 from redis.client import WatchError
 from .session import Session
-from .exceptions import DoubleTransactionError
+from .exceptions import DoubleTransactionError, ConflictError
 
 
 class Transaction(object):
@@ -49,17 +50,20 @@ class Transaction(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_value is None:
-            try:
-                self.session.client.execute()
-            except WatchError:
-                raise  # FIXME
-        else:
-            self.session.client.reset()
-        context = self.session.context_locals
-        context['transaction'] = None
-        self.session.client = context['original_client']
-        del context['original_client']
+        try:
+            if exc_value is None:
+                try:
+                    self.session.client.execute()
+                except WatchError:
+                    raise ConflictError('the transaction has met conflicts; '
+                                        'retry')
+            else:
+                self.session.client.reset()
+            context = self.session.context_locals
+            context['transaction'] = None
+            self.session.client = context['original_client']
+        finally:
+            del context['original_client']
 
     def begin_commit(self):
         """Explicitly marks the transaction beginning to commit from this.
