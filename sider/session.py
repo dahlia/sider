@@ -12,6 +12,8 @@ import warnings
 from redis.client import StrictRedis, Redis
 from .threadlocal import LocalDict
 from .types import Value, ByteString
+from .transaction import Transaction
+from .exceptions import CommitError, ConflictError, DoubleTransactionError
 
 
 class Session(object):
@@ -90,4 +92,85 @@ class Session(object):
         value_type = Value.ensure_value_type(value_type,
                                              parameter='value_type')
         return value_type.save_value(self, key, value)
+
+    @property
+    def current_transaction(self):
+        """(:class:`~sider.transaction.Transaction`) The current transaction.
+        It could be ``None`` when it's not on any transaction.
+
+        """
+        return self.context_locals['transaction']
+
+    def transaction(self, block, keys, ignore_double=False):
+        """Executes a ``block`` in a transaction.
+
+        :param block: a function to execute in a transaction.
+                      see the signature explained in the below:
+                      :func:`block()`
+        :type block: :class:`collections.Callable`
+        :param keys: a list of keys to watch
+        :type keys: :class:`collections.Iterable`
+        :param ignore_double: don't raise any error even
+                              if any transaction has already being
+                              executed for a session.
+                              default is ``False``
+        :type ignore_double: :class:`bool`
+        :raises sider.exceptions.DoubleTransactionError:
+           when any transaction has already being executed for a session
+           and ``ignore_double`` is ``False``
+
+        .. function:: block(trial, transaction)
+
+           :param trial: the number of trial count.  starts from 0
+           :type trial: :class:`numbers.Integral`
+           :param transaction: the current transaction object
+           :type transaction: :class:`~sider.transaction.Transaction`
+
+        """
+        keys = list(keys)
+        transaction = self.current_transaction
+        if transaction is None:
+            trial = 0
+            while 1:
+                try:
+                    with Transaction(self, keys) as t:
+                        block(trial, t)
+                except ConflictError:
+                    trial += 1
+                    continue
+                break
+        elif not ignore_double:
+            raise DoubleTransactionError('transactions are tried doubly for '
+                                         'a session')
+        else:
+            block(0, None)
+
+    def mark_manipulative(self):
+        """Marks it is manipulative.
+
+        .. note::
+
+           This method is for internal use.
+
+        """
+        transaction = self.current_transaction
+        if transaction is None or transaction.commit_phase:
+            return
+        transaction.begin_commit()
+
+    def mark_query(self):
+        """Marks it is querying.
+
+        :raises sider.exceptions.CommitError:
+           when it is tried during commit phase
+
+        .. note::
+
+           This method is for internal use.
+
+        """
+        transaction = self.current_transaction
+        if transaction is None or not transaction.commit_phase:
+            return
+        raise CommitError('query operation was tried during commit phase')
 

@@ -5,20 +5,18 @@
 
    Roughly planned roadmap:
 
-   - Make :meth:`~Transaction.begin_commit()` implicit.
-   - Mark methods whether it is query or manipulative.
-   - Make an explicit method for watching and
-     make :meth:`~Transaction.__enter__()` to use that method.
+   - Mark methods wether it is manpulative or query.
    - Make it iterative; it loops until it commit successfully without any
      conflicts.
 
 """
 from __future__ import absolute_import
 import warnings
+import functools
 from redis.client import WatchError
-from .session import Session
 from .exceptions import DoubleTransactionError, ConflictError
 from .warnings import TransactionWarning
+from . import lazyimport
 
 
 class Transaction(object):
@@ -32,7 +30,7 @@ class Transaction(object):
     """
 
     def __init__(self, session, keys):
-        if not isinstance(session, Session):
+        if not isinstance(session, lazyimport.session.Session):
             raise TypeError('session must be a sider.session.Session instance'
                             ', not ' + repr(session))
         self.session = session
@@ -82,4 +80,36 @@ class Transaction(object):
             return
         self.commit_phase = True
         self.session.client.multi()
+
+
+def manipulative(function):
+    """The decorator that marks the method manipulative.
+
+    :param function: the method to mark
+    :type function: :class:`collections.Callable`
+    :returns: the marked method
+    :rtype: :class:`collections.Callable
+
+    """
+    @functools.wraps(function)
+    def marked(self, *args, **kwargs):
+        self.session.mark_manipulative()
+        return function(self, *args, **kwargs)
+    return marked
+
+
+def query(function):
+    """The decorator that marks the method query.
+
+    :param function: the method to mark
+    :type function: :class:`collections.Callable`
+    :returns: the marked method
+    :rtype: :class:`collections.Callable
+
+    """
+    @functools.wraps(function)
+    def marked(self, *args, **kwargs):
+        self.session.mark_query()
+        return function(self, *args, **kwargs)
+    return marked
 
