@@ -234,7 +234,13 @@ else:
     }
 
 
-extlinks = {'redis': (lower_sprintf_str('http://redis.io/commands/%s'), '')}
+extlinks = {
+    'redis': (lower_sprintf_str('http://redis.io/commands/%s'), ''),
+    'issue': ('https://bitbucket.org/dahlia/sider/issue/%s', 'issue #'),
+    'commit': ('https://bitbucket.org/dahlia/sider/changeset/%s', ''),
+    'branch': ('https://bitbucket.org/dahlia/sider/changesets/tip/'
+               'branch%%28%%22%s%%22%%29', '')
+}
 
 todo_include_todos = not readthedocs
 
