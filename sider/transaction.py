@@ -14,9 +14,11 @@
 
 """
 from __future__ import absolute_import
+import warnings
 from redis.client import WatchError
 from .session import Session
 from .exceptions import DoubleTransactionError, ConflictError
+from .warnings import TransactionWarning
 
 
 class Transaction(object):
@@ -35,6 +37,7 @@ class Transaction(object):
                             ', not ' + repr(session))
         self.session = session
         self.keys = list(keys)
+        self.commit_phase = False
 
     def __enter__(self):
         context = self.session.context_locals
@@ -59,17 +62,24 @@ class Transaction(object):
                                         'retry')
             else:
                 self.session.client.reset()
+            self.commit_phase = False
             context = self.session.context_locals
             context['transaction'] = None
             self.session.client = context['original_client']
         finally:
             del context['original_client']
 
-    def begin_commit(self):
+    def begin_commit(self, _stacklevel=1):
         """Explicitly marks the transaction beginning to commit from this.
         From this to end of a transaction, any query operations will raise
         :exc:`~sider.exceptions.CommitError`.
 
         """
+        if self.commit_phase:
+            warnings.warn('the transaction already is on commit phase; '
+                          'begin_commit() method seems called twice or more',
+                          category=TransactionWarning, stacklevel=2)
+            return
+        self.commit_phase = True
         self.session.client.multi()
 
