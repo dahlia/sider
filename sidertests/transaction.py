@@ -2,7 +2,7 @@ from attest import Tests, assert_hook, raises
 from .env import NInt, get_session, key
 from sider.types import List
 from sider.transaction import Transaction
-from sider.exceptions import DoubleTransactionError
+from sider.exceptions import CommitError, DoubleTransactionError
 
 
 tests = Tests()
@@ -23,6 +23,17 @@ def raw_transaction():
         list1.append('d')
         assert list2[:] == ['a', 'b', 'c']
     assert list1[:] == list2[:] == ['a', 'b', 'c', 'd']
+
+
+@tests.test
+def commit_error():
+    session = get_session()
+    keyid = key('test_transaction_commit_error')
+    list_ = session.set(keyid, 'abc', List)
+    with Transaction(session, [keyid]):
+        list_.append('d')
+        with raises(CommitError):
+            list(list_)
 
 
 @tests.test
