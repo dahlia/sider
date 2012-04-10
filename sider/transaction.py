@@ -21,7 +21,9 @@ from . import lazyimport
 
 
 class Transaction(object):
-    """Transaction block.
+    """Transaction block.  It's a low-level primitive for Sider transaction.
+    In most case what you actually need to use is probably
+    :meth:`Session.transaction() <sider.session.Session.transaction>` method.
 
     :param session: a session object
     :type session: :class:`~sider.session.Session`
@@ -61,15 +63,16 @@ class Transaction(object):
                 try:
                     self.session.client.execute()
                 except WatchError:
+                    self.session.client.reset()
                     raise ConflictError('the transaction has met conflicts; '
                                         'retry')
             else:
                 self.session.client.reset()
+        finally:
             self.commit_phase = False
             context = self.session.context_locals
             context['transaction'] = None
             self.session.client = context['original_client']
-        finally:
             del context['original_client']
 
     def begin_commit(self, _stacklevel=1):

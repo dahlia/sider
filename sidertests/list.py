@@ -2,6 +2,8 @@ import warnings
 from attest import Tests, assert_hook, raises
 from .env import NInt, init_session, key
 from sider.types import List
+from sider.transaction import Transaction
+from sider.exceptions import CommitError
 from sider.warnings import PerformanceWarning
 
 
@@ -109,7 +111,7 @@ def set_slice(session):
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
         list_[3:] = list('BC')
-        assert len(w) == 1
+        assert len(w) == 1, 'no warning'
         assert issubclass(w[0].category, PerformanceWarning)
     assert ['-2', '-1', 'a', 'B', 'C'] == list(list_)
     listx = session.set(key('test_listx_set_slice'), [1, 2, 3], List(NInt))
@@ -290,6 +292,32 @@ def insert(session):
 
 
 @tests.test
+def insert_t(session):
+    keyid = key('test_list_insert_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'a'
+        list_.insert(0, 'Z')
+    assert list_[:] == list('Zabcdefg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(-1, 'G')
+    assert list_[:] == list('ZabcdefGg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(2, 'A')
+    assert list_[:] == list('ZaAbcdefGg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(-3, 'F')
+    assert list_[:] == list('ZaAbcdeFfGg')
+
+
+@tests.test
 def pop(session):
     list_ = session.set(key('test_list_pop'), 'abcdefg', List)
     popped = list_.pop(0)
@@ -301,6 +329,9 @@ def pop(session):
     popped = list_.pop(2)
     assert 'd' == popped
     assert list('bcef') == list(list_)
+    popped = list_.pop(-2)
+    assert 'e' == popped
+    assert list('bcf') == list(list_)
     with raises(IndexError):
         list_.pop(10)
     with raises(IndexError):
@@ -320,6 +351,9 @@ def pop(session):
     popped = listx.pop(2)
     assert 4 == popped
     assert [2, 3, 5, 6] == list(listx)
+    popped = listx.pop(-2)
+    assert 5 == popped
+    assert [2, 3, 6] == list(listx)
     with raises(IndexError):
         listx.pop(10)
     with raises(IndexError):
@@ -329,6 +363,56 @@ def pop(session):
         listx.pop(0)
     with raises(IndexError):
         listx.pop(-1)
+
+
+@tests.test
+def pop_t(session):
+    keyid = key('test_list_pop_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'a'
+        popped = list_.pop()
+        assert popped == 'g'
+        list_.append('h')
+    assert list_[:] == list('abcdefh')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'h'
+        popped = list_.pop(0)
+        assert popped == 'a'
+        list_.append('i')
+    assert list_[:] == list('bcdefhi')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'i'
+        popped = list_.pop(2)
+        assert popped == 'd'
+        list_.append('j')
+    assert list_[:] == list('bcefhij')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'j'
+        popped = list_.pop(-3)
+        assert popped == 'h'
+        list_.append('k')
+    assert list_[:] == list('bcefijk')
+    with Transaction(session, [keyid]):
+        list_.pop()
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(-1)
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(2)
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(-2)
+        with raises(CommitError):
+            len(list_)
 
 
 @tests.test
