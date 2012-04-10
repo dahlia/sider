@@ -1,9 +1,14 @@
 """:mod:`sider.ext` --- Extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo::
+This package is a *virtual* namespace package that forwards
+:mod:`sider.ext.mycontrib` to :mod:`sider_mycontrib`.
 
-   It has to be documented.
+If you are writing a user-contributed module for Sider,
+simply name your module/package like :mod:`sider_modulename`
+and then it becomes importable by :mod:`sider.ext.modulename`.
+
+.. This approach is influeced by Flask's one.
 
 """
 import sys
