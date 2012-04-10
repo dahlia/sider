@@ -10,7 +10,7 @@ Version 0.2
 -----------
 
 Transactions
-   The key feature Sider 0.2 ship will be a transaction support.
+   The key feature Sider 0.2 ships will be a transaction support.
    It has been being developed in the branch :branch`transaction`.
 
 Sorted sets (:class:`sider.sortedset`)
@@ -18,7 +18,7 @@ Sorted sets (:class:`sider.sortedset`)
    :class:`collections.Counter` but with slightly different behavior.
    The branch name for this will be :branch:`sortedset`.
 
-:class:`sider.types.Tuple` type
+Tuple type (:class:`sider.types.Tuple`)
    It could be used for storing ad-hoc composite types.
    The branch name for this will be :branch:`types-tuple`.
 
