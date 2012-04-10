@@ -242,24 +242,38 @@ def insert(session):
     list_ = session.set(key('test_list_insert'), ['b'], List)
     list_.insert(0, 'a')
     assert ['a', 'b'] == list(list_)
-    list_.insert(-1, 'c')
-    assert ['a', 'b', 'c'] == list(list_)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
-        list_.insert(1, 'a-b')
+        list_.insert(-1, 'a-b')
         assert len(w) == 1
         assert issubclass(w[0].category, PerformanceWarning)
-    assert ['a', 'a-b', 'b', 'c'] == list(list_)
+    assert ['a', 'a-b', 'b'] == list(list_)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        list_.insert(-2, 'a-a-b')
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert ['a', 'a-a-b', 'a-b', 'b'] == list(list_)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        list_.insert(1, 'a-a-a-b')
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert ['a', 'a-a-a-b', 'a-a-b', 'a-b', 'b'] == list(list_)
     with raises(TypeError):
         list_.insert(0, object())
     with raises(TypeError):
         list_.insert(-1, object())
     with raises(TypeError):
         list_.insert(1, object())
-    listx = session.set(key('test_listx_insert'), [2], List(NInt))
+    listx = session.set(key('test_listx_insert'), [3], List(NInt))
     listx.insert(0, 1)
-    assert [1, 2] == list(listx)
-    listx.insert(-1, 3)
+    assert [1, 3] == list(listx)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        listx.insert(-1, 2)
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
     assert [1, 2, 3] == list(listx)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
