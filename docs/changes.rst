@@ -1,6 +1,12 @@
 Sider Changelog
 ===============
 
+Branch :branch:`ext`
+--------------------
+
+- The extensible namespace package :mod:`sider.ext` was introduced.
+
+
 Version 0.1.2
 -------------
 
