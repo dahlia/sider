@@ -26,6 +26,14 @@ class Session(object):
 
     """
 
+    #: (:class:`bool`) If it is set to ``True``, error messages raised by
+    #: transactions will contain tracebacks where they started query/commit
+    #: phase.
+    #:
+    #: It is mostly for debug purpose, and you can set this to ``True``
+    #: if it's needed.
+    verbose_transaction_error = None
+
     def __init__(self, client):
         if not isinstance(client, StrictRedis):
             raise TypeError('client must be a redis.client.StrictRedis object'
@@ -37,6 +45,7 @@ class Session(object):
         self.client = client
         self.basic_client = client
         self.context_locals = LocalDict(transaction=None)
+        self.verbose_transaction_error = False
 
     @property
     def server_version(self):
@@ -140,8 +149,10 @@ class Session(object):
                     continue
                 break
         elif not ignore_double:
-            raise DoubleTransactionError('transactions are tried doubly for '
-                                         'a session')
+            raise DoubleTransactionError(
+                'transactions are tried doubly for a session' +
+                transaction.format_enter_stack()
+            )
         else:
             block(0, None)
 
@@ -170,7 +181,7 @@ class Session(object):
 
         """
         transaction = self.current_transaction
-        if transaction is None or not transaction.commit_phase:
-            return
-        raise CommitError('query operation was tried during commit phase')
+        if transaction is not None and transaction.commit_phase:
+            raise CommitError('query operation was tried during commit phase' +
+                              transaction.format_commit_stack())
 

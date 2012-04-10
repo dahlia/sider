@@ -8,6 +8,7 @@ Experiements about transactions.
 
 - Added :mod:`sider.transaction` module.
 - Added :mod:`sider.threadlocal` module.
+- Added :attr:`sider.session.Session.verbose_transaction_error` option.
 
 
 Version 0.1.2
