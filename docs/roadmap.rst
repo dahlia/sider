@@ -11,7 +11,7 @@ Version 0.2
 
 Transactions
    The key feature Sider 0.2 ships will be a transaction support.
-   It has been being developed in the branch :branch`transaction`.
+   It has been being developed in the branch :branch:`transaction`.
 
 Sorted sets (:class:`sider.sortedset`)
    Redis sorted sets will be mapped to an interface like
