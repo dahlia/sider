@@ -4,7 +4,7 @@ Sider Changelog
 Version 0.1.2
 -------------
 
-To be released.
+Released on April 11, 2012.  Pre-alpha release.
 
 - Now :class:`sider.session.Session` takes :class:`redis.client.StrictRedis`
   object instead of :class:`redis.client.Redis` which is deprecated.
