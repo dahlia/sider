@@ -18,6 +18,12 @@ Sorted sets (:class:`sider.sortedset`)
    :class:`collections.Counter` but with slightly different behavior.
    The branch name for this will be :branch:`sortedset`.
 
+Time type (:class:`sider.types.TZTime`)
+   You will be able to store :class:`datetime.time` objects.
+
+Time-delta type (:class:`sider.types.TimeDelta`)
+   You will be able to store :class:`datetime.timedelta` objects.
+
 Tuple type (:class:`sider.types.Tuple`)
    It could be used for storing ad-hoc composite types.
    The branch name for this will be :branch:`types-tuple`.
