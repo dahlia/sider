@@ -1,0 +1,104 @@
+/*
+ * solarized.css_t
+ * ---------------
+ *
+ * Inspired by Solarized <http://ethanschoonover.com/solarized>.
+ *
+ * Copyright 2012 by Hong Minhee
+ */
+
+{% set page_width = 940 %}
+{% set sidebar_width = 220 %}
+{% set body_font_stack = "'Open Sans', sans-serif" %}
+{% set code_font_stack = "'Courier New', 'Consolas', 'Menlo', "
+                         "'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', "
+                         "monospace" %}
+
+@import url('basic.css');
+
+body {
+  font-family: {{ body_font_stack }};
+  font-weight: 300;
+  font-size: 17px;
+  background-color: #fdf6e3;
+  color: #657b83;
+  margin: 30px 0 0 0;
+  padding: 0;
+}
+
+div.document { width: {{ page_width }}px; margin: 0 auto; }
+
+div.deck { font-size: 18px; }
+
+div.related {
+  width: {{ page_width - 20 }}px;
+  padding: 5px 10px;
+  margin: 15px auto 15px auto;
+}
+
+div.documentwrapper { float: left; width: 100%; }
+
+div.bodywrapper { margin: 0 0 0 {{ sidebar_width }}px; }
+
+div.body { padding: 0 30px 0 30px; }
+
+div.footer {
+  width: {{ page_width - 15 }}px;
+  margin: 10px auto 30px auto;
+  padding-right: 15px;
+  font-size: 14px;
+  text-align: right;
+}
+
+div.sphinxsidebar { font-size: 14px; line-height: 1.5; }
+div.sphinxsidebar a { text-decoration: none; }
+
+div.sphinxsidebarwrapper { padding: 7px 10px; }
+div.sphinxsidebarwrapper p.logo { padding: 0 0 20px 0; margin: 0; }
+
+div.sphinxsidebar h3,
+div.sphinxsidebar h4 {
+  font-weight: 300;
+  margin: 0 0 5px 0;
+  padding: 0;
+  color: #b58900;
+}
+div.sphinxsidebar h4 { font-size: 20px; }
+div.sphinxsidebar h3 { font-size: 24px; }
+div.sphinxsidebar p { margin: 10px 0; }
+div.sphinxsidebar ul { margin: 10px 0; padding: 0; }
+div.sphinxsidebar input {
+  font-family: {{ body_font_stack }};
+  font-weight: 300;
+  font-size: 1em;
+}
+
+
+::selection { background-color: #ff5e99; color: white; }
+::-moz-selection { background-color: #ff5e99; color: white; }
+
+a { color: #b58900; }
+strong, b { font-weight: 600; }
+pre, code, tt { font-family: {{ code_font_stack }}; }
+pre {
+  padding: 7px 10px;
+  margin: 15px 0;
+  font-size: 14px;
+}
+
+div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
+  font-family: {{ body_font_stack }};
+  font-weight: 300;
+  color: #b58900;
+}
+div.body h1:first-child { margin-top: 0; }
+div.body h2 {
+  border-bottom: 1px solid #657b83;
+}
+div.body h1 a tt, div.body h2 a tt, div.body h3 a tt, div.body h4 a tt,
+div.body h5 a tt, div.body h6 a tt, div.body h1 tt.xref, div.body h2 tt.xref,
+div.body h3 tt.xref, div.body h4 tt.xref, div.body h5 tt.xref,
+div.body h6 tt.xref {
+  font-family: 'Droid Sans Mono', monospace;
+  font-weight: normal;
+}
