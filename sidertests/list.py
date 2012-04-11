@@ -1,6 +1,6 @@
 import warnings
 from attest import Tests, assert_hook, raises
-from .env import NInt, init_session, key
+from .env import NInt, get_session, init_session, key
 from sider.types import List
 from sider.transaction import Transaction
 from sider.exceptions import CommitError
@@ -201,6 +201,49 @@ def delete_slice(session):
         assert len(w) == 1
         assert issubclass(w[0].category, PerformanceWarning)
     assert [1, 2, 6, 7] == list(listx)
+
+
+@tests.test
+def delete_slice_t(session):
+    session2 = get_session()
+    keyid = key('test_list_delete_slice_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        del list_[:2]
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('cdefg')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 5
+        del list_[3:]
+        assert list2[:] == list('cdefg')
+    assert list_[:] == list2[:] == list('cde')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        del list_[:]
+        assert list2[:] == list('cde')
+    assert len(list_) == len(list2) == 0
+    keyid = key('test_list_delete_slice_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            del list_[2:5]
+            assert len(w) == 1
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('abfg')
+    with Transaction(session, [keyid]):
+        del list_[:]
+        with raises(CommitError):
+            len(list_)
 
 
 @tests.test
