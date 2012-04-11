@@ -40,7 +40,7 @@ Entity mapping (:mod:`sider.entity`)
    It has been being developed in the branch :branch:`entity-mapping`.
 
 Channels (:mod:`sider.channel`)
-   Using Redis' pub/sub channels you will be able to use Redis
+   By using Redis' pub/sub channels you will be able to use Redis
    as your simple message queue.
 
    The branch name for this will be :branch:`channel`.
