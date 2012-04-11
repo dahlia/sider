@@ -240,10 +240,18 @@ def delete_slice_t(session):
             assert issubclass(w[0].category, PerformanceWarning)
         assert list2[:] == list('abcdefg')
     assert list_[:] == list2[:] == list('abfg')
-    with Transaction(session, [keyid]):
-        del list_[:]
-        with raises(CommitError):
-            len(list_)
+    try:
+        with Transaction(session, [keyid]):
+            del list_[:]
+            try:
+                len(list_)
+            except CommitError:
+                raise
+            else:
+                assert False, 'expected CommitError'
+    except CommitError:
+        pass
+    assert list_[:] == list2[:] == list('abfg')
 
 
 @tests.test

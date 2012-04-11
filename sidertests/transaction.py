@@ -30,10 +30,18 @@ def commit_error():
     session = get_session()
     keyid = key('test_transaction_commit_error')
     list_ = session.set(keyid, 'abc', List)
-    with Transaction(session, [keyid]):
-        list_.append('d')
-        with raises(CommitError):
-            list(list_)
+    try:
+        with Transaction(session, [keyid]):
+            list_.append('d')
+            try:
+                list(list_)
+            except CommitError:
+                raise
+            else:
+                assert False, 'expected CommitError'
+    except CommitError:
+        pass
+    assert list_[:] == list('abc'), 'transaction must be rolled back'
 
 
 @tests.test
