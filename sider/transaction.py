@@ -30,6 +30,10 @@ class Transaction(object):
     :param keys: the list of keys
     :type keys: :class:`collections.Iterable`
 
+    .. todo
+
+       Make the ``keys`` parameter optional if possible.
+
     """
 
     def __init__(self, session, keys):
