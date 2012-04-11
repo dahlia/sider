@@ -170,6 +170,48 @@ def delete(session):
 
 
 @tests.test
+def delete_t(session):
+    session2 = get_session()
+    keyid = key('test_list_delete_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        del list_[0]
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('bcdefg')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 6
+        del list_[-1]
+        assert list2[:] == list('bcdefg')
+    assert list_[:] == list2[:] == list('bcdef')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 5
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            del list_[2]
+            assert len(w) == 1
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == list('bcdef')
+    assert list_[:] == list2[:] == list('bcef')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 4
+        del list_[:]
+        assert list2[:] == list('bcef')
+    assert len(list_[:]) == len(list2[:]) == 0
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            del list_[-1]
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            del list_[0]
+
+
+@tests.test
 def delete_slice(session):
     list_ = session.set(key('test_list_delete_slice'), 'abcdefg', List)
     del list_[:2]
