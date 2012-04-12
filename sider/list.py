@@ -44,7 +44,8 @@ class List(collections.MutableSequence):
         decode = self.value_type.decode
         mark = self.session.mark_query
         while chunk is None or len(chunk) >= step:
-            mark()
+            mark([self.key])
+            mark = lambda *_: _
             chunk = self.session.client.lrange(self.key, i, i + step)
             for val in chunk:
                 yield decode(val)
@@ -56,7 +57,7 @@ class List(collections.MutableSequence):
     def __getitem__(self, index):
         decode = self.value_type.decode
         if isinstance(index, numbers.Integral):
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             result = self.session.client.lindex(self.key, index)
             if result is None:
                 raise IndexError(index)
@@ -64,7 +65,7 @@ class List(collections.MutableSequence):
         elif isinstance(index, slice):
             start = 0 if index.start is None else index.start
             stop = (0 if index.stop is None else index.stop) - 1
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             result = self.session.client.lrange(self.key, start, stop)
             if index.step is not None:
                 result = result[::index.step]
@@ -81,7 +82,7 @@ class List(collections.MutableSequence):
                 except ResponseError:
                     raise IndexError(index)
             else:
-                self.session.mark_query()
+                self.session.mark_query([self.key])
                 length = len(self)
                 if 0 <= index < length or -length <= index < 0:
                     self.session.mark_manipulative()
@@ -95,7 +96,7 @@ class List(collections.MutableSequence):
             elif index.start in (0, None) and index.stop == 1:
                 seq = map(encode, value)
                 seq.reverse()
-                self.session.mark_manipulative()
+                self.session.mark_manipulative([self.key])
                 if self.session.server_version_info < (2, 4, 0):
                     pipe = self.session.client
                     if self.session.current_transaction is None:
@@ -132,16 +133,16 @@ class List(collections.MutableSequence):
                 raise ValueError('slice with step is not supported for '
                                  'deletion')
             if index.start is index.stop is None:
-                self.session.mark_manipulative()
+                self.session.mark_manipulative([self.key])
                 self.session.client.delete(self.key)
             elif not all(v is None or isinstance(v, numbers.Integral)
                          for v in (index.start, index.stop)):
                 raise TypeError('slice indices must be integers or None')
             elif index.start is None:
-                self.session.mark_manipulative()
+                self.session.mark_manipulative([self.key])
                 self.session.client.ltrim(self.key, index.stop, -1)
             elif index.stop is None:
-                self.session.mark_manipulative()
+                self.session.mark_manipulative([self.key])
                 self.session.client.ltrim(self.key, 0, index.start - 1)
             else:
                 cls = type(self)
@@ -152,7 +153,7 @@ class List(collections.MutableSequence):
                 )
                 def block(trial, transaction):
                     pipe = self.session.client
-                    self.session.mark_query()
+                    self.session.mark_query([self.key])
                     tail = pipe.lrange(self.key, index.stop, -1)
                     self.session.mark_manipulative()
                     pipe.ltrim(self.key, 0, index.start - 1)
@@ -242,7 +243,7 @@ class List(collections.MutableSequence):
             raise TypeError('index must be an integer, not ' + repr(index))
         data = self.value_type.encode(value)
         if index == 0:
-            self.session.mark_manipulative()
+            self.session.mark_manipulative([self.key])
             self.session.client.lpush(self.key, data)
         else:
             cls = type(self)
@@ -308,7 +309,7 @@ class List(collections.MutableSequence):
             if self.session.current_transaction is None:
                 popped = client.lpop(self.key)
             else:
-                self.session.mark_query()
+                self.session.mark_query([self.key])
                 popped = client.lindex(self.key, 0)
                 self.session.mark_manipulative()
                 client.ltrim(self.key, 1, -1)
@@ -316,7 +317,7 @@ class List(collections.MutableSequence):
             if self.session.current_transaction is None:
                 popped = client.rpop(self.key)
             else:
-                self.session.mark_query()
+                self.session.mark_query([self.key])
                 popped = client.lindex(self.key, -1)
                 self.session.mark_manipulative()
                 client.ltrim(self.key, 0, -2)
@@ -330,7 +331,7 @@ class List(collections.MutableSequence):
             result = [None]
             def block(trial, transaction):
                 pipe = self.session.client
-                self.session.mark_query()
+                self.session.mark_query([self.key])
                 popped = pipe.lindex(self.key, index)
                 if popped is None:
                     raise IndexError(index)

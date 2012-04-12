@@ -154,10 +154,14 @@ class Session(object):
                 transaction.format_enter_stack()
             )
         else:
+            transaction.watch(keys)
             block(0, None)
 
-    def mark_manipulative(self):
+    def mark_manipulative(self, keys=frozenset()):
         """Marks it is manipulative.
+
+        :param keys: optional set of keys to watch
+        :type keys: :class:`collections.Iterable`
 
         .. note::
 
@@ -165,12 +169,17 @@ class Session(object):
 
         """
         transaction = self.current_transaction
-        if transaction is None or transaction.commit_phase:
+        if transaction is None:
             return
-        transaction.begin_commit()
+        transaction.watch(keys)
+        if not transaction.commit_phase:
+            transaction.begin_commit()
 
-    def mark_query(self):
+    def mark_query(self, keys=frozenset()):
         """Marks it is querying.
+
+        :param keys: optional set of keys to watch
+        :type keys: :class:`collections.Iterable`
 
         :raises sider.exceptions.CommitError:
            when it is tried during commit phase
@@ -181,7 +190,11 @@ class Session(object):
 
         """
         transaction = self.current_transaction
-        if transaction is not None and transaction.commit_phase:
+        if transaction is None:
+            return
+        if transaction.commit_phase:
             raise CommitError('query operation was tried during commit phase' +
                               transaction.format_commit_stack())
+        else:
+            transaction.watch(keys)
 

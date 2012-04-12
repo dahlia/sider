@@ -36,12 +36,12 @@ class Transaction(object):
 
     """
 
-    def __init__(self, session, keys):
+    def __init__(self, session, keys=frozenset()):
         if not isinstance(session, lazyimport.session.Session):
             raise TypeError('session must be a sider.session.Session instance'
                             ', not ' + repr(session))
         self.session = session
-        self.keys = list(keys)
+        self.keys = set(keys)
         self.commit_phase = False
 
     def __enter__(self):
@@ -54,9 +54,8 @@ class Transaction(object):
         context['transaction'] = self
         client = self.session.client
         context['original_client'] = client
-        pipeline = client.pipeline()
-        self.session.client = pipeline
-        pipeline.watch(*self.keys)
+        self.session.client = client.pipeline()
+        self.watch(self.keys, initialize=True)
         if self.session.verbose_transaction_error:
             self.enter_stack = traceback.format_stack()
         return self
@@ -78,6 +77,27 @@ class Transaction(object):
             context['transaction'] = None
             self.session.client = context['original_client']
             del context['original_client']
+
+    def watch(self, keys, initialize=False):
+        """Watches more ``keys``.
+
+        :param keys: a set of keys to watch more
+        :type keys: :class:`collections.Iterable`
+        :param initialize: initializes the set of watched keys
+                           if it is ``True``.  default is ``False``.
+                           option only for internal use
+        :type initialize: :class:`bool`
+
+        """
+        keys = set(keys)
+        if initialize:
+            self.keys = keys
+        else:
+            keys -= self.keys
+        if keys:
+            self.session.client.watch(*keys)
+        if not initialize:
+            self.keys |= keys
 
     def begin_commit(self, _stacklevel=1):
         """Explicitly marks the transaction beginning to commit from this.
@@ -172,7 +192,8 @@ def manipulative(function):
     """
     @functools.wraps(function)
     def marked(self, *args, **kwargs):
-        self.session.mark_manipulative()
+        self.session.mark_manipulative([self.key] if hasattr(self, 'key')
+                                                  else [])
         return function(self, *args, **kwargs)
     return marked
 
@@ -188,7 +209,7 @@ def query(function):
     """
     @functools.wraps(function)
     def marked(self, *args, **kwargs):
-        self.session.mark_query()
+        self.session.mark_query([self.key] if hasattr(self, 'key') else [])
         return function(self, *args, **kwargs)
     return marked
 

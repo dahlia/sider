@@ -2,7 +2,7 @@ from attest import Tests, assert_hook, raises
 from .env import NInt, get_session, key
 from sider.types import List
 from sider.transaction import Transaction
-from sider.exceptions import CommitError, DoubleTransactionError
+from sider.exceptions import CommitError, ConflictError, DoubleTransactionError
 
 
 tests = Tests()
@@ -23,6 +23,32 @@ def raw_transaction():
         list1.append('d')
         assert list2[:] == ['a', 'b', 'c']
     assert list1[:] == list2[:] == ['a', 'b', 'c', 'd']
+
+
+@tests.test
+def automatic_watch():
+    session = get_session()
+    session2 = get_session()
+    keyid = key('test_transaction_automatic_watch')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with raises(ConflictError):
+        with Transaction(session):
+            list_.append('d')
+            list2.append('e')
+
+
+@tests.test
+def conflict_error():
+    session = get_session()
+    session2 = get_session()
+    keyid = key('test_transaction_conflict_error')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with raises(ConflictError):
+        with Transaction(session, [keyid]):
+            list_.append('d')
+            list2.append('e')
 
 
 @tests.test
