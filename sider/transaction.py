@@ -1,16 +1,9 @@
 """:mod:`sider.transaction` --- Transaction handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo::
-
-   Roughly planned roadmap:
-
-   - Mark methods wether it is manpulative or query.
-   - Make it iterative; it loops until it commit successfully without any
-     conflicts.
-
 """
 from __future__ import absolute_import
+import sys
 import warnings
 import functools
 import traceback
@@ -30,10 +23,6 @@ class Transaction(object):
     :param keys: the list of keys
     :type keys: :class:`collections.Iterable`
 
-    .. todo
-
-       Make the ``keys`` parameter optional if possible.
-
     """
 
     def __init__(self, session, keys=frozenset()):
@@ -44,6 +33,7 @@ class Transaction(object):
         self.keys = set(keys)
         self.initial_keys = frozenset(keys)
         self.commit_phase = False
+        self.entered = False
 
     def __enter__(self):
         context = self.session.context_locals
@@ -52,6 +42,7 @@ class Transaction(object):
                 'there is already a transaction for the session ' +
                 repr(self.session) + self.format_enter_stack()
             )
+        self.entered = True
         context['transaction'] = self
         client = self.session.client
         context['original_client'] = client
@@ -78,6 +69,91 @@ class Transaction(object):
             context['transaction'] = None
             self.session.client = context['original_client']
             del context['original_client']
+            self.entered = False
+
+    def __iter__(self):
+        """You can more explictly execute (and retry) a routine in
+        the transaction than using :meth:`__call__()`.
+
+        It returns a generator that yields an integer which represents
+        its (re)trial count (from 0) until the transaction doesn't
+        face :exc:`~sider.exceptions.ConflictError`.
+
+        For example::
+
+            for trial in transaction:
+                list_[0] = list_[0].upper()
+
+        :raises sider.exceptions.DoubleTransactionError:
+           when any transaction has already being executed for a session
+
+        """
+        transaction = self.session.current_transaction
+        if transaction is None:
+            trial = 0
+            while 1:
+                try:
+                    with self:
+                        yield trial
+                except ConflictError:
+                    trial += 1
+                    continue
+                break
+        else:
+            raise DoubleTransactionError(
+                'transactions are tried doubly for a session at a time' +
+                transaction.format_enter_stack()
+            )
+
+    def __call__(self, block, keys=frozenset(), ignore_double=False):
+        """Executes a ``block`` in the transaction::
+
+            def block(trial, transaction):
+                list_[0] = list[0].upper()
+            transaction(block)
+
+        :param block: a function to execute in a transaction.
+                      see the signature explained in the below:
+                      :func:`block()`
+        :type block: :class:`collections.Callable`
+        :param keys: a list of keys to watch
+        :type keys: :class:`collections.Iterable`
+        :param ignore_double: don't raise any error even
+                              if any transaction has already being
+                              executed for a session.
+                              default is ``False``
+        :type ignore_double: :class:`bool`
+        :raises sider.exceptions.DoubleTransactionError:
+           when any transaction has already being executed for a session
+           and ``ignore_double`` is ``False``
+
+        .. function:: block(trial, transaction)
+
+           :param trial: the number of trial count.  starts from 0
+           :type trial: :class:`numbers.Integral`
+           :param transaction: the current transaction object
+           :type transaction: :class:`~sider.transaction.Transaction`
+
+        """
+        try:
+            for trial in self:
+                self.watch(keys)
+                block(trial, self)
+        except DoubleTransactionError:
+            if ignore_double:
+                t = self.session.current_transaction
+                t.watch(keys)
+                block(0, None)
+            else:
+                raise
+        except:
+            # PyPy 1.8 doesn't seem to call __exit__() when with: block
+            # is used inside generator.  To workaround we have to maintain
+            # the attribute named .entered which represents whether "it was
+            # acutally cleaned up, right?"
+            if self.entered:
+                self.__exit__(*sys.exc_info())
+            raise
 
     def watch(self, keys, initialize=False):
         """Watches more ``keys``.

@@ -26,6 +26,42 @@ def raw_transaction():
 
 
 @tests.test
+def transaction_iterate():
+    session = get_session()
+    session2 = get_session()
+    keyid = key('test_transaction_iterate')
+    list1 = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    for trial in Transaction(session, [keyid]):
+        up = list1[0].upper()
+        if trial < 3:
+            list2.append('x')
+        list1[0] = up
+    assert list1[:] == list2[:] == list('Abcxxx')
+    assert trial == 3
+
+
+@tests.test
+def transaction_call():
+    session = get_session()
+    session2 = get_session()
+    keyid = key('test_transaction_call')
+    list1 = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    t = Transaction(session, [keyid])
+    total_trial = [0]
+    def block(trial, transaction):
+        total_trial[0] = trial
+        up = list1[0].upper()
+        if trial < 3:
+            list2.append('x')
+        list1[0] = up
+    t(block)
+    assert list1[:] == list2[:] == list('Abcxxx')
+    assert total_trial[0] == 3
+
+
+@tests.test
 def automatic_watch():
     session = get_session()
     session2 = get_session()
