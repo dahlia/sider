@@ -193,8 +193,7 @@ class List(collections.MutableSequence):
 
            Redis does not provide any primitive operations for random
            insertion.  You only can prepend or append a value into lists.
-           If index is 0 it'll send :redis:`LPUSH` command or if index
-           is -1 it'll send :redis:`RPUSH` command, but otherwise
+           If index is 0 it'll send :redis:`LPUSH` command, but otherwise
            it inefficiently :redis:`LRANGE` the whole list to manipulate
            it in offline, and then :redis:`DEL` the key so that empty
            the whole list, and then :redis:`RPUSH` the whole result again.
@@ -210,9 +209,6 @@ class List(collections.MutableSequence):
         """
         if not isinstance(index, numbers.Integral):
             raise TypeError('index must be an integer, not ' + repr(index))
-        elif index == -1:
-            self.append(value)
-            return
         data = self.value_type.encode(value)
         if index == 0:
             self.session.client.lpush(self.key, data)

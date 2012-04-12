@@ -4,7 +4,16 @@ Sider Changelog
 Version 0.1.2
 -------------
 
-To be released.
+Released on April 11, 2012.  Pre-alpha release.
+
+- Now :class:`sider.session.Session` takes :class:`redis.client.StrictRedis`
+  object instead of :class:`redis.client.Redis` which is deprecated.
+- Added :mod:`sider.exceptions` module.
+- Added :class:`sider.warnings.SiderWarning` base class.
+- Fixed a bug of :meth:`sider.list.List.insert()` for index -1.
+  Previously it simply appends an element to the list (and that is an
+  incorrect behavior), but now it inserts an element into the right before
+  of its last element.
 
 
 Version 0.1.1

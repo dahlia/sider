@@ -611,7 +611,7 @@ class DateTime(Bulk):
            >>> a == b
            True
 
-        :param bulk: a :ref:`3339` formatted string
+        :param bulk: a :rfc:`3339` formatted string
         :type bulk: :class:`basestring`
         :returns: a parsing result
         :rtype: :class:`datetime.datetime`
