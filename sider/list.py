@@ -75,11 +75,19 @@ class List(collections.MutableSequence):
         encode = self.value_type.encode
         if isinstance(index, numbers.Integral):
             value = encode(value)
-            self.session.mark_manipulative()
-            try:
-                self.session.client.lset(self.key, index, value)
-            except ResponseError:
-                raise IndexError(index)
+            if self.session.current_transaction is None:
+                try:
+                    self.session.client.lset(self.key, index, value)
+                except ResponseError:
+                    raise IndexError(index)
+            else:
+                self.session.mark_query()
+                length = len(self)
+                if 0 <= index < length or -length <= index < 0:
+                    self.session.mark_manipulative()
+                    self.session.client.lset(self.key, index, value)
+                else:
+                    raise IndexError(index)
         elif isinstance(index, slice):
             if index.step is not None:
                 raise ValueError('slice with step is not supported for '

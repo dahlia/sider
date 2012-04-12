@@ -96,6 +96,23 @@ def set(session):
 
 
 @tests.test
+def set_t(session):
+    session2 = get_session()
+    keyid = key('test_list_set_t')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        list_[1] = 'B'
+        assert list2[:] == list('abc')
+    assert list_[:] == list2[:] == list('aBc')
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            list_[3] = 'D'
+
+
+@tests.test
 def set_slice(session):
     list_ = session.set(key('test_list_set_slice'), 'abc', List)
     list_[:0] = ['-2', '-1']
@@ -131,6 +148,28 @@ def set_slice(session):
         assert len(w) == 1
         assert issubclass(w[0].category, PerformanceWarning)
     assert [-2, -1, 1, -2, -3] == list(listx)
+
+
+@tests.test
+def set_slice_t(session):
+    session2 = get_session()
+    keyid = key('test_list_set_slice_t')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        list_[:0] = ['-2', '-1']
+        assert list2[:] == list('abc')
+    assert list_[:] == list2[:] == ['-2', '-1', 'a', 'b', 'c']
+    with Transaction(session, [keyid]):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            list_[3:] = list('BC')
+            assert len(w) == 1, 'no warning'
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == ['-2', '-1', 'a', 'b', 'c']
+    assert list_[:] == ['-2', '-1', 'a', 'B', 'C']
 
 
 @tests.test
