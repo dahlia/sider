@@ -42,6 +42,7 @@ class Transaction(object):
                             ', not ' + repr(session))
         self.session = session
         self.keys = set(keys)
+        self.initial_keys = frozenset(keys)
         self.commit_phase = False
 
     def __enter__(self):
@@ -55,7 +56,7 @@ class Transaction(object):
         client = self.session.client
         context['original_client'] = client
         self.session.client = client.pipeline()
-        self.watch(self.keys, initialize=True)
+        self.watch(self.initial_keys, initialize=True)
         if self.session.verbose_transaction_error:
             self.enter_stack = traceback.format_stack()
         return self

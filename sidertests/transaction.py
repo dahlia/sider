@@ -36,6 +36,14 @@ def automatic_watch():
         with Transaction(session):
             list_.append('d')
             list2.append('e')
+    # Transation.keys have to be initialized for each context:
+    t = Transaction(session)
+    with t:
+        list_.append('d')
+    listx = session.set(key('test_transaction_automatic_watch2'), 'abc', List)
+    with t:
+        listx.append('a')
+        list2.append('b')
 
 
 @tests.test
