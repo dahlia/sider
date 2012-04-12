@@ -17,6 +17,33 @@ class List(collections.MutableSequence):
     alike built-in Python :class:`list` object.  More exactly, it
     implements :class:`collections.MutableSequence` protocol.
 
+    .. table:: Mappings of Redis commands--:class:`List` methods
+
+       =================== ===========================================
+       Redis commands      :class:`List` methods
+       =================== ===========================================
+       :redis:`LLEN`       :func:`len()` (:meth:`List.__len__()`)
+       :redis:`LPUSH`      :meth:`List.insert()`
+       :redis:`LPUSHX`     N/A
+       :redis:`LPOP`       :meth:`List.pop()`
+       :redis:`RPUSH`      :meth:`List.append()`,
+                           :meth:`List.extend()`
+       :redis:`RPUSHX`     N/A
+       :redis:`RPOP`       :meth:`List.pop()`
+       :redis:`RPOPLPUSH`  N/A
+       :redis:`LINDEX`     :meth:`List.__getitem__()`,
+       :redis:`LINSERT`    N/A
+       :redis:`LRANGE`     :func:`iter()` (:meth:`List.__iter__()`),
+                           :meth:`List.__getitem__()`,
+       :redis:`LREM`       N/A
+       :redis:`LTRIM`      :keyword:`del` (:meth:`List.__delitem__()`)
+       :redis:`DEL`        :keyword:`del` (:meth:`List.__delitem__()`)
+       :redis:`LSET`       :token:`=` (:meth:`List.__setitem__()`)
+       :redis:`BLPOP`      N/A
+       :redis:`BRPOP`      N/A
+       :redis:`BRPOPLPUSH` N/A
+       =================== ===========================================
+
     .. todo::
 
        Methods automatically filled by :class:`collections.MutableSequence`
