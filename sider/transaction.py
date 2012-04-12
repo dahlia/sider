@@ -151,6 +151,7 @@ class Transaction(object):
             # is used inside generator.  To workaround we have to maintain
             # the attribute named .entered which represents whether "it was
             # acutally cleaned up, right?"
+            # See also: https://bugs.pypy.org/issue1126
             if self.entered:
                 self.__exit__(*sys.exc_info())
             raise
