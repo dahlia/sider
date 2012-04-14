@@ -90,6 +90,23 @@ class List(collections.MutableSequence):
         return self.session.client.llen(self.key)
 
     def __getitem__(self, index):
+        """Gets or slices the element of the given ``index``.
+
+        :param index: the index of the element to get,
+                      or the slice of a range to get
+        :type index: :class:`numbers.Integral`, :class:`slice`
+        :returns: the element value, or the sliced new list
+        :raises exceptions.TypeError:
+           when ``index`` is not an integer nor a slice of integers
+        :raises exceptions.IndexError:
+           when ``index`` is out of range
+
+        .. note::
+
+           This is mapped to :redis:`LINDEX` for integer indices and
+           :redis:`LRANGE` for slices.
+
+        """
         decode = self.value_type.decode
         if isinstance(index, numbers.Integral):
             result = self.session.client.lindex(self.key, index)
