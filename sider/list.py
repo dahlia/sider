@@ -74,6 +74,19 @@ class List(collections.MutableSequence):
                 yield decode(val)
 
     def __len__(self):
+        """Gets the number of the list elements.
+
+        Use this with the built-in :func:`len()` function.
+
+        :returns: the number of the list elements
+        :rtype: :class:`numbers.Integral`
+
+        .. note::
+
+           This method is directly mapped to :redis:`LLEN`
+           command.
+
+        """
         return self.session.client.llen(self.key)
 
     def __getitem__(self, index):
