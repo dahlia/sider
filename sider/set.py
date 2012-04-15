@@ -117,7 +117,7 @@ class Set(collections.MutableSet):
             if length == 0:
                 return len(operand) == 0
             elif self.value_type == operand.value_type:
-                self.session.mark_query()
+                self.session.mark_query([self.key])
                 for _ in self.session.client.sdiff(self.key, operand.key):
                     return False
                 for _ in self.session.client.sdiff(operand.key, self.key):
@@ -168,7 +168,7 @@ class Set(collections.MutableSet):
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
             client = self.session.client
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             for _ in client.sdiff(self.key, operand.key):
                 return False
             card = len(self)
@@ -466,7 +466,7 @@ class Set(collections.MutableSet):
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
             client = self.session.client
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             for _ in client.sdiff(self.key, operand.key):
                 return False
             return len(self) == len(client.sinter(self.key, operand.key))
@@ -503,7 +503,7 @@ class Set(collections.MutableSet):
         if isinstance(operand, Set) and self.session is operand.session:
             if self.value_type != operand.value_type:
                 return True
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             for _ in self.session.client.sinter(self.key, operand.key):
                 return False
             return True
@@ -532,7 +532,7 @@ class Set(collections.MutableSet):
             else:
                 offline_sets.append(operand)
         keys = (operand.key for operand in online_sets)
-        self.session.mark_query()
+        self.session.mark_query([self.key])
         fetched = self.session.client.sdiff(self.key, *keys)
         decode = self.value_type.decode
         diff = set(decode(member) for member in fetched)
@@ -562,7 +562,7 @@ class Set(collections.MutableSet):
         """
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             union = self.session.client.sunion(self.key, operand.key)
             inter = self.session.client.sinter(self.key, operand.key)
             symdiff = set(union)
@@ -597,7 +597,7 @@ class Set(collections.MutableSet):
         union = set()
         for value_type, group in online_sets.iteritems():
             keys = (s.key for s in group)
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             subset = self.session.client.sunion(*keys)
             decode = value_type.decode
             union.update(decode(member) for member in subset)
@@ -625,7 +625,7 @@ class Set(collections.MutableSet):
                 offline_sets.append(operand)
         keys = frozenset(s.key for s in online_sets)
         if keys:
-            self.session.mark_query()
+            self.session.mark_query([self.key])
             inter = self.session.client.sinter(self.key, *keys)
             decode = self.value_type.decode
             online = set(decode(m) for m in inter)
