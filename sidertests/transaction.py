@@ -1,8 +1,10 @@
+import warnings
 from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, key
+from .env import get_session, key
 from sider.types import List
 from sider.transaction import Transaction
 from sider.exceptions import CommitError, ConflictError, DoubleTransactionError
+from sider.warnings import SiderWarning
 
 
 tests = Tests()
@@ -80,6 +82,12 @@ def automatic_watch():
     with t:
         listx.append('a')
         list2.append('b')
+    with t:
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            t.watch('asdf')
+            assert len(w) == 1
+            assert issubclass(w[0].category, SiderWarning)
 
 
 @tests.test

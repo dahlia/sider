@@ -9,7 +9,7 @@ import functools
 import traceback
 from redis.client import WatchError
 from .exceptions import DoubleTransactionError, ConflictError
-from .warnings import TransactionWarning
+from .warnings import SiderWarning, TransactionWarning
 from . import lazyimport
 
 
@@ -167,6 +167,11 @@ class Transaction(object):
         :type initialize: :class:`bool`
 
         """
+        if isinstance(keys, basestring):
+            warnings.warn('you could probably want to watch [{0!r}] instead of '
+                          '{1!r}; do not directly pass a string but a list of '
+                          'string to be explicit'.format(keys, list(keys)),
+                          category=SiderWarning, stacklevel=2)
         keys = set(keys)
         if initialize:
             self.keys = keys
@@ -187,7 +192,8 @@ class Transaction(object):
             warnings.warn('the transaction already is on commit phase; '
                           'begin_commit() method seems called twice or more' +
                           self.format_commit_stack(),
-                          category=TransactionWarning, stacklevel=2)
+                          category=TransactionWarning,
+                          stacklevel=1 + _stacklevel)
             return
         self.commit_phase = True
         if self.session.verbose_transaction_error:
