@@ -670,7 +670,6 @@ class Set(collections.MutableSet):
             return
         self.session.client.srem(self.key, member)
 
-    @manipulative
     def pop(self):
         """Removes an arbitrary element from the set and returns it.
         Raises :exc:`~exceptions.KeyError` if the set is empty.
@@ -683,10 +682,20 @@ class Set(collections.MutableSet):
            This method is directly mapped to :redis:`SPOP` command.
 
         """
-        popped = self.session.client.spop(self.key)
-        if popped is None:
-            raise KeyError('pop from an empty set')
-        return self.value_type.decode(popped)
+        if self.session.current_transaction is None:
+            popped = self.session.client.spop(self.key)
+            if popped is None:
+                raise KeyError('pop from an empty set')
+            return self.value_type.decode(popped)
+        else:
+            self.session.mark_query([self.key])
+            popped = self.session.client.srandmember(self.key)
+            if popped is None:
+                raise KeyError('pop from an empty set')
+            value = self.value_type.decode(popped)
+            self.session.mark_manipulative()
+            self._raw_delete([value], self.session.client)
+            return value
 
     @manipulative
     def clear(self):
@@ -784,25 +793,26 @@ class Set(collections.MutableSet):
                     return
             else:
                 offline_sets.append(operand)
-        pipe = self.session.client.pipeline()
-        if online_sets:
-            keys = (operand.key for operand in online_sets)
-            self.session.mark_manipulative()
-            pipe.sinterstore(self.key, self.key, *keys)
         try:
             memory_set = offline_sets.pop()
         except IndexError:
-            pass
+            memory_set = frozenset()
         else:
-            # TODO: [transaction]
             if offline_sets:
                 memory_set = set(memory_set)
-                self.session.mark_manipulative()
                 memory_set.intersection_update(*offline_sets)
-            self.session.mark_query()
-            diff = self.difference(memory_set)
-            self._raw_delete(diff, pipe)
-        pipe.execute()
+        keys = tuple(operand.key for operand in online_sets)
+        def block(trial, transaction):
+            pipe = self.session.client
+            if memory_set:
+                self.session.mark_query()
+                diff = self.difference(memory_set)
+                self.session.mark_manipulative()
+                self._raw_delete(diff, pipe)
+            if keys:
+                self.session.mark_manipulative()
+                pipe.sinterstore(self.key, self.key, *keys)
+        self.session.transaction(block, (self.key,) + keys, ignore_double=True)
 
     def difference_update(self, *sets):
         """Removes all elements of other ``sets`` from this set.

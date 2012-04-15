@@ -413,9 +413,11 @@ def pop(session):
     popped = set_.pop()
     assert popped in expected
     expected.remove(popped)
+    assert set_ == expected
     popped = set_.pop()
     assert popped in expected
     expected.remove(popped)
+    assert set_ == expected
     popped = set_.pop()
     assert popped in expected
     assert len(set_) == 0
@@ -423,6 +425,43 @@ def pop(session):
     assert len(expected) == 0
     with raises(KeyError):
         set_.pop()
+
+
+@tests.test
+def pop_t(session):
+    session2 = get_session()
+    expected = set('abc')
+    keyid = key('test_set_pop_t')
+    set_ = session.set(keyid, expected, Set)
+    setx = session2.get(keyid, Set)
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 3
+        popped = set_.pop()
+        assert setx == expected
+    assert popped in expected
+    expected.remove(popped)
+    assert set_ == set(setx) == expected
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 2
+        popped = set_.pop()
+        assert setx == expected
+    assert popped in expected
+    expected.remove(popped)
+    assert set_ == set(setx) == expected
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 1
+        popped = set_.pop()
+        assert setx == expected
+    assert popped in expected
+    assert len(set_) == len(setx) == 0
+    expected.remove(popped)
+    assert len(expected) == 0
+    with Transaction(session, [keyid]):
+        with raises(KeyError):
+            set_.pop()
 
 
 @tests.test
@@ -603,6 +642,26 @@ def intersection_update(session):
     resetx()
     set_.intersection_update(set2, setx, sety)
     assert set_ == S([])
+
+
+@tests.test
+def intersection_update_t(session):
+    session2 = get_session()
+    keyid = key('test_set_intersection_update_t')
+    keyid2 = key('test_set_intersection_update_t2')
+    set_ = session.set(keyid, S('abc'), Set)
+    set2 = session.set(keyid2, S('bcd'), Set)
+    setx = session2.get(keyid, Set)
+    with Transaction(session, [keyid, keyid2]):
+        card = len(set_)
+        assert card == 3
+        set_.intersection_update(set2)
+        assert setx == S('abc')
+    assert set_ == S(setx) == S('bc')
+    with Transaction(session, [keyid, keyid2]):
+        set_.intersection_update(set2)
+        with raises(CommitError):
+            len(set_)
 
 
 @tests.test
