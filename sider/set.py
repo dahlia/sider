@@ -738,15 +738,16 @@ class Set(collections.MutableSet):
                     )
             else:
                 offline_sets.append(operand)
-        pipe = self.session.client.pipeline()
-        if online_sets:
-            keys = (operand.key for operand in online_sets)
-            self.session.mark_manipulative()
-            pipe.sunionstore(self.key, self.key, *keys)
-        update = self._raw_update
-        for operand in offline_sets:
-            update(operand, pipe)
-        pipe.execute()
+        def block(trial, transaction):
+            pipe = self.session.client
+            if online_sets:
+                keys = (operand.key for operand in online_sets)
+                self.session.mark_manipulative()
+                pipe.sunionstore(self.key, self.key, *keys)
+            update = self._raw_update
+            for operand in offline_sets:
+                update(operand, pipe)
+        self.session.transaction(block, [self.key], ignore_double=True)
 
     def _raw_update(self, members, pipe):
         key = self.key

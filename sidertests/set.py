@@ -552,6 +552,44 @@ def update(session):
 
 
 @tests.test
+def update_t(session):
+    session2 = get_session()
+    keyid = key('test_set_update_t')
+    keyid2 = key('test_set_update_t2')
+    def reset():
+        return session.set(keyid, S('abc'), Set)
+    set_ = reset()
+    set2 = session.set(keyid2, S('cde'), Set)
+    setx = session2.get(keyid, Set)
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 3
+        set_.update('cde')
+        assert setx == S('abc')
+        with raises(CommitError):
+            len(set_)
+    assert set_ == S(setx) == S('abcde')
+    set_= reset()
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 3
+        set_.update(set2)
+        assert setx == S('abc')
+        with raises(CommitError):
+            len(set_)
+    assert set_ == S(setx) == S('abcde')
+    set_= reset()
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 3
+        set_.update(set2, 'adfg')
+        assert setx == S('abc')
+        with raises(CommitError):
+            len(set_)
+    assert set_ == S(setx) == S('abcdefg')
+
+
+@tests.test
 def intersection_update(session):
     def reset():
         return session.set(key('test_set_intersection_update'), S('abc'), Set)
