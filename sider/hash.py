@@ -1,6 +1,12 @@
 """:mod:`sider.hash` --- Hash objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. seealso::
+
+    `Redis Data Types <http://redis.io/topics/data-types>`_
+       The Redis documentation that explains about its data
+       types: strings, lists, sets, sorted sets and hashes.
+
 """
 import collections
 from .session import Session
