@@ -271,7 +271,7 @@ def manipulative(function):
     :param function: the method to mark
     :type function: :class:`collections.Callable`
     :returns: the marked method
-    :rtype: :class:`collections.Callable
+    :rtype: :class:`collections.Callable`
 
     """
     @functools.wraps(function)
@@ -288,7 +288,7 @@ def query(function):
     :param function: the method to mark
     :type function: :class:`collections.Callable`
     :returns: the marked method
-    :rtype: :class:`collections.Callable
+    :rtype: :class:`collections.Callable`
 
     """
     @functools.wraps(function)
