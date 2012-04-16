@@ -39,6 +39,10 @@ threads but including greenlets.
       that identify of the current thread/greenlet and be used as
       dictionary keys.*
 
+.. todo::
+
+   Be aware of the parent thread/greenlet.
+
 """
 import collections
 try:
