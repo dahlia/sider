@@ -1,6 +1,13 @@
 Sider Changelog
 ===============
 
+Branch :branch:`types-tuple`
+----------------------------
+
+- Introduced :class:`sider.types.Tuple` type for ad-hoc composition of
+  multiple types.
+
+
 Version 0.1.2
 -------------
 
