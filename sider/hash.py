@@ -5,6 +5,7 @@
 import collections
 from .session import Session
 from .types import Bulk, ByteString
+from .transaction import query, manipulative
 
 
 class Hash(collections.MutableMapping):
@@ -56,6 +57,7 @@ class Hash(collections.MutableMapping):
         self.value_type = Bulk.ensure_value_type(value_type,
                                                  parameter='value_type')
 
+    @query
     def __iter__(self):
         """Iterates over its :meth:`keys()`.
 
@@ -72,6 +74,7 @@ class Hash(collections.MutableMapping):
         for key in keys:
             yield decode(key)
 
+    @query
     def __len__(self):
         """Gets the number of items.
 
@@ -85,6 +88,7 @@ class Hash(collections.MutableMapping):
         """
         return self.session.client.hlen(self.key)
 
+    @query
     def __contains__(self, key):
         """Tests whether the given ``key`` exists.
 
@@ -104,6 +108,7 @@ class Hash(collections.MutableMapping):
         exists = self.session.client.hexists(self.key, encoded_key)
         return bool(exists)
 
+    @query
     def __getitem__(self, key):
         """Gets the value of the given ``key``.
 
@@ -126,6 +131,7 @@ class Hash(collections.MutableMapping):
             raise KeyError(key)
         return self.value_type.decode(value)
 
+    @manipulative
     def __setitem__(self, key, value):
         """Sets the ``key`` with the ``value``.
 
@@ -160,8 +166,16 @@ class Hash(collections.MutableMapping):
            It is directly mapped to Redis :redis:`HDEL` command.
 
         """
+        session = self.session
         encoded = self.key_type.encode(key)
-        ok = self.session.client.hdel(self.key, encoded)
+        if session.current_transaction is None:
+            ok = session.client.hdel(self.key, encoded)
+        else:
+            session.mark_query([self.key])
+            ok = session.client.hexists(self.key, encoded)
+            if ok:
+                session.mark_manipulative()
+                session.client.hdel(self.key, encoded)
         if not ok:
             raise KeyError(key)
 
@@ -181,6 +195,7 @@ class Hash(collections.MutableMapping):
         """
         return frozenset(self)
 
+    @query
     def values(self):
         """Gets its all values.  It returns a :class:`list` but
         there isn't any meaningful order of values.
@@ -200,6 +215,7 @@ class Hash(collections.MutableMapping):
             values[i] = decode(val)
         return values
 
+    @query
     def items(self):
         """Gets its all ``(key, value)`` pairs.
         There isn't any meaningful order of pairs.
@@ -218,6 +234,7 @@ class Hash(collections.MutableMapping):
         return frozenset((decode_key(k), decode_value(v))
                          for k, v in items.iteritems())
 
+    @manipulative
     def clear(self):
         """Removes all items from this hash.
 
@@ -260,6 +277,14 @@ class Hash(collections.MutableMapping):
            command which is atomic.
 
         """
+        if self.session.transaction is not None:
+            self.session.mark_query()
+            try:
+                val = self[key]
+            except KeyError:
+                self.session.mark_manipulative([self.key])
+                self[key] = val = default
+            return val
         encoded_key = self.key_type.encode(key)
         encoded_val = self.value_type.encode(default)
         result = [None]
@@ -274,6 +299,7 @@ class Hash(collections.MutableMapping):
         self.session.client.transaction(block, self.key)
         return result[0]
 
+    @manipulative
     def update(self, mapping={}, **keywords):
         """Updates the hash from the given ``mapping`` and keyword
         arguments.
