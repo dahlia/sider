@@ -115,8 +115,8 @@ class Session(object):
         """(:class:`sider.transaction.Transaction`) The transaction object
         for the session.
 
-        :class:`Transaction` objects are callable and so you can use
-        this :attr:`transaction` property as like a method::
+        :class:`~sider.transaction.Transaction` objects are callable and so
+        you can use this :attr:`transaction` property as like a method::
 
             def block(trial, transaction):
                 list_[0] = list[0].upper()
