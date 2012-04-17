@@ -50,7 +50,7 @@ while the following raises a :exc:`~sider.exceptions.CommitError`::
         # The following statement raises CommitError because
         # it contains a query operation.
         current_value2 = hash_['my_key2'] # [query operation]
-        updated_value2 = '(' + current_value + ')'
+        updated_value2 = '(' + current_value2 + ')'
         hash_['my_key'] = updated_value2  # [manipulative operation]
     session.transaction(block)
 
