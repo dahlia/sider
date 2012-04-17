@@ -1,6 +1,64 @@
 """:mod:`sider.transaction` --- Transaction handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Every Persist object provided by Sider can be used within
+transactions.  You can atomically commit multiple operations.
+
+Under the hood, transaction blocks are simply looped until objects
+the transaction deals with haven't been faced any conflicts with
+other sessions/transactions.  If there are no concurrent touches
+to ``names`` in the following transaction::
+
+    def block(trial, transaction):
+        names.append(new_name)
+    session.transaction(block)
+
+it will be successfully committed.  Otherwise, it retries the
+whole transaction ``block``.  You can easily prove this by just
+printing ``trial`` (the first argument of the block function)
+inside the transaction block.  It will print one or more retrial
+counting numbers.
+
+This means you shouldn't do I/O in the transaction block.
+Your I/O could be executed two or more times.  Do I/O after or
+before transaction blocks instead.
+
+There are two properties of every operation: :func:`query` or
+:func:`manipulative` or both.  For example, :meth:`Hash.get()
+<sider.hash.Hash.get>` method is a query operation.
+On the other hand, :meth:`Set.add() <sider.set.Set.add>` method
+is manipulative.  There is a rule of transaction: query operations
+can't be used after manipulative operations.  For example,
+the following transaction block has no problem::
+
+    # Atomically wraps an existing string value of the specific
+    # key of a hash.
+    hash_ = session.get('my_hash', Hash)
+    def block(trial, transaction):
+        current_value = hash_['my_key']  # [query operation]
+        updated_value = '(' + current_value + ')'
+        hash_['my_key'] = updated_value  # [manipulative operation]
+    session.transaction(block)
+
+while the following raises a :exc:`~sider.exceptions.CommitError`::
+
+    hash_ = session.get('my_hash', Hash)
+    def block(trial, transaction):
+        current_value = hash_['my_key']   # [query operation]
+        updated_value = '(' + current_value + ')'
+        hash_['my_key'] = updated_value   # [manipulative operation]
+        # The following statement raises CommitError because
+        # it contains a query operation.
+        current_value2 = hash_['my_key2'] # [query operation]
+        updated_value2 = '(' + current_value + ')'
+        hash_['my_key'] = updated_value2  # [manipulative operation]
+    session.transaction(block)
+
+.. seealso::
+
+   `Redis Transactions <http://redis.io/topics/transactions>`_
+      The Redis documentation that explains about its transactions.
+
 """
 from __future__ import absolute_import
 import sys
@@ -14,9 +72,7 @@ from . import lazyimport
 
 
 class Transaction(object):
-    """Transaction block.  It's a low-level primitive for Sider transaction.
-    In most case what you actually need to use is probably
-    :meth:`Session.transaction() <sider.session.Session.transaction>` method.
+    """Transaction block.
 
     :param session: a session object
     :type session: :class:`~sider.session.Session`
@@ -109,7 +165,7 @@ class Transaction(object):
         """Executes a ``block`` in the transaction::
 
             def block(trial, transaction):
-                list_[0] = list[0].upper()
+                list_[0] = list_[0].upper()
             transaction(block)
 
         :param block: a function to execute in a transaction.
