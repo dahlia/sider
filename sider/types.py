@@ -14,7 +14,6 @@ into Python :class:`int` ``3``.
 
 .. todo::
 
-   - :class:`TimeDelta` that takes :class:`datetime.timedelta`.
    - :class:`Complex` that takes :class:`complex`.
    - :class:`Real` that takes real numbers (:class:`numbers.Real`).
 
@@ -806,4 +805,41 @@ class TZTime(Time):
         if time.tzinfo is None:
             raise ValueError('datetime.time must be aware of tzinfo')
         return time
+
+
+class TimeDelta(Bulk):
+    """Stores :class:`datetime.timedelta` values.
+
+    .. sourcecode:: pycon
+
+       >>> import datetime
+       >>> td = TimeDelta()
+       >>> delta = datetime.timedelta(days=3, seconds=53, microseconds=123123)
+       >>> td.encode(delta)
+       '3,53,123123'
+       >>> td.decode(_)
+       datetime.timedelta(3, 53, 123123)
+
+    """
+
+    TIMEDELTA_FORMAT = '{0.days},{0.seconds},{0.microseconds}'
+    TIMEDELTA_PATTERN = re.compile(r'^(?P<days>\d+),(?P<seconds>\d+),'
+                                   r'(?P<microseconds>\d{1,6})$')
+
+    def encode(self, value):
+        if not isinstance(value, datetime.timedelta):
+            raise TypeError('expected a datetime.timedelta, not ' +
+                            repr(value))
+        return self.TIMEDELTA_FORMAT.format(value)
+
+    def decode(self, bulk):
+        match = self.TIMEDELTA_PATTERN.search(bulk)
+        if match:
+            days = int(match.group('days'))
+            seconds = int(match.group('seconds'))
+            microseconds = int(match.group('microseconds'))
+            return datetime.timedelta(days=days,
+                                      seconds=seconds,
+                                      microseconds=microseconds)
+        raise ValueError('invalid bulk: ' + repr(bulk))
 

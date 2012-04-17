@@ -5,6 +5,7 @@ Branch :branch:`types`
 ----------------------
 
 - Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
+- Added :class:`sider.types.TimeDelta` type.
 
 
 Version 0.1.2
