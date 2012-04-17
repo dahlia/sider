@@ -1,6 +1,12 @@
 Sider Changelog
 ===============
 
+Branch :branch:`types`
+----------------------
+
+- Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
+
+
 Version 0.1.2
 -------------
 
