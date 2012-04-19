@@ -65,6 +65,7 @@ import sys
 import warnings
 import functools
 import traceback
+import gc
 from redis.client import WatchError
 from .exceptions import DoubleTransactionError, ConflictError
 from .warnings import SiderWarning, TransactionWarning
@@ -89,7 +90,6 @@ class Transaction(object):
         self.keys = set(keys)
         self.initial_keys = frozenset(keys)
         self.commit_phase = False
-        self.entered = False
 
     def __enter__(self):
         context = self.session.context_locals
@@ -98,7 +98,6 @@ class Transaction(object):
                 'there is already a transaction for the session ' +
                 repr(self.session) + self.format_enter_stack()
             )
-        self.entered = True
         context['transaction'] = self
         client = self.session.client
         context['original_client'] = client
@@ -125,7 +124,6 @@ class Transaction(object):
             context['transaction'] = None
             self.session.client = context['original_client']
             del context['original_client']
-            self.entered = False
 
     def __iter__(self):
         """You can more explictly execute (and retry) a routine in
@@ -204,12 +202,13 @@ class Transaction(object):
                 raise
         except:
             # PyPy 1.8 doesn't seem to call __exit__() when with: block
-            # is used inside generator.  To workaround we have to maintain
-            # the attribute named .entered which represents whether "it was
-            # acutally cleaned up, right?"
-            # See also: https://bugs.pypy.org/issue1126
-            if self.entered:
-                self.__exit__(*sys.exc_info())
+            # is used inside generator.  To workaround we have to
+            # gc.collect() explicitly.
+            # See also:
+            # - https://bugs.pypy.org/issue1126
+            # - http://mail.python.org/pipermail/pypy-dev/2012-April/009753.html
+            # - http://mail.python.org/pipermail/pypy-dev/2012-April/009754.html
+            gc.collect()
             raise
 
     def watch(self, keys, initialize=False):
