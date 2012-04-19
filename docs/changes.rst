@@ -1,6 +1,13 @@
 Sider Changelog
 ===============
 
+Branch ``sortedset``
+--------------------
+
+- Added :mod:`sider.sortedset` module.
+- Added :class:`sider.types.SortedSet` type.
+
+
 Branch ``transaction``
 ----------------------
 

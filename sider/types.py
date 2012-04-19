@@ -28,7 +28,7 @@ import re
 import collections
 import numbers
 import datetime
-from .lazyimport import list, set
+from .lazyimport import list, set, sortedset
 from .datetime import UTC, FixedOffset
 
 
@@ -345,6 +345,57 @@ class Set(Value):
         if super(Set, self).__eq__(operand):
             return self.value_type == operand.value_type
         return False
+
+
+class SortedSet(Set):
+    """The type object for :class:`sider.sortedset.SortedSet` objects.
+
+    :param value_type: the type of values the sorted set will contain.
+                       default is :class:`ByteString`
+    :type value_type: :class:`Bulk`, :class:`type`
+
+    """
+
+    def load_value(self, session, key):
+        return sortedset.Set(session, key, value_type=self.value_type)
+
+    def save_value(self, session, key, value):
+        if not isinstance(value, (collections.Set, collections.Mapping)):
+            raise TypeError('expected a set-like or mapping object, not ' +
+                            repr(value))
+        obj = sortedset.SortedSet(session, key, value_type=self.value_type)
+        encode = self.value_type.encode
+        if session.server_version < (2, 4, 0):
+            if isinstance(value, collections.Mapping):
+                pairs = [
+                    (encode(el), score)
+                    for el, score in getattr(value, 'iteritems', value.items)()
+                ]
+            else:
+                pairs = [(encode(el), 1) for el in value]
+            def block(trial, transaction):
+                obj.clear()
+                zadd = session.client.zadd
+                for el, score in pairs:
+                    zadd(key, score, el)
+        else:
+            if isinstance(value, collections.Mapping):
+                items = getattr(value, 'iteritems', value.items)
+                def args():
+                    for el, score in items():
+                        yield score
+                        yield encode(el)
+            else:
+                def args():
+                    for el in value:
+                        yield 1
+                        yield encode(el)
+            args = tuple(args())
+            def block(trial, transaction):
+                obj.clear()
+                session.client.zadd(key, *args)
+        session.transaction(block, [key], ignore_double=True)
+        return obj
 
 
 class Bulk(Value):

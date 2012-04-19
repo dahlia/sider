@@ -46,6 +46,9 @@ list = DeferredModule('sider.list')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.set`.
 set = DeferredModule('sider.set')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.sortedset`.
+sortedset = DeferredModule('sider.sortedset')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.datetime`.
 datetime = DeferredModule('sider.datetime')
 
