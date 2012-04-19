@@ -1,8 +1,8 @@
 Sider Changelog
 ===============
 
-Branch ``transaction``
-----------------------
+Branch :branch:`transaction`
+----------------------------
 
 Experiements about transactions.
 
@@ -14,8 +14,10 @@ Experiements about transactions.
 Version 0.1.2
 -------------
 
-To be released.
+Released on April 11, 2012.  Pre-alpha release.
 
+- Now :class:`sider.session.Session` takes :class:`redis.client.StrictRedis`
+  object instead of :class:`redis.client.Redis` which is deprecated.
 - Added :mod:`sider.exceptions` module.
 - Added :class:`sider.warnings.SiderWarning` base class.
 - Fixed a bug of :meth:`sider.list.List.insert()` for index -1.

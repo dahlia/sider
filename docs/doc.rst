@@ -80,3 +80,22 @@ Convention
 __ http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#literal-blocks
 __ http://pygments.org/docs/lexers/
 
+
+Tips
+----
+
+- You can link :rst:role:`issue`, :rst:role:`commit` and :rst:role:`branch`.
+  For example:
+
+  .. sourcecode:: rst
+
+     - Linking :issue:`1`.
+     - Linking :commit:`a78ac7eb7332`.
+     - Linking :branch:`docs`.
+
+  It becomes:
+
+  - Linking :issue:`1`.
+  - Linking :commit:`a78ac7eb7332`.
+  - Linking :branch:`docs`.
+

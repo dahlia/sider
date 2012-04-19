@@ -1,6 +1,12 @@
 """:mod:`sider.list` --- List objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. seealso::
+
+    `Redis Data Types <http://redis.io/topics/data-types>`_
+       The Redis documentation that explains about its data
+       types: strings, lists, sets, sorted sets and hashes.
+
 """
 from __future__ import absolute_import
 import collections
@@ -17,6 +23,33 @@ class List(collections.MutableSequence):
     """The Python-side representaion of Redis list value.  It behaves
     alike built-in Python :class:`list` object.  More exactly, it
     implements :class:`collections.MutableSequence` protocol.
+
+    .. table:: Mappings of Redis commands--:class:`List` methods
+
+       =================== ===========================================
+       Redis commands      :class:`List` methods
+       =================== ===========================================
+       :redis:`LLEN`       :func:`len()` (:meth:`List.__len__()`)
+       :redis:`LPUSH`      :meth:`List.insert()`
+       :redis:`LPUSHX`     N/A
+       :redis:`LPOP`       :meth:`List.pop()`
+       :redis:`RPUSH`      :meth:`List.append()`,
+                           :meth:`List.extend()`
+       :redis:`RPUSHX`     N/A
+       :redis:`RPOP`       :meth:`List.pop()`
+       :redis:`RPOPLPUSH`  N/A
+       :redis:`LINDEX`     :meth:`List.__getitem__()`,
+       :redis:`LINSERT`    N/A
+       :redis:`LRANGE`     :func:`iter()` (:meth:`List.__iter__()`),
+                           :meth:`List.__getitem__()`,
+       :redis:`LREM`       N/A
+       :redis:`LTRIM`      :keyword:`del` (:meth:`List.__delitem__()`)
+       :redis:`DEL`        :keyword:`del` (:meth:`List.__delitem__()`)
+       :redis:`LSET`       :token:`=` (:meth:`List.__setitem__()`)
+       :redis:`BLPOP`      N/A
+       :redis:`BRPOP`      N/A
+       :redis:`BRPOPLPUSH` N/A
+       =================== ===========================================
 
     .. todo::
 
@@ -52,9 +85,39 @@ class List(collections.MutableSequence):
 
     @query
     def __len__(self):
+        """Gets the number of the list elements.
+
+        Use this with the built-in :func:`len()` function.
+
+        :returns: the number of the list elements
+        :rtype: :class:`numbers.Integral`
+
+        .. note::
+
+           This method is directly mapped to :redis:`LLEN`
+           command.
+
+        """
         return self.session.client.llen(self.key)
 
     def __getitem__(self, index):
+        """Gets or slices the element of the given ``index``.
+
+        :param index: the index of the element to get,
+                      or the slice of a range to get
+        :type index: :class:`numbers.Integral`, :class:`slice`
+        :returns: the element value, or the sliced new list
+        :raises exceptions.TypeError:
+           when ``index`` is not an integer nor a slice of integers
+        :raises exceptions.IndexError:
+           when ``index`` is out of range
+
+        .. note::
+
+           This is mapped to :redis:`LINDEX` for integer indices and
+           :redis:`LRANGE` for slices.
+
+        """
         decode = self.value_type.decode
         if isinstance(index, numbers.Integral):
             self.session.mark_query([self.key])

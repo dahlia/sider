@@ -55,10 +55,10 @@ Query
 
 .. sourcecode:: pycon
 
-   >>> from redis import Redis
+   >>> from redis.client import StrictRedis
    >>> from sider.session import Session
    >>> from myapp.user import User
-   >>> session = Session(Redis(host='127.0.0.1', port=6379, db=0))
+   >>> session = Session(StrictRedis(host='127.0.0.1', port=6379, db=0))
    >>> user = session.get(User, 'hongminhee')
    >>> user
    <myapp.user.User 'users:hongminhee'>
