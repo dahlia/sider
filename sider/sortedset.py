@@ -62,7 +62,7 @@ class SortedSet(collections.Sized, collections.Iterable):
     @query
     def __iter__(self):
         result = self.session.client.zrange(self.key, 0, -1)
-        return itertools.imap(self.value_type.encode, result)
+        return itertools.imap(self.value_type.decode, result)
 
     @manipulative
     def clear(self):

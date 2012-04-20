@@ -16,6 +16,8 @@ def iterate(session):
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
     assert list(set_) == ['b', 'c', 'a']
+    setx = session.set(key('test_sortedsetx_iterate'), {1: 3, 2: 1, 3: 2}, IntSet)
+    assert list(setx) == [2, 3, 1]
 
 
 @tests.test
@@ -46,4 +48,18 @@ def update(session):
     set_.update('cde', {'b': 2, 'd': 5}, c=2)
     assert S(set_) == S('abcde')
     assert list(set_)[-3:] == list('bcd')
+    def reset2():
+        return session.set(key('test_sortedsetx_update'), S([1, 2, 3]), IntSet)
+    setx = reset2()
+    setx.update([3, 4, 5])
+    assert S(setx) == S([1, 2, 3, 4, 5])
+    assert list(setx)[-1] == 3
+    reset2()
+    setx.update({1: 1, 2: 2, 4: 1, 5: 1})
+    assert S(setx) == S([1, 2, 3, 4, 5])
+    assert list(setx)[-1] == 2
+    reset2()
+    setx.update([3, 4, 5], {2: 2, 4: 5, 3: 2})
+    assert S(setx) == S([1, 2, 3, 4, 5])
+    assert list(setx)[-3:] == [2, 3, 4]
 
