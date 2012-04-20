@@ -41,6 +41,18 @@ def contains(session):
 
 
 @tests.test
+def items(session):
+    set_ = session.set(key('test_sortedset_items'), S('abc'), SortedSet)
+    assert set_.items() == S([('a', 1), ('b', 1), ('c', 1)])
+    set_.update(b=1, c=2)
+    assert set_.items() == S([('a', 1), ('b', 2), ('c', 3)])
+    setx = session.set(key('test_sortedsetx_items'), S([1, 2, 3]), IntSet)
+    assert setx.items() == S([(1, 1), (2, 1), (3, 1)])
+    setx.update({2: 1, 3: 2})
+    assert setx.items() == S([(1, 1), (2, 2), (3, 3)])
+
+
+@tests.test
 def update(session):
     def reset():
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)

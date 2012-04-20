@@ -16,7 +16,7 @@ from .types import Bulk, ByteString
 from .transaction import query, manipulative
 
 
-class SortedSet(collections.Sized, collections.Iterable):
+class SortedSet(collections.Set):
     """The Python-sider representaion of Redis sorted set value.
     It behaves in similar way to :class:`collections.Counter` object
     which became a part of standard library since Python 2.7.
@@ -84,6 +84,23 @@ class SortedSet(collections.Sized, collections.Iterable):
         except TypeError:
             return False
         return bool(self.session.client.zscore(self.key, element))
+
+    @query
+    def items(self):
+        """Returns a set of pairs of elements and these scores.
+
+        :returns: a set of pairs.  every pair looks like (element, score)
+        :rtype: :class:`collections.Set`
+
+        .. note::
+
+           This method is directly mapped to :redis:`ZRANGE`
+           command and ``WITHSCORES`` option.
+
+        """
+        pairs = self.session.client.zrange(self.key, 0, -1, withscores=True)
+        decode = self.value_type.decode
+        return frozenset((decode(value), score) for value, score in pairs)
 
     @manipulative
     def clear(self):
