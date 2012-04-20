@@ -53,6 +53,30 @@ def items(session):
 
 
 @tests.test
+def equals(session):
+    set_ = session.set(key('test_set_equals'), S('abc'), SortedSet)
+    set2 = session.set(key('test_set_equals2'), S('abc'), SortedSet)
+    set3 = session.set(key('test_set_equals3'), S('abcd'), SortedSet)
+    set4 = session.set(key('test_set_equals3'), {'a': 1, 'b': 2, 'c': 1},
+                       SortedSet)
+    set5 = session.set(key('test_set_equals4'), S([1, 2, 3]), IntSet)
+    emptyset = session.set(key('test_set_equals5'), S(), SortedSet)
+    emptyset2 = session.set(key('test_set_equals5'), S(), IntSet)
+    assert set_ == set('abc')
+    assert set_ != set('abcd')
+    assert set_ == {'a': 1, 'b': 1, 'c': 1}
+    assert set_ != {'a': 1, 'b': 1, 'c': 1, 'd': 1}
+    assert set_ != {'a': 1, 'b': 1, 'c': 2}
+    assert set_ == S('abc')
+    assert set_ != S('abcd')
+    assert set_ == set2 and set2 == set_
+    assert set_ != set3 and set3 != set_
+    assert set_ != set4 and set4 != set_
+    assert set_ != set5 and set5 != set_
+    assert emptyset == emptyset2 and emptyset2 == emptyset
+
+
+@tests.test
 def update(session):
     def reset():
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)

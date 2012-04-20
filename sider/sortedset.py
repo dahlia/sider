@@ -86,6 +86,46 @@ class SortedSet(collections.Set):
         return bool(self.session.client.zscore(self.key, element))
 
     @query
+    def __eq__(self, operand):
+        if not isinstance(operand, collections.Sized):
+            return False
+        length = len(self)
+        if length != len(operand):
+            return False
+        zrange = self.session.client.zrange
+        operand_is_sortedset = isinstance(operand, SortedSet)
+        if operand_is_sortedset:
+            if length == 0:
+                return True
+            elif self.value_type != operand.value_type:
+                return False
+        pairs = zrange(self.key, 0, -1, withscores=True)
+        decode = self.value_type.decode
+        if operand_is_sortedset:
+            operand_pairs = zrange(operand.key, 0, -1, withscores=True)
+            return pairs == operand_pairs
+        elif isinstance(operand, collections.Mapping):
+            for element, score in pairs:
+                element = decode(element)
+                try:
+                    s = operand[element]
+                except KeyError:
+                    return False
+                else:
+                    if s != score:
+                        return False
+            return True
+        elif isinstance(operand, collections.Set):
+            for element, score in pairs:
+                if not (score == 1 and decode(element) in operand):
+                    return False
+            return True
+        return False
+
+    def __ne__(self, operand):
+        return not (self == operand)
+
+    @query
     def items(self):
         """Returns a set of pairs of elements and these scores.
 
