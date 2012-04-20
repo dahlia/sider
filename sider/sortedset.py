@@ -64,6 +64,27 @@ class SortedSet(collections.Sized, collections.Iterable):
         result = self.session.client.zrange(self.key, 0, -1)
         return itertools.imap(self.value_type.decode, result)
 
+    @query
+    def __contains__(self, member):
+        """:keyword:`in` operator.  Tests whether the set contains
+        the given operand ``member``.
+
+        :param member: the value to test
+        :returns: ``True`` if the sorted set contains the given
+                  operand ``member``
+        :rtype: :class:`bool`
+
+        .. note::
+
+           This method internally uses :redis:`ZSCORE` command.
+
+        """
+        try:
+            element = self.value_type.encode(member)
+        except TypeError:
+            return False
+        return bool(self.session.client.zscore(self.key, element))
+
     @manipulative
     def clear(self):
         """Removes all values from this sorted set.

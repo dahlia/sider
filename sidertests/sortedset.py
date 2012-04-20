@@ -29,6 +29,18 @@ def length(session):
 
 
 @tests.test
+def contains(session):
+    set_ = session.set(key('test_sortedset_contains'), S('abc'), SortedSet)
+    assert 'a' in set_
+    assert 'd' not in set_
+    setx = session.set(key('test_sortedsetx_contains'), S([1, 2, 3]), IntSet)
+    assert 1 in setx
+    assert 4 not in setx
+    assert '1' not in setx
+    assert '4' not in setx
+
+
+@tests.test
 def update(session):
     def reset():
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)
