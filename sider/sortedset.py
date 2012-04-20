@@ -195,3 +195,11 @@ class SortedSet(collections.Set):
                 session.client.zunionstore(key, len(keys) + 1, key, *keys)
         session.transaction(block, [key], ignore_double=True)
 
+    def __repr__(self):
+        cls = type(self)
+        pairs= list(self.items())
+        pairs.sort(key=lambda (element, score): (score, element))
+        els = ', '.join(repr(v) if s == 1 else '{0!r}: {1!r}'.format(v, s)
+                        for v, s in pairs)
+        return '<{0}.{1} {{{2}}}>'.format(cls.__module__, cls.__name__, els)
+

@@ -87,3 +87,11 @@ def update(session):
     assert S(setx) == S([1, 2, 3, 4, 5])
     assert list(setx)[-3:] == [2, 3, 4]
 
+
+@tests.test
+def repr_(session):
+    set_ = session.set(key('test_sortedset_repr'), set([1, 2, 3]), IntSet)
+    assert "<sider.sortedset.SortedSet {1, 2, 3}>" == repr(set_)
+    set_.update({1: 1})
+    assert "<sider.sortedset.SortedSet {2, 3, 1: 2.0}>" == repr(set_)
+
