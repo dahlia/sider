@@ -76,7 +76,53 @@ class SortedSet(collections.Sized, collections.Iterable):
         self.session.client.delete(self.key)
 
     def update(self, *sets, **keywords):
-        """Very complicated operation.  Should be documented."""
+        """Merge with passed sets and keywords.  It's behavior is
+        almost equivalent to :meth:`dict.update()` and
+        :meth:`set.update()` except it's aware of scores.
+
+        For example, assume the initial elements and their scores of
+        the set is (in notation of dictionary)::
+
+            {'c': 1, 'a': 2, 'b': 3}
+
+        and you has updated it::
+
+            sortedset.update(set('acd'))
+
+        then it becomes (in notation of dictionary)::
+
+            {'d': 1, 'c': 2, 'a': 3, 'b': 3}
+
+        You can pass mapping objects or keywords instead to specify
+        scores to increment::
+
+            sortedset.update({'a': 1, 'b': 2})
+            sortedset.update(a=1, b=2)
+            sortedset.update(set('ab'), set('cd'),
+                             {'a': 1, 'b': 2}, {'c': 1, 'd': 2},
+                             a=1, b=2, c=1, d=2)
+
+        :param \*sets: sets or mapping objects to merge with.
+                       mapping objects can specify scores by values
+        :param \**keywords: if :attr:`value_type` takes byte strings
+                            you can specify elements and its scores
+                            by keyword arguments
+
+        .. note::
+
+           There's an incompatibility with :meth:`dict.update()`.
+           It always treats iterable of pairs as set of pairs, not
+           mapping pairs, unlike :meth:`dict.update()`.  It is for
+           resolving ambiguity (remember :attr:`value_type` can take
+           tuples or such things).
+
+        .. note::
+
+           Under the hood it uses multiple :redis:`ZINCRBY` commands
+           and :redis:`ZUNIONSTORE` if there are one or more
+           :class:`SortedSet` objects in operands.
+
+        """
         session = self.session
         key = self.key
         encode = self.value_type.encode
