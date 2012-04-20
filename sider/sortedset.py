@@ -23,12 +23,18 @@ class SortedSet(collections.Set):
 
     .. table:: Mappings of Redis commands--:class:`SortedSet` methods
 
-       ===================== =============================================
-       Redis commands        :class:`SortedSet` methods
-       ===================== =============================================
-       :redis:`ZCARD`        :func:`len()` (:meth:`SortedSet.__len__()`)
-       :redis:`ZRANGE`       :func:`iter()` (:meth:`SortedSet.__iter__()`)
-       ===================== =============================================
+       ========================== =============================================
+       Redis commands             :class:`SortedSet` methods
+       ========================== =============================================
+       :redis:`DEL`               :meth:`SortedSet.clear()`
+       :redis:`ZCARD`             :func:`len()` (:meth:`SortedSet.__len__()`)
+       :redis:`ZINCRBY`           :meth:`SortedSet.update()`
+       :redis:`ZRANGE`            :func:`iter()` (:meth:`SortedSet.__iter__()`)
+       :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`
+       :redis:`ZSCORE`            :keyword:`in`
+                                  (:meth:`SortedSet.__contains__()`)
+       :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
+       ========================== =============================================
 
     """
 
