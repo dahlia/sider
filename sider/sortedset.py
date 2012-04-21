@@ -131,6 +131,22 @@ class SortedSet(collections.Set):
     def __ne__(self, operand):
         return not (self == operand)
 
+    def keys(self):
+        """Gets its all elements.  Equivalent to :meth:`__iter__()`
+        except it returns a :class:`~collections.Set` instead of
+        iterable.  There isn't any meaningful order of keys.
+
+        :returns: the set of its all keys
+        :rtype: :class:`collections.KeysView`
+
+        .. note::
+
+           This method is directly mapped to Redis :redis:`ZRANGE`
+           command.
+
+        """
+        return frozenset(self)
+
     @query
     def items(self):
         """Returns a set of pairs of elements and these scores.
