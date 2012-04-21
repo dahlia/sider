@@ -1,6 +1,8 @@
 from attest import Tests, assert_hook, raises
-from .env import NInt, init_session, key
+from .env import NInt, get_session, init_session, key
 from sider.types import SortedSet
+from sider.transaction import Transaction
+from sider.exceptions import CommitError
 
 
 tests = Tests()
@@ -90,6 +92,63 @@ def setitem(session):
         setx['a'] = 123
     with raises(TypeError):
         setx[123] = 'a'
+
+
+@tests.test
+def delitem(session):
+    set_ = session.set(key('test_sortedset_delitem'), S('abc'), SortedSet)
+    del set_['b']
+    assert S(set_) == S('ac')
+    with raises(KeyError):
+        del set_['d']
+    with raises(TypeError):
+        del set_[123]
+    setx = session.set(key('test_sortedsetx_delitem'), S([1, 2, 3]), IntSet)
+    del setx[2]
+    assert S(setx) == S([1, 3])
+    with raises(KeyError):
+        del setx[4]
+    with raises(TypeError):
+        del setx['a']
+
+
+@tests.test
+def delitem_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_delitem_t')
+    set_ = session.set(keyid, S('abc'), SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        card = len(set_)
+        assert card == 3
+        del set_['b']
+        assert S(set2) == S('abc')
+        with raises(CommitError):
+            len(set_)
+    assert S(set_) == S(set2) == S('ac')
+    with Transaction(session, [keyid]):
+        with raises(KeyError):
+            del set_['d']
+    with Transaction(session, [keyid]):
+        with raises(TypeError):
+            del set_[123]
+    keyid2 = key('test_sortedsetx_delitem_t')
+    setx = session.set(keyid2, S([1, 2, 3]), IntSet)
+    sety = session2.get(keyid2, IntSet)
+    with Transaction(session, [keyid]):
+        card = len(setx)
+        assert card == 3
+        del setx[2]
+        assert S(sety) == S([1, 2, 3])
+        with raises(CommitError):
+            len(setx)
+    assert S(setx) == S(sety) == S([1, 3])
+    with Transaction(session, [keyid]):
+        with raises(KeyError):
+            del setx[4]
+    with Transaction(session, [keyid]):
+        with raises(TypeError):
+            del setx['a']
 
 
 @tests.test

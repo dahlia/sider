@@ -23,20 +23,25 @@ class SortedSet(collections.Set):
 
     .. table:: Mappings of Redis commands--:class:`SortedSet` methods
 
-       ========================== =============================================
+       ========================== ==================================
        Redis commands             :class:`SortedSet` methods
-       ========================== =============================================
+       ========================== ==================================
        :redis:`DEL`               :meth:`SortedSet.clear()`
-       :redis:`ZADD`              :token:`=` (:meth:`SortedSet.__setitem__()`)
-       :redis:`ZCARD`             :func:`len()` (:meth:`SortedSet.__len__()`)
+       :redis:`ZADD`              :token:`=`
+                                  (:meth:`SortedSet.__setitem__()`)
+       :redis:`ZCARD`             :func:`len()`
+                                  (:meth:`SortedSet.__len__()`)
        :redis:`ZINCRBY`           :meth:`SortedSet.update()`
-       :redis:`ZRANGE`            :func:`iter()` (:meth:`SortedSet.__iter__()`)
+       :redis:`ZRANGE`            :func:`iter()`
+                                  (:meth:`SortedSet.__iter__()`)
        :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`
+       :redis:`ZREM`              :keyword:`del`
+                                  (:meth:`SortedSet.__delitem__()`)
        :redis:`ZSCORE`            :meth:`SortedSet.__getitem__()`,
                                   :keyword:`in`
                                   (:meth:`SortedSet.__contains__()`)
        :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
-       ========================== =============================================
+       ========================== ==================================
 
     """
 
@@ -138,6 +143,37 @@ class SortedSet(collections.Set):
             raise TypeError('score must be a float, not ' + repr(score))
         element = self.value_type.encode(member)
         self.session.client.zadd(self.key, score, element)
+
+    def __delitem__(self, member):
+        """Removes the ``member``.
+
+        :param member: the member to delete
+        :raises exceptions.TypeError:
+           if the given ``member`` is not acceptable by
+           its :attr:`value_type`
+        :raises exceptions.KeyError:
+           if there's no such ``member``
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`ZREM` command
+           when it's not on transaction.  If it's used with
+           transaction, it internally uses :redis:`ZSCORE` and
+           :redis:`ZREM` commands.
+
+        """
+        element = self.value_type.encode(member)
+        session = self.session
+        if session.current_transaction is None:
+            exists = session.client.zrem(self.key, element)
+        else:
+            session.mark_query()
+            exists = session.client.zscore(self.key, element)
+            if exists:
+                session.mark_manipulative()
+                session.client.zrem(self.key, element)
+        if not exists:
+            raise KeyError(member)
 
     @query
     def __eq__(self, operand):

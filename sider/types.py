@@ -357,7 +357,7 @@ class SortedSet(Set):
     """
 
     def load_value(self, session, key):
-        return sortedset.Set(session, key, value_type=self.value_type)
+        return sortedset.SortedSet(session, key, value_type=self.value_type)
 
     def save_value(self, session, key, value):
         if not isinstance(value, (collections.Set, collections.Mapping)):
