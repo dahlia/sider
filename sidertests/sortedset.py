@@ -210,6 +210,36 @@ def equals(session):
 
 
 @tests.test
+def add(session):
+    set_ = session.set(key('test_sortedset_add'), S('abc'), SortedSet)
+    set_.add('d')
+    assert dict(set_) == {'a': 1, 'b': 1, 'c': 1, 'd': 1}
+    set_.add('e', score=1.5)
+    assert dict(set_) == {'a': 1, 'b': 1, 'c': 1, 'd': 1, 'e': 1.5}
+    set_.add('c')
+    assert dict(set_) == {'a': 1, 'b': 1, 'c': 2, 'd': 1, 'e': 1.5}
+    set_.add('c', score=1.5)
+    assert dict(set_) == {'a': 1, 'b': 1, 'c': 3.5, 'd': 1, 'e': 1.5}
+    with raises(TypeError):
+        set_.add(123)
+    with raises(TypeError):
+        set_.add('a', score='1.5')
+    setx = session.set(key('test_sortedsetx_add'), S([1, 2, 3]), IntSet)
+    setx.add(4)
+    assert dict(setx) == {1: 1, 2: 1, 3: 1, 4: 1}
+    setx.add(5, score=1.5)
+    assert dict(setx) == {1: 1, 2: 1, 3: 1, 4: 1, 5: 1.5}
+    setx.add(3)
+    assert dict(setx) == {1: 1, 2: 1, 3: 2, 4: 1, 5: 1.5}
+    setx.add(3, score=1.5)
+    assert dict(setx) == {1: 1, 2: 1, 3: 3.5, 4: 1, 5: 1.5}
+    with raises(TypeError):
+        setx.add('a')
+    with raises(TypeError):
+        setx.add(1, score='1.5')
+
+
+@tests.test
 def clear(session):
     set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
     set_.clear()

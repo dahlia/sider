@@ -16,10 +16,13 @@ from .types import Bulk, ByteString
 from .transaction import query, manipulative
 
 
-class SortedSet(collections.Set):
+class SortedSet(collections.MutableMapping, collections.Set):
     """The Python-sider representation of Redis sorted set value.
     It behaves in similar way to :class:`collections.Counter` object
     which became a part of standard library since Python 2.7.
+
+    It implements :class:`collections.MutableMapping` and
+    :class:`collections.Set` protocols.
 
     .. table:: Mappings of Redis commands--:class:`SortedSet` methods
 
@@ -31,12 +34,14 @@ class SortedSet(collections.Set):
                                   (:meth:`SortedSet.__setitem__()`)
        :redis:`ZCARD`             :func:`len()`
                                   (:meth:`SortedSet.__len__()`)
-       :redis:`ZINCRBY`           :meth:`SortedSet.update()`
+       :redis:`ZINCRBY`           :meth:`SortedSet.add()`,
+                                  :meth:`SortedSet.update()`
        :redis:`ZRANGE`            :func:`iter()`
                                   (:meth:`SortedSet.__iter__()`)
        :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`
        :redis:`ZREM`              :keyword:`del`
-                                  (:meth:`SortedSet.__delitem__()`)
+                                  (:meth:`SortedSet.__delitem__()`),
+                                  :meth:`SortedSet.discard()`
        :redis:`ZSCORE`            :meth:`SortedSet.__getitem__()`,
                                   :keyword:`in`
                                   (:meth:`SortedSet.__contains__()`)
@@ -262,6 +267,20 @@ class SortedSet(collections.Set):
         """
         pairs = self.session.client.zrange(self.key, 0, -1, withscores=True)
         return [score for _, score in pairs]
+
+    @manipulative
+    def add(self, member, score=1):
+        """Adds a new ``member`` or increases its ``score`` (default is 1).
+
+        :param member: the member to add or increase its score
+        :param score: the amount to incrase the score.  default is 1
+        :type score: :class:`numbers.Real`
+
+        """
+        if not isinstance(score, numbers.Real):
+            raise TypeError('score must be a numbers.Real, not ' + repr(score))
+        element = self.value_type.encode(member)
+        self.session.client.zincrby(self.key, value=element, amount=score)
 
     @manipulative
     def clear(self):
