@@ -210,6 +210,16 @@ def equals(session):
 
 
 @tests.test
+def clear(session):
+    set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
+    set_.clear()
+    assert len(set_) == 0
+    setx = session.set(key('test_sortedsetx_clear'), S([1, 2, 3]), IntSet)
+    setx.clear()
+    assert len(setx) == 0
+
+
+@tests.test
 def update(session):
     def reset():
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)
