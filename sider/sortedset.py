@@ -164,6 +164,21 @@ class SortedSet(collections.Set):
         decode = self.value_type.decode
         return frozenset((decode(value), score) for value, score in pairs)
 
+    @query
+    def values(self):
+        """Returns a list of scores in ascending order.
+
+        :returns: a list of scores in ascending order
+        :rtype: :class:`collections.ValuesView`
+
+        .. note::
+
+           This method internally uses :redis:`ZRANGE` command.
+
+        """
+        pairs = self.session.client.zrange(self.key, 0, -1, withscores=True)
+        return [score for _, score in pairs]
+
     @manipulative
     def clear(self):
         """Removes all values from this sorted set.

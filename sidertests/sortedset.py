@@ -65,6 +65,18 @@ def items(session):
 
 
 @tests.test
+def values(session):
+    set_ = session.set(key('test_sortedset_values'),
+                       {'a': 3, 'b': 1, 'c': 2, 'd': 1},
+                       SortedSet)
+    assert set_.values() == [1, 1, 2, 3]
+    setx = session.set(key('test_sortedsetx_values'),
+                       {1: 3, 2: 1, 3: 2, 4: 1},
+                       IntSet)
+    assert setx.values() == [1, 1, 2, 3]
+
+
+@tests.test
 def equals(session):
     set_ = session.set(key('test_set_equals'), S('abc'), SortedSet)
     set2 = session.set(key('test_set_equals2'), S('abc'), SortedSet)
