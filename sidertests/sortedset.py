@@ -136,34 +136,27 @@ def update(session):
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)
     set_ = reset()
     set_.update('cde')
-    assert S(set_) == S('abcde')
-    assert list(set_)[-1] == 'c'
+    assert dict(set_) == {'a': 1, 'b': 1, 'c': 2, 'd': 1, 'e': 1}
     reset()
-    set_.update({'a': 1, 'b': 2, 'd': 1, 'e': 1})
-    assert S(set_) == S('abcde')
-    assert list(set_)[-1] == 'b'
+    set_.update({'a': 1, 'b': 2, 'd': 1, 'e': 1.5})
+    assert dict(set_) == {'a': 2, 'b': 3, 'c': 1, 'd': 1, 'e': 1.5}
     reset()
-    set_.update(a=1, b=2, d=1, e=1)
-    assert S(set_) == S('abcde')
-    assert list(set_)[-1] == 'b'
+    set_.update(a=1, b=2, d=1, e=1.5)
+    assert dict(set_) == {'a': 2, 'b': 3, 'c': 1, 'd': 1, 'e': 1.5}
     reset()
-    set_.update('cde', {'b': 2, 'd': 5}, c=2)
-    assert S(set_) == S('abcde')
-    assert list(set_)[-3:] == list('bcd')
+    set_.update('cde', {'b': 2, 'd': 5.1}, c=2.2)
+    assert dict(set_) == {'a': 1, 'b': 3, 'c': 4.2, 'd': 6.1, 'e': 1}
     def reset2():
         return session.set(key('test_sortedsetx_update'), S([1, 2, 3]), IntSet)
     setx = reset2()
     setx.update([3, 4, 5])
-    assert S(setx) == S([1, 2, 3, 4, 5])
-    assert list(setx)[-1] == 3
+    assert dict(setx) == {1: 1, 2: 1, 3: 2, 4: 1, 5: 1}
     reset2()
-    setx.update({1: 1, 2: 2, 4: 1, 5: 1})
-    assert S(setx) == S([1, 2, 3, 4, 5])
-    assert list(setx)[-1] == 2
+    setx.update({1: 1, 2: 2, 4: 1.5, 5: 1})
+    assert dict(setx) == {1: 2, 2: 3, 3: 1, 4: 1.5, 5: 1}
     reset2()
-    setx.update([3, 4, 5], {2: 2, 4: 5, 3: 2})
-    assert S(setx) == S([1, 2, 3, 4, 5])
-    assert list(setx)[-3:] == [2, 3, 4]
+    setx.update([3, 4, 5], {2: 2, 4: 5, 3: 2.1})
+    assert dict(setx) == {1: 1, 2: 3, 3: 4.1, 4: 6, 5: 1}
 
 
 @tests.test

@@ -290,8 +290,8 @@ class SortedSet(collections.Set):
                 else:
                     raise TypeError('expected iterable, not ' + repr(set_))
             for el, score in keywords.iteritems():
-                if not isinstance(score, numbers.Integral):
-                    raise TypeError('score must be integer, not ' +
+                if not isinstance(score, numbers.Real):
+                    raise TypeError('score must be a float, not ' +
                                     repr(score))
                 el = encode(el)
                 zincrby(key, value=el, amount=score)
