@@ -29,7 +29,7 @@ You can install it from PyPI_:
    $ pip install Sider  # or
    $ easy_install Sider
    $ python -m sider.version
-   0.1.2
+   0.1.3
 
 What was the name 'Sider' originated from?:
 

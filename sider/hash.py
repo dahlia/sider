@@ -331,4 +331,10 @@ class Hash(collections.MutableMapping):
                            for val in (encode_key(k), encode_value(v)))
         pipe.execute_command('HMSET', self.key, *flatten)
 
+    def __repr__(self):
+        cls = type(self)
+        items = list(self.iteritems())
+        items.sort(key=lambda (key, _): key)
+        els = ', '.join('{0!r}: {1!r}'.format(*pair) for pair in items)
+        return '<{0}.{1} {{{2}}}>'.format(cls.__module__, cls.__name__, els)
 
