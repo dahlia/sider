@@ -4,7 +4,7 @@ Sider Changelog
 Version 0.1.3
 -------------
 
-To be released.
+Released on April 21, 2012.  Pre-alpha release.
 
 - Now :class:`sider.hash.Hash` objects show their contents for :func:`repr()`.
 - Now persist objects show their key name for :func:`repr()`.
