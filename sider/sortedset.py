@@ -152,7 +152,7 @@ class SortedSet(collections.Set):
         """Returns a set of pairs of elements and these scores.
 
         :returns: a set of pairs.  every pair looks like (element, score)
-        :rtype: :class:`collections.Set`
+        :rtype: :class:`collections.ItemsView`
 
         .. note::
 
