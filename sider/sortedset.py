@@ -31,7 +31,8 @@ class SortedSet(collections.Set):
        :redis:`ZINCRBY`           :meth:`SortedSet.update()`
        :redis:`ZRANGE`            :func:`iter()` (:meth:`SortedSet.__iter__()`)
        :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`
-       :redis:`ZSCORE`            :keyword:`in`
+       :redis:`ZSCORE`            :meth:`SortedSet.__getitem__()`,
+                                  :keyword:`in`
                                   (:meth:`SortedSet.__contains__()`)
        :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
        ========================== =============================================
@@ -93,6 +94,22 @@ class SortedSet(collections.Set):
 
     @query
     def __getitem__(self, member):
+        """Gets the score of the given ``member``.
+
+        :param member: the member to get its score
+        :returns: the score of the ``member``
+        :rtype: :class:`numbers.Real`
+        :raises exceptions.TypeError:
+           if the given ``member`` is not acceptable by
+           its :attr:`value_type`
+        :raises exceptions.KeyError:
+           if there's no such ``member``
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`ZSCORE` command.
+
+        """
         try:
             element = self.value_type.encode(member)
         except TypeError:
