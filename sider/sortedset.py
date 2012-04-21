@@ -276,7 +276,8 @@ class SortedSet(collections.Set):
         cls = type(self)
         pairs= list(self.items())
         pairs.sort(key=lambda (element, score): (score, element))
-        els = ', '.join(repr(v) if s == 1 else '{0!r}: {1!r}'.format(v, s)
-                        for v, s in pairs)
-        return '<{0}.{1} {{{2}}}>'.format(cls.__module__, cls.__name__, els)
+        elements = ', '.join(repr(v) if s == 1 else '{0!r}: {1!r}'.format(v, s)
+                             for v, s in pairs)
+        return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,
+                                                  self.key, elements)
 

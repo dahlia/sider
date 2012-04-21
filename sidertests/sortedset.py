@@ -138,8 +138,12 @@ def update(session):
 
 @tests.test
 def repr_(session):
-    set_ = session.set(key('test_sortedset_repr'), set([1, 2, 3]), IntSet)
-    assert "<sider.sortedset.SortedSet {1, 2, 3}>" == repr(set_)
+    keyid = key('test_sortedset_repr')
+    set_ = session.set(keyid, set([1, 2, 3]), IntSet)
+    expected = '<sider.sortedset.SortedSet (' + repr(keyid) + ') {1, 2, 3}>'
+    assert expected == repr(set_)
     set_.update({1: 1})
-    assert "<sider.sortedset.SortedSet {2, 3, 1: 2.0}>" == repr(set_)
+    expected = '<sider.sortedset.SortedSet (' + repr(keyid) + \
+               ') {2, 3, 1: 2.0}>'
+    assert expected == repr(set_)
 
