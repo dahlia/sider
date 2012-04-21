@@ -50,10 +50,10 @@ def getitem(session):
     assert set_['c'] == 1
     with raises(KeyError):
         set_['d']
-    with raises(KeyError):
+    with raises(TypeError):
         set_[123]
-    set_.update(a=2, c=-1)
-    assert set_['a'] == 3
+    set_.update(a=2.1, c=-1)
+    assert set_['a'] == 3.1
     assert set_['b'] == 1
     with raises(KeyError):
         set_['c']
@@ -63,13 +63,33 @@ def getitem(session):
     assert setx[3] == 1
     with raises(KeyError):
         setx[4]
-    with raises(KeyError):
+    with raises(TypeError):
         setx['a']
-    setx.update({1: 2, 3: -1})
-    assert setx[1] == 3
+    setx.update({1: 2.1, 3: -1})
+    assert setx[1] == 3.1
     assert setx[2] == 1
     with raises(KeyError):
         setx[3]
+
+
+@tests.test
+def setitem(session):
+    set_ = session.set(key('test_sortedset_setitem'), S('abc'), SortedSet)
+    set_['d'] = 1
+    set_['a'] = 2.1
+    assert dict(set_) == {'a': 2.1, 'b': 1, 'c': 1, 'd': 1}
+    with raises(TypeError):
+        set_[123] = 123
+    with raises(TypeError):
+        set_['a'] = 'a'
+    setx = session.set(key('test_sortedsetx_setitem'), S([1, 2, 3]), IntSet)
+    setx[4] = 1
+    setx[1] = 2.1
+    assert dict(setx) == {1: 2.1, 2: 1, 3: 1, 4: 1}
+    with raises(TypeError):
+        setx['a'] = 123
+    with raises(TypeError):
+        setx[123] = 'a'
 
 
 @tests.test

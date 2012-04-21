@@ -27,6 +27,7 @@ class SortedSet(collections.Set):
        Redis commands             :class:`SortedSet` methods
        ========================== =============================================
        :redis:`DEL`               :meth:`SortedSet.clear()`
+       :redis:`ZADD`              :token:`=` (:meth:`SortedSet.__setitem__()`)
        :redis:`ZCARD`             :func:`len()` (:meth:`SortedSet.__len__()`)
        :redis:`ZINCRBY`           :meth:`SortedSet.update()`
        :redis:`ZRANGE`            :func:`iter()` (:meth:`SortedSet.__iter__()`)
@@ -110,14 +111,33 @@ class SortedSet(collections.Set):
            It is directly mapped to Redis :redis:`ZSCORE` command.
 
         """
-        try:
-            element = self.value_type.encode(member)
-        except TypeError:
-            raise KeyError(member)
+        element = self.value_type.encode(member)
         score = self.session.client.zscore(self.key, element)
         if score:
             return score
         raise KeyError(member)
+
+    @manipulative
+    def __setitem__(self, member, score):
+        """Sets the ``score`` of the ``member``.  Adds the ``member``
+        if it doesn't exist.
+
+        :param member: the member to set its ``score``
+        :param scorew: the score to set of the ``member``
+        :raises exceptions.TypeError:
+           if the given ``member`` is not acceptable by
+           its :attr:`value_type` or the given ``score``
+           is not a :class:`numbers.Real` object
+
+        .. note::
+
+           It is directly mapped to Redis :redis:`ZADD` command.
+
+        """
+        if not isinstance(score, numbers.Real):
+            raise TypeError('score must be a float, not ' + repr(score))
+        element = self.value_type.encode(member)
+        self.session.client.zadd(self.key, score, element)
 
     @query
     def __eq__(self, operand):
