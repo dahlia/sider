@@ -6,7 +6,8 @@ Version 0.1.3
 
 To be released.
 
-- Now :class:`sider.hash.Hash` objects shows its contents for :func:`repr()`.
+- Now :class:`sider.hash.Hash` objects show their contents for :func:`repr()`.
+- Now persist objects show their key name for :func:`repr()`.
 
 
 Version 0.1.2

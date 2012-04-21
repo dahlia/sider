@@ -288,8 +288,8 @@ def update(session):
 
 @tests.test
 def repr_(session):
-    hash_ = session.set(key('test_hash_repr'),
-                        {1: 2, 3: 4, 5: 6},
-                        Hash(NInt, NInt))
-    assert "<sider.hash.Hash {1: 2, 3: 4, 5: 6}>" == repr(hash_)
+    keyid = key('test_hash_repr')
+    hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))
+    expected = '<sider.hash.Hash (' + repr(keyid) + ') {1: 2, 3: 4, 5: 6}>'
+    assert expected == repr(hash_)
 

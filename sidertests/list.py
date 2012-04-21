@@ -333,13 +333,16 @@ def pop(session):
 
 @tests.test
 def repr_(session):
-    list_ = session.set(key('test_list_repr'), [1, 2, 3], List(NInt))
+    keyid = key('test_list_repr')
+    list_ = session.set(keyid, [1, 2, 3], List(NInt))
     r = repr(list_)
-    assert "<sider.list.List [1, 2, 3]>" == r
-    list_ = session.set(key('test_list_repr'), range(20), List(NInt))
+    assert '<sider.list.List (' + repr(keyid) + ') [1, 2, 3]>' == r
+    list_ = session.set(keyid, range(20), List(NInt))
     r = repr(list_)
-    assert "<sider.list.List {0!r}>".format(range(20)) == r
+    assert '<sider.list.List ({0!r}) {1!r}>'.format(keyid, range(20)) == r
     list_.append(50)
     r = repr(list_)
-    assert "<sider.list.List {0}, ...]>".format(repr(range(20))[:-1]) == r
+    expected = '<sider.list.List ({0!r}) {1}, ...]>'.format(keyid,
+        repr(range(20))[:-1])
+    assert expected == r
 
