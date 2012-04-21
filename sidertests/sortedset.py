@@ -16,7 +16,9 @@ def iterate(session):
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
     assert list(set_) == ['b', 'c', 'a']
-    setx = session.set(key('test_sortedsetx_iterate'), {1: 3, 2: 1, 3: 2}, IntSet)
+    setx = session.set(key('test_sortedsetx_iterate'),
+                       {1: 3, 2: 1, 3: 2},
+                       IntSet)
     assert list(setx) == [2, 3, 1]
 
 
