@@ -922,6 +922,7 @@ def symmetric_difference_update_t(session):
 
 @tests.test
 def repr_(session):
-    set_ = session.set(key('test_set_repr'), set([1, 2, 3]), IntSet)
-    assert "<sider.set.Set {1, 2, 3}>" == repr(set_)
+    keyid = key('test_set_repr')
+    set_ = session.set(keyid, set([1, 2, 3]), IntSet)
+    assert '<sider.set.Set (' + repr(keyid) + ') {1, 2, 3}>' == repr(set_)
 

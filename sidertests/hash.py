@@ -327,3 +327,11 @@ def update(session):
     with raises(TypeError):
         hashx.update(1234)
 
+
+@tests.test
+def repr_(session):
+    keyid = key('test_hash_repr')
+    hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))
+    expected = '<sider.hash.Hash (' + repr(keyid) + ') {1: 2, 3: 4, 5: 6}>'
+    assert expected == repr(hash_)
+

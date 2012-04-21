@@ -58,6 +58,9 @@ datetime = DeferredModule('sider.datetime')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.warnings`.
 warnings = DeferredModule('sider.warnings')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.exceptions`.
+exceptions = DeferredModule('sider.exceptions')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.version`.
 version = DeferredModule('sider.version')
 
