@@ -43,6 +43,36 @@ def contains(session):
 
 
 @tests.test
+def getitem(session):
+    set_ = session.set(key('test_sortedset_getitem'), S('abc'), SortedSet)
+    assert set_['a'] == 1
+    assert set_['b'] == 1
+    assert set_['c'] == 1
+    with raises(KeyError):
+        set_['d']
+    with raises(KeyError):
+        set_[123]
+    set_.update(a=2, c=-1)
+    assert set_['a'] == 3
+    assert set_['b'] == 1
+    with raises(KeyError):
+        set_['c']
+    setx = session.set(key('test_sortedsetx_getitem'), S([1, 2, 3]), IntSet)
+    assert setx[1] == 1
+    assert setx[2] == 1
+    assert setx[3] == 1
+    with raises(KeyError):
+        setx[4]
+    with raises(KeyError):
+        setx['a']
+    setx.update({1: 2, 3: -1})
+    assert setx[1] == 3
+    assert setx[2] == 1
+    with raises(KeyError):
+        setx[3]
+
+
+@tests.test
 def keys(session):
     set_ = session.set(key('test_sortedset_keys'),
                        {'a': 3, 'b': 1, 'c': 2},

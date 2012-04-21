@@ -92,6 +92,17 @@ class SortedSet(collections.Set):
         return bool(self.session.client.zscore(self.key, element))
 
     @query
+    def __getitem__(self, member):
+        try:
+            element = self.value_type.encode(member)
+        except TypeError:
+            raise KeyError(member)
+        score = self.session.client.zscore(self.key, element)
+        if score:
+            return score
+        raise KeyError(member)
+
+    @query
     def __eq__(self, operand):
         if not isinstance(operand, collections.Sized):
             return False
