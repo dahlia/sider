@@ -44,13 +44,11 @@ def contains(session):
 
 @tests.test
 def keys(session):
-    set_ = session.set(key('test_sortedset_iterate'),
+    set_ = session.set(key('test_sortedset_keys'),
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
     assert set_.keys() == S('abc')
-    setx = session.set(key('test_sortedsetx_iterate'),
-                       {1: 3, 2: 1, 3: 2},
-                       IntSet)
+    setx = session.set(key('test_sortedsetx_keys'), {1: 3, 2: 1, 3: 2}, IntSet)
     assert setx.keys() == S([1, 2, 3])
 
 
