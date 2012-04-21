@@ -8,6 +8,7 @@ To be released.
 
 - Now :class:`sider.hash.Hash` objects show their contents for :func:`repr()`.
 - Now persist objects show their key name for :func:`repr()`.
+- Added :data:`sider.lazyimport.exceptions` deferred module.
 
 
 Version 0.1.2
