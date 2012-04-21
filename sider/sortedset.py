@@ -17,7 +17,7 @@ from .transaction import query, manipulative
 
 
 class SortedSet(collections.Set):
-    """The Python-sider representaion of Redis sorted set value.
+    """The Python-sider representation of Redis sorted set value.
     It behaves in similar way to :class:`collections.Counter` object
     which became a part of standard library since Python 2.7.
 
