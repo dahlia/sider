@@ -16,13 +16,13 @@ from .types import Bulk, ByteString
 from .transaction import query, manipulative
 
 
-class SortedSet(collections.MutableMapping, collections.Set):
+class SortedSet(collections.MutableMapping, collections.MutableSet):
     """The Python-sider representation of Redis sorted set value.
     It behaves in similar way to :class:`collections.Counter` object
     which became a part of standard library since Python 2.7.
 
     It implements :class:`collections.MutableMapping` and
-    :class:`collections.Set` protocols.
+    :class:`collections.MutableSet` protocols.
 
     .. table:: Mappings of Redis commands--:class:`SortedSet` methods
 
@@ -35,6 +35,7 @@ class SortedSet(collections.MutableMapping, collections.Set):
        :redis:`ZCARD`             :func:`len()`
                                   (:meth:`SortedSet.__len__()`)
        :redis:`ZINCRBY`           :meth:`SortedSet.add()`,
+                                  :meth:`SortedSet.discard()`,
                                   :meth:`SortedSet.update()`
        :redis:`ZRANGE`            :func:`iter()`
                                   (:meth:`SortedSet.__iter__()`)
@@ -101,7 +102,7 @@ class SortedSet(collections.MutableMapping, collections.Set):
             element = self.value_type.encode(member)
         except TypeError:
             return False
-        return bool(self.session.client.zscore(self.key, element))
+        return self.session.client.zscore(self.key, element) is not None
 
     @query
     def __getitem__(self, member):
@@ -123,9 +124,9 @@ class SortedSet(collections.MutableMapping, collections.Set):
         """
         element = self.value_type.encode(member)
         score = self.session.client.zscore(self.key, element)
-        if score:
-            return score
-        raise KeyError(member)
+        if score is None:
+            raise KeyError(member)
+        return score
 
     @manipulative
     def __setitem__(self, member, score):
@@ -173,7 +174,7 @@ class SortedSet(collections.MutableMapping, collections.Set):
             exists = session.client.zrem(self.key, element)
         else:
             session.mark_query()
-            exists = session.client.zscore(self.key, element)
+            exists = session.client.zscore(self.key, element) is not None
             if exists:
                 session.mark_manipulative()
                 session.client.zrem(self.key, element)
@@ -273,14 +274,72 @@ class SortedSet(collections.MutableMapping, collections.Set):
         """Adds a new ``member`` or increases its ``score`` (default is 1).
 
         :param member: the member to add or increase its score
-        :param score: the amount to incrase the score.  default is 1
+        :param score: the amount to increase the score.  default is 1
         :type score: :class:`numbers.Real`
+
+        .. note::
+
+           This method is directly mapped to :redis:`ZINCRBY` command.
 
         """
         if not isinstance(score, numbers.Real):
             raise TypeError('score must be a numbers.Real, not ' + repr(score))
         element = self.value_type.encode(member)
         self.session.client.zincrby(self.key, value=element, amount=score)
+
+    def discard(self, member, score=1, remove=0):
+        """Opposite operation of :meth:`add()`.  It decreases
+        its ``score`` (default is 1).  When its score get the
+        ``remove`` number (default is 0) or less, it will be removed.
+
+        If you don't want to remove it but only decrease its
+        score, pass ``None`` into ``remove`` parameter.
+
+        If you want to remove ``member``, not only decrease its
+        score, use :meth:`__delitem__()` instead::
+
+            del sortedset[member]
+
+        :param member: the member to decreases its score
+        :param score: the amount to decrease the score.  default is 1
+        :type score: :class:`numbers.Real`
+        :param remove: the member becomes removed when its score
+                       get this number or less.  default is 0.
+                       if it's ``None`` it doesn't remove the member
+                       but only decreases its score
+        :type remove: :class:`numbers.Real`
+
+        .. note::
+
+           This method is directly mapped to :redis:`ZINCRBY` command
+           when ``remove`` is ``None``.
+
+           Otherwise, it internally uses :redis:`ZSCORE` plus
+           :redis:`ZINCRBY` or `:redis:`ZREM` (total two commands)
+           within a transaction.
+
+        """
+        if not isinstance(score, numbers.Real):
+            raise TypeError('score must be a numbers.Real, not ' + repr(score))
+        elif not (remove is None or isinstance(remove, numbers.Real)):
+            raise TypeError('remove must be a numbers.Real, not ' +
+                            repr(score))
+        if remove is None:
+            self.add(member, -score)
+            return
+        element = self.value_type.encode(member)
+        def block(trial, transaction):
+            pipe = self.session.client
+            self.session.mark_query()
+            current = pipe.zscore(self.key, element)
+            if current is None:
+                return
+            self.session.mark_manipulative()
+            if current - score > remove:
+                pipe.zincrby(self.key, value=element, amount=-score)
+            else:
+                pipe.zrem(self.key, element)
+        self.session.transaction(block, [self.key], ignore_double=True)
 
     @manipulative
     def clear(self):

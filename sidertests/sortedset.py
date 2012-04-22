@@ -54,11 +54,10 @@ def getitem(session):
         set_['d']
     with raises(TypeError):
         set_[123]
-    set_.update(a=2.1, c=-1)
+    set_.update(a=2.1, c=-2)
     assert set_['a'] == 3.1
     assert set_['b'] == 1
-    with raises(KeyError):
-        set_['c']
+    assert set_['c'] == -1
     setx = session.set(key('test_sortedsetx_getitem'), S([1, 2, 3]), IntSet)
     assert setx[1] == 1
     assert setx[2] == 1
@@ -67,11 +66,10 @@ def getitem(session):
         setx[4]
     with raises(TypeError):
         setx['a']
-    setx.update({1: 2.1, 3: -1})
+    setx.update({1: 2.1, 3: -2})
     assert setx[1] == 3.1
     assert setx[2] == 1
-    with raises(KeyError):
-        setx[3]
+    assert setx[3] == -1
 
 
 @tests.test
@@ -237,6 +235,36 @@ def add(session):
         setx.add('a')
     with raises(TypeError):
         setx.add(1, score='1.5')
+
+
+@tests.test
+def discard(session):
+    set_ = session.set(key('test_sortedset_discard'), S('abc'), SortedSet)
+    set_.discard('a')
+    assert dict(set_) == {'b': 1, 'c': 1}
+    set_.discard('d')
+    assert dict(set_) == {'b': 1, 'c': 1}
+    set_.discard('b', score=0.5)
+    assert dict(set_) == {'b': 0.5, 'c': 1}
+    set_.discard('b', score=0.5, remove=-1)
+    assert dict(set_) == {'b': 0, 'c': 1}
+    with raises(TypeError):
+        set_.discard(123)
+    with raises(TypeError):
+        set_.discard('a', score='1.5')
+    setx = session.set(key('test_sortedsetx_discard'), S([1, 2, 3]), IntSet)
+    setx.discard(1)
+    assert dict(setx) == {2: 1, 3: 1}
+    setx.discard(4)
+    assert dict(setx) == {2: 1, 3: 1}
+    setx.discard(2, score=0.5)
+    assert dict(setx) == {2: 0.5, 3: 1}
+    setx.discard(2, score=0.5, remove=-1)
+    assert dict(setx) == {2: 0, 3: 1}
+    with raises(TypeError):
+        setx.discard('a')
+    with raises(TypeError):
+        setx.discard(1, score='1.5')
 
 
 @tests.test
