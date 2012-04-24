@@ -268,6 +268,40 @@ def discard(session):
 
 
 @tests.test
+def discard_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_discard_t')
+    set_ = session.set(keyid, S('abc'), SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        len(set_)
+        set_.discard('a')
+        assert dict(set2) == {'a': 1, 'b': 1, 'c': 1}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'b': 1, 'c': 1}
+    with Transaction(session, [keyid]):
+        len(set_)
+        set_.discard('d')
+        assert dict(set2) == {'b': 1, 'c': 1}
+    assert dict(set_) == dict(set2) == {'b': 1, 'c': 1}
+    with Transaction(session, [keyid]):
+        len(set_)
+        set_.discard('b', score=0.5)
+        assert dict(set2) == {'b': 1, 'c': 1}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'b': 0.5, 'c': 1}
+    with Transaction(session, [keyid]):
+        len(set_)
+        set_.discard('b', score=0.5, remove=-1)
+        assert dict(set2) == {'b': 0.5, 'c': 1}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'b': 0, 'c': 1}
+
+
+@tests.test
 def clear(session):
     set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
     set_.clear()
