@@ -302,6 +302,194 @@ def discard_t(session):
 
 
 @tests.test
+def pop_set(session):
+    set_ = session.set(key('test_sortedset_pop_set'),
+                       {'h': 1, 'o': 2, 'n': 3, 'g': 4.5},
+                       SortedSet)
+    popped = set_.pop()
+    assert popped == 'h'
+    assert dict(set_) == {'o': 2, 'n': 3, 'g': 4.5}
+    popped = set_.pop(desc=True)
+    assert popped == 'g'
+    assert dict(set_) == {'o': 2, 'n': 3, 'g': 3.5}
+    popped = set_.pop(score=0.5)
+    assert popped == 'o'
+    assert dict(set_) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    popped = set_.pop(remove=0.5)
+    assert popped == 'o'
+    assert dict(set_) == {'n': 3, 'g': 3.5}
+    popped = set_.pop(remove=None)
+    assert popped == 'n'
+    assert dict(set_) == {'g': 3.5}
+    set_.clear()
+    with raises(KeyError):
+        set_.pop()
+    setx = session.set(key('test_sortedsetx_pop_set'),
+                       {3: 1, 1: 2, 4: 3, 5: 4.5},
+                       IntSet)
+    popped = setx.pop()
+    assert popped == 3
+    assert dict(setx) == {1: 2, 4: 3, 5: 4.5}
+    popped = setx.pop(desc=True)
+    assert popped == 5
+    assert dict(setx) == {1: 2, 4: 3, 5: 3.5}
+    popped = setx.pop(score=0.5)
+    assert popped == 1
+    assert dict(setx) == {1: 1.5, 4: 3, 5: 3.5}
+    popped = setx.pop(remove=0.5)
+    assert popped == 1
+    assert dict(setx) == {4: 3, 5: 3.5}
+    popped = setx.pop(remove=None)
+    assert popped == 4
+    assert dict(setx) == {5: 3.5}
+    setx.clear()
+    with raises(KeyError):
+        setx.pop()
+
+
+@tests.test
+def pop_set_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_pop_set_t')
+    set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}, SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop()
+        assert popped == 'h'
+        assert dict(set2) == {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'o': 2, 'n': 3, 'g': 4.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop(desc=True)
+        assert popped == 'g'
+        assert dict(set2) == {'o': 2, 'n': 3, 'g': 4.5}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'o': 2, 'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop(score=0.5)
+        assert popped == 'o'
+        assert dict(set2) == {'o': 2, 'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop(remove=0.5)
+        assert popped == 'o'
+        assert dict(set2) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop(remove=None)
+        assert popped == 'n'
+        assert dict(set2) == {'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'g': 3.5}
+    set_.clear()
+    with Transaction(session, [keyid]):
+        with raises(KeyError):
+            set_.pop()
+
+
+@tests.test
+def pop_dict(session):
+    set_ = session.set(key('test_sortedset_dict_set'),
+                       {'h': 1, 'o': 1, 'n': 3, 'g': 4},
+                       SortedSet)
+    popped = set_.pop('o')
+    assert popped == 1
+    assert dict(set_) == {'h': 1, 'n': 3, 'g': 4}
+    popped = set_.pop('n', score=0.5)
+    assert popped == 3
+    assert dict(set_) == {'h': 1, 'n': 2.5, 'g': 4}
+    popped = set_.pop('n', remove=1.5)
+    assert popped == 2.5
+    assert dict(set_) == {'h': 1, 'g': 4}
+    popped = set_.pop('g', remove=None)
+    assert popped == 4
+    assert dict(set_) == {'h': 1}
+    popped = set_.pop('n')
+    assert popped is None
+    assert dict(set_) == {'h': 1}
+    popped = set_.pop('n', default='default value')
+    assert popped == 'default value'
+    setx = session.set(key('test_sortedsetx_dict_set'),
+                       {3: 1, 1: 1, 4: 3, 5: 4},
+                       IntSet)
+    popped = setx.pop(1)
+    assert popped == 1
+    assert dict(setx) == {3: 1, 4: 3, 5: 4}
+    popped = setx.pop(4, score=0.5)
+    assert popped == 3
+    assert dict(setx) == {3: 1, 4: 2.5, 5: 4}
+    popped = setx.pop(4, remove=1.5)
+    assert popped == 2.5
+    assert dict(setx) == {3: 1, 5: 4}
+    popped = setx.pop(5, remove=None)
+    assert popped == 4
+    assert dict(setx) == {3: 1}
+    popped = setx.pop(4)
+    assert popped is None
+    assert dict(setx) == {3: 1}
+    popped = setx.pop(4, default='default value')
+    assert popped == 'default value'
+
+
+@tests.test
+def pop_dict_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_dict_set_t')
+    set_ = session.set(keyid, {'h': 1, 'o': 1, 'n': 3, 'g': 4}, SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('o')
+        assert popped == 1
+        assert dict(set2) == {'h': 1, 'o': 1, 'n': 3, 'g': 4}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'h': 1, 'n': 3, 'g': 4}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('n', score=0.5)
+        assert popped == 3
+        assert dict(set2) == {'h': 1, 'n': 3, 'g': 4}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'h': 1, 'n': 2.5, 'g': 4}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('n', remove=1.5)
+        assert popped == 2.5
+        assert dict(set2) == {'h': 1, 'n': 2.5, 'g': 4}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'h': 1, 'g': 4}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('g', remove=None)
+        assert popped == 4
+        assert dict(set2) == {'h': 1, 'g': 4}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'h': 1}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('n')
+        assert popped is None
+        assert dict(set2) == {'h': 1}
+    assert dict(set_) == dict(set2) == {'h': 1}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.pop('n', default='default value')
+        assert popped == 'default value'
+        assert dict(set2) == {'h': 1}
+    assert dict(set_) == dict(set2) == {'h': 1}
+
+
+@tests.test
 def clear(session):
     set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
     set_.clear()

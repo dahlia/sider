@@ -303,10 +303,11 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
         :param member: the member to decreases its score
         :param score: the amount to decrease the score.  default is 1
         :type score: :class:`numbers.Real`
-        :param remove: the member becomes removed when its score
-                       get this number or less.  default is 0.
-                       if it's ``None`` it doesn't remove the member
-                       but only decreases its score
+        :param remove: the threshold score to be removed.
+                       if ``None`` is passed, it doesn't remove
+                       the member but only decreases its score
+                       (it makes ``score`` argument meaningless).
+                       default is 0.
         :type remove: :class:`numbers.Real`
 
         .. note::
@@ -340,6 +341,111 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
             else:
                 pipe.zrem(self.key, element)
         self.session.transaction(block, [self.key], ignore_double=True)
+
+    def pop(self, *args, **kwargs):
+        """Populates a member of the set.
+
+        If ``key`` keyword argument or one or more positional
+        arguments have present, it behaves like :meth:`dict.pop()`
+        method:
+
+        :param key: the member to populate.  it will be removed if
+                    it exists
+        :param default: the default value returned instead of the
+                        member (``key``) when it doesn't exist.
+                        default is ``None``
+        :returns: the score of the member before the operation
+                  has been committed
+        :rtype: :class:`numbers.Real`
+
+        If no positional arguments or no ``key`` keyword argument,
+        it behaves like :meth:`set.pop()` method:
+
+        :param desc: keyword only.  by default, it populates
+                     the member of the lowest score, but if you
+                     pass ``True`` to this it will populates
+                     the highest instead.  default is ``False``
+        :type desc: :class:`bool`
+        :returns: the populated member.  it will be the lowest
+                  scored member or the highest scored member
+                  if ``desc`` is ``True``
+        :raises exceptions.KeyError: when the set is empty
+
+        If any case there are common keyword-only parameters:
+
+        :param score: keyword only.  the amount to decrease
+                      the score.  default is 1
+        :type score: :class:`numbers.Real`
+        :param remove: keyword only.
+                       the threshold score to be removed.
+                       if ``None`` is passed, it doesn't remove
+                       the member but only decreases its score
+                       (it makes ``score`` argument meaningless).
+                       default is 0.
+        :type remove: :class:`numbers.Real`
+
+        """
+        score = kwargs.pop('score', 1)
+        remove = kwargs.pop('remove', 0)
+        ar_len = len(args)
+        kw_len = len(kwargs)
+        kw_desc = 'desc' in kwargs
+        kw_key = 'key' in kwargs
+        kw_default = 'default' in kwargs
+        if not args and (not kwargs or kw_len == 1 and kw_desc):
+            desc = bool(kwargs.get('desc', False))
+            resultset = []
+            def block(trial, transaction):
+                pipe = self.session.client
+                zrange = pipe.zrevrange if desc else pipe.zrange
+                self.session.mark_query()
+                resultset[:] = zrange(self.key, 0, 0, withscores=True)
+                if resultset:
+                    self.session.mark_manipulative()
+                    if remove is None or resultset[0][1] - score <= remove:
+                        pipe.zrem(self.key, resultset[0][0])
+                    else:
+                        pipe.zincrby(self.key,
+                                     value=resultset[0][0],
+                                     amount=-score)
+                else:
+                    raise KeyError('pop from an empty set')
+            self.session.transaction(block, [self.key], ignore_double=True)
+            return self.value_type.decode(resultset[0][0])
+        elif (not args and kw_len == 2 and kw_key and kw_default or
+              ar_len == 1 and (not kwargs or kw_len == 1 and kw_default) or
+              ar_len == 2):
+            if ar_len == 2:
+                key, default = args
+            elif ar_len == 1:
+                key = args[0]
+                default = kwargs.get('default')
+            else:
+                key = kwargs['key']
+                default = kwargs.get('default')
+            element = self.value_type.encode(key)
+            current = [None]
+            def block(trial, transaction):
+                pipe = self.session.client
+                self.session.mark_query()
+                current[0] = pipe.zscore(self.key, element)
+                if current[0] is not None:
+                    self.session.mark_manipulative()
+                    if remove is None or current[0] - score <= remove:
+                        pipe.zrem(self.key, element)
+                    else:
+                        pipe.zincrby(self.key, value=element, amount=-score)
+            self.session.transaction(block, [self.key], ignore_double=True)
+            if current[0] is None:
+                return default
+            return current[0]
+        elif kw_desc and (args or kw_key):
+            raise TypeError('desc option cannot be applied with key '
+                            'parameter at a time')
+        elif not args and not kw_key and kw_default:
+            raise TypeError('default option must be used with key argument')
+        else:
+            raise TypeError('invalid argument(s)')
 
     @manipulative
     def clear(self):
