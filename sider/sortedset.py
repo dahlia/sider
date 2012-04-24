@@ -47,6 +47,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                                   :keyword:`in`
                                   (:meth:`SortedSet.__contains__()`)
        :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
+       N/A                        :meth:`SortedSet.pop()`
        ========================== ==================================
 
     """
@@ -358,6 +359,11 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                   has been committed
         :rtype: :class:`numbers.Real`
 
+        .. note::
+
+           It internally uses :redis:`ZSCORE`, :redis:`ZREM` or
+           :redis:`ZINCRBY` (total 2 commands) in a transaction.
+
         If no positional arguments or no ``key`` keyword argument,
         it behaves like :meth:`set.pop()` method:
 
@@ -370,6 +376,12 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                   scored member or the highest scored member
                   if ``desc`` is ``True``
         :raises exceptions.KeyError: when the set is empty
+
+        .. note::
+
+           It internally uses :redis:`ZRANGE` or :redis:`ZREVRANGE`,
+           :redis:`ZREM` or :redis:`ZINCRBY` (total 2 commands)
+           in a transaction.
 
         If any case there are common keyword-only parameters:
 
