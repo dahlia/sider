@@ -490,6 +490,98 @@ def pop_dict_t(session):
 
 
 @tests.test
+def popitem(session):
+    set_ = session.set(key('test_sortedset_popitem'),
+                       {'h': 1, 'o': 2, 'n': 3, 'g': 4.5},
+                       SortedSet)
+    popped = set_.popitem()
+    assert popped == ('h', 1)
+    assert dict(set_) == {'o': 2, 'n': 3, 'g': 4.5}
+    popped = set_.popitem(desc=True)
+    assert popped == ('g', 4.5)
+    assert dict(set_) == {'o': 2, 'n': 3, 'g': 3.5}
+    popped = set_.popitem(score=0.5)
+    assert popped == ('o', 2)
+    assert dict(set_) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    popped = set_.popitem(remove=0.5)
+    assert popped == ('o', 1.5)
+    assert dict(set_) == {'n': 3, 'g': 3.5}
+    popped = set_.popitem(remove=None)
+    assert popped == ('n', 3)
+    assert dict(set_) == {'g': 3.5}
+    set_.clear()
+    with raises(KeyError):
+        set_.popitem()
+    setx = session.set(key('test_sortedsetx_popitem'),
+                       {3: 1, 1: 2, 4: 3, 5: 4.5},
+                       IntSet)
+    popped = setx.popitem()
+    assert popped == (3, 1)
+    assert dict(setx) == {1: 2, 4: 3, 5: 4.5}
+    popped = setx.popitem(desc=True)
+    assert popped == (5, 4.5)
+    assert dict(setx) == {1: 2, 4: 3, 5: 3.5}
+    popped = setx.popitem(score=0.5)
+    assert popped == (1, 2)
+    assert dict(setx) == {1: 1.5, 4: 3, 5: 3.5}
+    popped = setx.popitem(remove=0.5)
+    assert popped == (1, 1.5)
+    assert dict(setx) == {4: 3, 5: 3.5}
+    popped = setx.popitem(remove=None)
+    assert popped == (4, 3)
+    assert dict(setx) == {5: 3.5}
+    setx.clear()
+    with raises(KeyError):
+        setx.popitem()
+
+
+@tests.test
+def popitem_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_popitem_t')
+    set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}, SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.popitem()
+        assert popped == ('h', 1)
+        assert dict(set2) == {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'o': 2, 'n': 3, 'g': 4.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.popitem(desc=True)
+        assert popped == ('g', 4.5)
+        assert dict(set2) == {'o': 2, 'n': 3, 'g': 4.5}
+        with raises(CommitError):
+            len(set_)
+    assert dict(set_) == dict(set2) == {'o': 2, 'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.popitem(score=0.5)
+        assert popped == ('o', 2)
+        assert dict(set2) == {'o': 2, 'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.popitem(remove=0.5)
+        assert popped == ('o', 1.5)
+        assert dict(set2) == {'o': 1.5, 'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'n': 3, 'g': 3.5}
+    with Transaction(session, [keyid]):
+        len(set_)
+        popped = set_.popitem(remove=None)
+        assert popped == ('n', 3)
+        assert dict(set2) == {'n': 3, 'g': 3.5}
+    assert dict(set_) == dict(set2) == {'g': 3.5}
+    set_.clear()
+    with Transaction(session, [keyid]):
+        with raises(KeyError):
+            set_.popitem()
+
+
+@tests.test
 def clear(session):
     set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
     set_.clear()

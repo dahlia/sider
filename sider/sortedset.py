@@ -48,6 +48,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                                   (:meth:`SortedSet.__contains__()`)
        :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
        N/A                        :meth:`SortedSet.pop()`
+       N/A                        :meth:`SortedSet.popitem()`
        ========================== ==================================
 
     """
@@ -343,6 +344,68 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                 pipe.zrem(self.key, element)
         self.session.transaction(block, [self.key], ignore_double=True)
 
+    def popitem(self, desc=False, score=1, remove=0):
+        """Populates the lowest scored member (or the highest
+        if ``desc`` is ``True``) and its score.
+
+        It returns a pair of the populated member and its score.
+        The score is a value before the operation has been
+        committed.
+
+        :param desc: by default, it populates the member of
+                     the lowest score, but if you pass ``True``
+                     to this parameter it will populates
+                     the highest instead.  default is ``False``
+        :type desc: :class:`bool`
+        :param score: the amount to decrease the score.
+                      default is 1
+        :type score: :class:`numbers.Real`
+        :param remove: the threshold score to be removed.
+                       if ``None`` is passed, it doesn't remove
+                       the member but only decreases its score
+                       (it makes ``score`` argument meaningless).
+                       default is 0.
+        :type remove: :class:`numbers.Real`
+        :returns: a pair of the populated member and its score.
+                  the first part of a pair will be the lowest
+                  scored member or the highest scored member
+                  if ``desc`` is ``True``.  the second part of
+                  a pair will be the score before the operation
+                  has been committed
+        :rtype: :class:`tuple`
+        :raises exceptions.KeyError: when the set is empty
+
+        .. note::
+
+           It internally uses :redis:`ZRANGE` or :redis:`ZREVRANGE`,
+           :redis:`ZREM` or :redis:`ZINCRBY` (total 2 commands)
+           in a transaction.
+
+        .. seealso::
+
+           Method :meth:`pop()`
+
+        """
+        resultset = []
+        def block(trial, transaction):
+            pipe = self.session.client
+            zrange = pipe.zrevrange if desc else pipe.zrange
+            self.session.mark_query()
+            resultset[:] = zrange(self.key, 0, 0, withscores=True)
+            if resultset:
+                self.session.mark_manipulative()
+                if remove is None or resultset[0][1] - score <= remove:
+                    pipe.zrem(self.key, resultset[0][0])
+                else:
+                    pipe.zincrby(self.key,
+                                 value=resultset[0][0],
+                                 amount=-score)
+            else:
+                raise KeyError('pop from an empty set')
+        self.session.transaction(block, [self.key], ignore_double=True)
+        value, score = resultset[0]
+        return self.value_type.decode(value), score
+
     def pop(self, *args, **kwargs):
         """Populates a member of the set.
 
@@ -365,7 +428,10 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
            :redis:`ZINCRBY` (total 2 commands) in a transaction.
 
         If no positional arguments or no ``key`` keyword argument,
-        it behaves like :meth:`set.pop()` method:
+        it behaves like :meth:`set.pop()` method.  Basically it
+        does the same thing with :meth:`popitem()` except it
+        returns just a popped value (while :meth:`popitem()`
+        returns a pair of popped value and its score).
 
         :param desc: keyword only.  by default, it populates
                      the member of the lowest score, but if you
@@ -382,6 +448,10 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
            It internally uses :redis:`ZRANGE` or :redis:`ZREVRANGE`,
            :redis:`ZREM` or :redis:`ZINCRBY` (total 2 commands)
            in a transaction.
+
+        .. seealso::
+
+           Method :meth:`popitem()`
 
         If any case there are common keyword-only parameters:
 
@@ -405,25 +475,8 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
         kw_key = 'key' in kwargs
         kw_default = 'default' in kwargs
         if not args and (not kwargs or kw_len == 1 and kw_desc):
-            desc = bool(kwargs.get('desc', False))
-            resultset = []
-            def block(trial, transaction):
-                pipe = self.session.client
-                zrange = pipe.zrevrange if desc else pipe.zrange
-                self.session.mark_query()
-                resultset[:] = zrange(self.key, 0, 0, withscores=True)
-                if resultset:
-                    self.session.mark_manipulative()
-                    if remove is None or resultset[0][1] - score <= remove:
-                        pipe.zrem(self.key, resultset[0][0])
-                    else:
-                        pipe.zincrby(self.key,
-                                     value=resultset[0][0],
-                                     amount=-score)
-                else:
-                    raise KeyError('pop from an empty set')
-            self.session.transaction(block, [self.key], ignore_double=True)
-            return self.value_type.decode(resultset[0][0])
+            pair = self.popitem(*args, score=score, remove=remove, **kwargs)
+            return pair[0]
         elif (not args and kw_len == 2 and kw_key and kw_default or
               ar_len == 1 and (not kwargs or kw_len == 1 and kw_default) or
               ar_len == 2):
