@@ -302,6 +302,77 @@ def discard_t(session):
 
 
 @tests.test
+def setdefault(session):
+    set_ = session.set(key('test_sortedset_setdefault'),
+                       {'h': 1, 'o': 2, 'n': 3, 'g': 4},
+                       SortedSet)
+    assert 1 == set_.setdefault('h')
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set_)
+    assert 1 == set_.setdefault('h', 123)
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set_)
+    assert 1 == set_.setdefault('m')
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4, 'm': 1} == dict(set_)
+    assert 123 == set_.setdefault('i', 123)
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4, 'm': 1, 'i': 123} == dict(set_)
+    with raises(TypeError):
+        set_.setdefault('e', None)
+    with raises(TypeError):
+        set_.setdefault('e', '123')
+    setx = session.set(key('test_sortedsetx_setdefault'),
+                       {100: 1, 200: 2, 300: 3, 400: 4},
+                       IntSet)
+    assert 1 == setx.setdefault(100)
+    assert {100: 1, 200: 2, 300: 3, 400: 4} == dict(setx)
+    assert 1 == setx.setdefault(100, 123)
+    assert {100: 1, 200: 2, 300: 3, 400: 4} == dict(setx)
+    assert 1 == setx.setdefault(500)
+    assert {100: 1, 200: 2, 300: 3, 400: 4, 500: 1} == dict(setx)
+    assert 123 == setx.setdefault(600, 123)
+    assert {100: 1, 200: 2, 300: 3, 400: 4, 500: 1, 600: 123} == dict(setx)
+    with raises(TypeError):
+        setx.setdefault(700, None)
+    with raises(TypeError):
+        setx.setdefault(700, '123')
+
+
+@tests.test
+def setdefault_t(session):
+    session2 = get_session()
+    keyid = key('test_sortedset_setdefault_t')
+    set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4}, SortedSet)
+    set2 = session2.get(keyid, SortedSet)
+    with Transaction(session, [keyid]):
+        len(set_)
+        val = set_.setdefault('h')
+        assert 1 == val
+        assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set2)
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set_) == dict(set2)
+    with Transaction(session, [keyid]):
+        len(set_)
+        val = set_.setdefault('h', 123)
+        assert 1 == val
+        assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set2)
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set_) == dict(set2)
+    with Transaction(session, [keyid]):
+        len(set_)
+        val = set_.setdefault('m')
+        assert 1 == val
+        assert {'h': 1, 'o': 2, 'n': 3, 'g': 4} == dict(set2)
+        with raises(CommitError):
+            len(set_)
+    assert {'h': 1, 'o': 2, 'n': 3, 'g': 4, 'm': 1} == dict(set_) == dict(set2)
+    with Transaction(session, [keyid]):
+        len(set_)
+        val = set_.setdefault('i', 123)
+        assert 123 == val
+        assert {'h': 1, 'o': 2, 'n': 3, 'g': 4, 'm': 1} == dict(set2)
+        with raises(CommitError):
+            len(set_)
+    assert ({'h': 1, 'o': 2, 'n': 3, 'g': 4, 'm': 1, 'i': 123}
+            == dict(set_) == dict(set2))
+
+
+@tests.test
 def pop_set(session):
     set_ = session.set(key('test_sortedset_pop_set'),
                        {'h': 1, 'o': 2, 'n': 3, 'g': 4.5},

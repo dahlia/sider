@@ -47,6 +47,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                                   :keyword:`in`
                                   (:meth:`SortedSet.__contains__()`)
        :redis:`ZUNIONSTORE`       :meth:`SortedSet.update()`
+       N/A                        :meth:`SortedSet.setdefault()`
        N/A                        :meth:`SortedSet.pop()`
        N/A                        :meth:`SortedSet.popitem()`
        ========================== ==================================
@@ -343,6 +344,45 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
             else:
                 pipe.zrem(self.key, element)
         self.session.transaction(block, [self.key], ignore_double=True)
+
+    def setdefault(self, key, default=1):
+        """Gets the score of the given ``key`` if it exists or
+        adds ``key`` with ``default`` score.
+
+        :param key: the member to get its score
+        :param default: the score to be set if the ``key`` doesn't
+                        exist.  default is 1
+        :type default: :class:`numbers.Real`
+        :returns: the score of the ``key`` after the operation
+                  has been committed
+        :rtype: :class:`numbers.Real`
+
+        .. note::
+
+           It internally uses one or two commands.
+           At first it sends :redis:`ZSCORE` command to check
+           whether the key exists and get its score if it exists.
+           If it doesn't exist yet, it sends one more command:
+           :redis:`ZADD`.  It is atomically committed
+           in a transaction.
+
+        """
+        if not isinstance(default, numbers.Real):
+            raise TypeError('default must be a numbera.Real value, not ' +
+                            repr(default))
+        element = self.value_type.encode(key)
+        score = [None]
+        def block(trial, transaction):
+            pipe = self.session.client
+            self.session.mark_query()
+            score[0] = pipe.zscore(self.key, element)
+            if score[0] is None:
+                self.session.mark_manipulative()
+                pipe.zadd(self.key, default, element)
+        self.session.transaction(block, [self.key], ignore_double=True)
+        if score[0] is None:
+            return default
+        return score[0]
 
     def popitem(self, desc=False, score=1, remove=0):
         """Populates the lowest scored member (or the highest
