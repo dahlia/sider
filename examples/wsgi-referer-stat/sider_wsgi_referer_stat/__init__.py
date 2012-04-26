@@ -28,7 +28,7 @@ are very reliable.  Check `Green Unicorn`_, uWSGI_, mod_wsgi_,
 and so forth.
 
 WSGI middleware is somewhat like decorator pattern for WSGI
-applications.  Ordinary they are implemented by using nested
+applications.  Usually they are implemented by using nested
 higher-order functions or classes with :meth:`~object.__call__()`
 special method.
 
