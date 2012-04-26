@@ -15,7 +15,7 @@ across a variety of web servers.  (If you are from Java think servlet.
 If you are from Ruby think Rack.)
 
 WSGI application is a callable object (function object).  It takes
-a two arguments: the first one is an ``environ`` dictionary which
+two arguments: the first one is an ``environ`` dictionary which
 contains request data e.g. ``PATH_INFO``, ``QUERY_STRING``,
 ``REQUEST_METHOD``.  The last one is a ``start_response`` function
 to respond.  WSGI application returns an iterable object that
