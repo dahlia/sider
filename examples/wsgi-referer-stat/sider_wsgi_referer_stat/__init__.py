@@ -204,7 +204,7 @@ Sider:
 
       $ easy_install redis
 
-Okay, here's an empty set: ``my_sorted_set``.  Add something to it.
+Okay, here's an empty set: ``my_sorted_set``.  Let's add something to it.
 
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set') {}>
@@ -264,7 +264,7 @@ You can :meth:`~sider.sortedset.SortedSet.update()` multiple values at a time:
 <sider.sortedset.SortedSet ('my_sorted_set')
  {'bulgogi', 'bibimbap': 2.0, 'kimchi': 2.0}>
 >>> my_sorted_set['bibimbap']  # ZSCORE
-3.0
+2.0
 >>> my_sorted_set.add('bibimbap')
 >>> my_sorted_set['bibimbap']  # ZSCORE
 3.0
