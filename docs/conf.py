@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, os.path
+import sys, os, os.path, glob
 
 # Whether it is built by ReadTheDocs.org
 readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
@@ -20,6 +20,7 @@ readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path[:0] = [os.path.abspath('.'), os.path.abspath('..')]
+sys.path[2:2] = glob.glob(os.path.abspath(os.path.join('..', 'examples', '*')))
 from siderdocs import lower_sprintf_str
 from sider.version import VERSION
 

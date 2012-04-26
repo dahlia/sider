@@ -2,8 +2,371 @@ r""":mod:`sider.ext.wsgi_referer_stat` --- Collecting referers using sorted sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This example will show you when and how to use sorted sets basically.
-We will build a small :pep:`WSGI <333>` middleware that simply collects
-all :mailheader:`Referer` of the given WSGI web application.
+We will build a small WSGI middleware that simply collects all
+:mailheader:`Referer` of the given WSGI web application.
+
+
+WSGI and middlewares
+--------------------
+
+WSGI is a standard interface between web servers and Python web
+applications or frameworks to promote web application portability
+across a variety of web servers.  (If you are from Java think servlet.
+If you are from Ruby think Rack.)
+
+WSGI application is a callable object (function object).  It takes
+a two arguments: the first one is an ``environ`` dictionary which
+contains request data e.g. ``PATH_INFO``, ``QUERY_STRING``,
+``REQUEST_METHOD``.  The last one is a ``start_response`` function
+to respond.  WSGI application returns an iterable object that
+contains content body of response.
+
+WSGI applications can be deployed into WSGI containers (server
+implementations).  There are a lot of production-ready WSGI
+containers.  Some of these are super fast, and some of others
+are very reliable.  Check `Green Unicorn`_, uWSGI_, mod_wsgi_,
+and so forth.
+
+WSGI middleware is somewhat like decorator pattern for WSGI
+applications.  Ordinary they are implemented by using nested
+higher-order functions or classes with :meth:`~object.__call__()`
+special method.
+
+.. seealso::
+
+   To learn more details about WSGI, read :pep:`333` and other related
+   resources.  This tutorial doesn't deal with WSGI.
+
+   :pep:`333` --- Python Web Server Gateway Interface v1.0
+      This document specifies a proposed standard interface between
+      web servers and Python web applications or frameworks, to promote
+      web application portability across a variety of web servers.
+
+   `Getting Started with WSGI`__ by Armin Ronacher
+      Armin Ronacher, the author of Flask_, Werkzeug_ and Jinja_,
+      wrote this WSGI tutorial.
+
+   `A Do-It-Yourself Framework`__ by Ian Bicking
+      Ian Bicking, the author of Paste_, WebOb_, lxml.html_ and
+      FormEncode_, explains about WSGI apps and middlewares.
+
+.. _Green Unicorn: http://gunicorn.org/
+.. _uWSGI: http://projects.unbit.it/uwsgi/
+.. _mod_wsgi: http://code.google.com/p/modwsgi/
+__ http://lucumr.pocoo.org/2007/5/21/getting-started-with-wsgi/
+.. _Flask: http://flask.pocoo.org/
+.. _Werkzeug: http://werkzeug.pocoo.org/
+.. _Jinja: http://jinja.pocoo.org/
+__ http://pythonpaste.org/do-it-yourself-framework.html
+.. _Paste: http://pythonpaste.org/
+.. _WebOb: http://www.webob.org/
+.. _lxml.html: http://lxml.de/lxmlhtml.html
+.. _FormEncode: http://www.formencode.org/
+
+
+Simple idea
+-----------
+
+The simple idea we'll implement here is to collect all :mailheader:`Referer`
+and store it into a persistent storage.  We will use Redis as its persistent
+store.  We want to simply increment the number of count if it duplicates.
+
+Stored data will be like:
+
+==================================  =====
+Referer                             Count
+==================================  =====
+http://dahlia.kr/                   1
+https://bitbucket.org/dahlia/sider  3
+https://twitter.com/hongminhee      6
+==================================  =====
+
+We could use a hash here, but sorted set seems more suitable.
+Sorted sets are a data structure provided by Redis that is basically
+a set but able to represent duplications as its scores (:redis:`ZINCRBY`).
+
+We can list a sorted set in asceding (:redis:`ZRANGE`) or
+descending order (:redis:`ZREVRANGE`) as well.
+
+.. seealso::
+
+    `Redis Data Types`__
+       The Redis documentation that explains about its data
+       types: strings, lists, sets, sorted sets and hashes.
+
+__ http://redis.io/topics/data-types
+
+
+Prototyping with using in-memory dictionary
+-------------------------------------------
+
+First of all, we can implement a proof-of-concept prototype without Redis.
+Although Python has no sorted sets, but here we could use :class:`dict`
+instead. ::
+
+    def referer_stat_middleware(app):
+        assert callable(app)
+        referer_set = {}
+        def enchanted_app(environ, start_response):
+            try:
+                referer = environ['HTTP_REFERER']
+            except KeyError:
+                pass
+            else:
+                try:
+                    referer_set[referer] += 1
+                except KeyError:
+                    referer_set[referer] = 1
+            return app(environ, start_response)
+        return enchanged_app
+
+Middlewares usually are implemented as a class instead of nested higher-order
+functions when it's not plain so much.  We can rewrite it by using a class
+with :meth:`~object.__call__()` special method::
+
+    class RefererStatMiddleware(object):
+        '''A simple WSGI middleware that collects :mailheader:`Referer`
+        headers.
+
+        '''
+
+        def __init__(self, application):
+            assert callable(application)
+            self.application = application
+            self.referer_set = {}
+
+        def __call__(self, environ, start_response):
+            try:
+                referer = environ['HTTP_REFERER']
+            except KeyError:
+                pass
+            else:
+                try:
+                    self.referer_set[referer] += 1
+                except KeyError:
+                    self.referer_set[referer] = 1
+            return self.application(environ, start_response)
+
+It has some problems yet.  What are that problems?
+
+1. WSGI applications can be deployed into multiple server nodes,
+   or forked to multiple processes as well.  That means:
+   :attr:`RefererStatMiddleware.referer_set` attribute can be
+   split and not shared.
+
+2. Increments of duplication counts aren't atomic.
+
+3. Data will be lost when server process is terminated.
+
+We can solve those problems by using Redis sorted sets instead of
+Python in-memorty :class:`dict`.
+
+
+Sider and persistent objects
+----------------------------
+
+It's a simple job, so we can deal with Redis commands by our hands.
+However it's a tutrial example of Sider.  :-)  We will use Sider's
+sorted set abstraction here instead.  It's more abstracted away and
+easier to use!
+
+Before touch our middleware code, the following session in Python
+interactive shell can make you understand basic of how to use
+Sider:
+
+>>> from redis.client import StrictRedis
+>>> from sider.session import Session
+>>> from sider.types import SortedSet
+>>> session = Session(StrictRedis())
+>>> my_sorted_set = session.get('my_sorted_set', SortedSet)
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set') {}>
+
+.. note::
+
+   Did you face :exc:`~exceptions.ImportError`?
+
+   >>> from redis.client import StrictClient
+   Traceback (most recent call last):
+     File "<console>", line 1, in <module>
+   ImportError: No module named redis
+
+   You probably didn't install Python redis_ client library.
+   You can install it through :program:`pip`:
+
+   .. sourcecode:: console
+
+      $ pip install redis
+
+   Or :program:`easy_install`:
+
+   .. sourcecode:: console
+
+      $ easy_install redis
+
+Okay, here's an empty set: ``my_sorted_set``.  Add something to it.
+
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set') {}>
+>>> my_sorted_set.add('kimchi')  # ZINCRBY
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set') {'kimchi'}>
+
+Unlike Python's in-memory :class:`set` or :class:`dict`,
+it's a persistent object.  In other words, ``my_sorted_set``
+still contains ``'kimchi'`` even if you quit this session of
+Python interactive shell.  Try yourself: type :data:`exit() <exit>`
+to quit the session and enter :program:`python` again.  And then...
+
+>>> my_sorted_set
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+NameError: global name 'my_sorted_set' is not defined
+
+I didn't lie!  You have to load Sider session again first.
+
+>>> from redis.client import StrictRedis
+>>> from sider.session import Session
+>>> from sider.types import SortedSet
+>>> client = StrictRedis()
+>>> session = Session(client)
+>>> my_sorted_set = session.get('my_sorted_set', SortedSet)
+
+Good, and then:
+
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set') {'kimchi'}>
+
+Yeah!
+
+Note that the following line:
+
+>>> client = StrictRedis()
+
+tries to connect to Redis server on localhost:6379 by default.
+There are ``host`` and ``port`` parameters to configure it.
+
+>>> client = StrictRedis(host='localhost', port=6379)
+
+.. _redis: https://github.com/andymccurdy/redis-py
+
+
+Sorted sets
+-----------
+
+You can :meth:`~sider.sortedset.SortedSet.update()` multiple values at a time:
+
+>>> my_sorted_set.update(['bibimbap', 'bulgogi'])  # ZINCRBY
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set') {'bibimbap', 'bulgogi', 'kimchi'}>
+>>> my_sorted_set.update(['kimchi', 'bibimbap'])  # ZINCRBY
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set')
+ {'bulgogi', 'bibimbap': 2.0, 'kimchi': 2.0}>
+>>> my_sorted_set['bibimbap']  # ZSCORE
+3.0
+>>> my_sorted_set.add('bibimbap')
+>>> my_sorted_set['bibimbap']  # ZSCORE
+3.0
+
+As you can see, doubly added members get double scores.  This property is
+what we will use in the middleware.
+
+You can list values and these scores the sorted set contains.
+Similar to :class:`dict` there's :meth:`~sider.sortedset.SortedSet.items()`
+method.
+
+>>> my_sorted_set.items()  # ZRANGE
+[('bulgogi', 1.0), ('bibimbap', 2.0), ('kimchi', 2.0)]
+>>> my_sorted_set.items(reverse=True)  # ZREVRANGE
+[('kimchi', 2.0), ('bibimbap', 2.0), ('bulgogi', 1.0)]
+
+There are other many features to :class:`~sider.sortedset.SortedSet` type,
+but it's all we need to know to implement the middleware.  So we stop
+introduction of the type to step forward.
+
+
+Replace :class:`dict` with :class:`~sider.sortedset.SortedSet`
+--------------------------------------------------------------
+
+To replace :class:`dict` with :class:`~sider.sortedset.SortedSet`,
+look :meth:`RefererStatMiddleware.__init__()` method first::
+
+    def __init__(self, application):
+        self.application = application
+        self.referer_set = {}
+
+.. note::
+
+   The following codes implictly assumes that it imports::
+
+       from redis.client import StrictClient
+       from sider.session import Session
+       from sider.types import SortedSet
+
+The above code can be easily changed to:
+
+::
+
+    def __init__(self, application):
+        assert callable(application)
+        self.application = application
+        client = StrictRedis()
+        session = Session(client)
+        self.referer_set = session.get('wsgi_referer_set', SortedSet)
+
+It should be more configurable by users.  Redis key is currently hard-coded
+as ``wsgi_referer_set``.  It can be parameterized, right? ::
+
+    def __init__(self, set_key, application):
+        assert callable(application)
+        self.application = application
+        client = StrictRedis()
+        session = Session(client)
+        self.referer_set = session.get(str(set_key), SortedSet)
+
+It still lacks configurability.  Users can't set address of Redis server
+to connect.  Parameterize ``session`` as well::
+
+    def __init__(self, session, set_key, application):
+        assert isinstance(session, Session)
+        assert callable(application)
+        self.application = application
+        self.referer_set = session.get(str(set_key), SortedSet)
+
+Okay, it's enough flexible to environments.  Our first and third problems
+have just solved.  Its data become shared and don't be split anymore.
+No data loss even if process has terminated.
+
+Next, we have to make increment atomic.  See a part of
+:meth:`RefererStatMiddleware.__call__()` method::
+
+    try:
+        self.referer_set[referer] += 1
+    except KeyError:
+        self.referer_set[referer] = 1
+
+Redis sorted set offers a simple atomic way to increase its score:
+:redis:`ZINCRBY`.  Sider maps :redis:`ZINCRBY` command to
+:meth:`SortedSet.add() <sider.sortedset.SortedSet.add>` method.
+So, those lines can be replaced by the following line::
+
+    self.referer_set.add(referer)
+
+and it will be committed atomically.
+
+
+Source code
+-----------
+
+The complete source code of this example can be found in
+:file:`examples/wsgi-referer-stat/` directory of the repository.
+
+It's public domain, feel free!
+
+
+Final API
+---------
 
 """
 from sider.session import Session
@@ -34,6 +397,10 @@ class RefererStatMiddleware(object):
 
     """
 
+    #: (:class:`sider.sortedset.SortedSet`) The set of collected
+    #: :mailheader:`Referer` strings.
+    referer_set = None
+
     def __init__(self, session, set_key, application, stat_path='/__stat__'):
         if not isinstance(session, Session):
             raise TypeError('session must be an instance of sider.session.'
@@ -50,6 +417,7 @@ class RefererStatMiddleware(object):
         self.template = environment.get_template('stat.html')
 
     def stat_application(self, environ, start_response):
+        """WSGI application that lists its collected referers."""
         content_type = 'text/html; charset=utf-8'
         start_response('200 OK', [('Content-Type', content_type)])
         referers = self.referer_set.items(reverse=True)
