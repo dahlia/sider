@@ -37,6 +37,9 @@ session = DeferredModule('sider.session')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.types`.
 types = DeferredModule('sider.types')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.transaction`.
+transaction = DeferredModule('sider.transaction')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.hash`.
 hash = DeferredModule('sider.hash')
 
@@ -45,6 +48,9 @@ list = DeferredModule('sider.list')
 
 #: (:class:`DeferredModule`) Alias of :mod:`sider.set`.
 set = DeferredModule('sider.set')
+
+#: (:class:`DeferredModule`) Alias of :mod:`sider.sortedset`.
+sortedset = DeferredModule('sider.sortedset')
 
 #: (:class:`DeferredModule`) Alias of :mod:`sider.datetime`.
 datetime = DeferredModule('sider.datetime')

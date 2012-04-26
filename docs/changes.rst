@@ -1,6 +1,23 @@
 Sider Changelog
 ===============
 
+Branch :branch:`sortedset`
+--------------------------
+
+- Added :mod:`sider.sortedset` module.
+- Added :class:`sider.types.SortedSet` type.
+
+
+Branch :branch:`transaction`
+----------------------------
+
+Experiements about transactions.
+
+- Added :mod:`sider.transaction` module.
+- Added :mod:`sider.threadlocal` module.
+- Added :attr:`sider.session.Session.verbose_transaction_error` option.
+
+
 Version 0.1.3
 -------------
 

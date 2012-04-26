@@ -10,7 +10,10 @@ __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 from __future__ import absolute_import
 import warnings
 from redis.client import StrictRedis, Redis
+from .threadlocal import LocalDict
 from .types import Value, ByteString
+from .transaction import Transaction
+from .exceptions import CommitError
 
 
 class Session(object):
@@ -23,6 +26,14 @@ class Session(object):
 
     """
 
+    #: (:class:`bool`) If it is set to ``True``, error messages raised by
+    #: transactions will contain tracebacks where they started query/commit
+    #: phase.
+    #:
+    #: It is mostly for debug purpose, and you can set this to ``True``
+    #: if it's needed.
+    verbose_transaction_error = None
+
     def __init__(self, client):
         if not isinstance(client, StrictRedis):
             raise TypeError('client must be a redis.client.StrictRedis object'
@@ -32,6 +43,9 @@ class Session(object):
                           'broken in the future; use redis.client.StrictRedis '
                           'instead', DeprecationWarning)
         self.client = client
+        self.basic_client = client
+        self.context_locals = LocalDict(transaction=None)
+        self.verbose_transaction_error = False
 
     @property
     def server_version(self):
@@ -87,4 +101,83 @@ class Session(object):
         value_type = Value.ensure_value_type(value_type,
                                              parameter='value_type')
         return value_type.save_value(self, key, value)
+
+    @property
+    def current_transaction(self):
+        """(:class:`~sider.transaction.Transaction`) The current transaction.
+        It could be ``None`` when it's not on any transaction.
+
+        """
+        return self.context_locals['transaction']
+
+    @property
+    def transaction(self):
+        """(:class:`sider.transaction.Transaction`) The transaction object
+        for the session.
+
+        :class:`~sider.transaction.Transaction` objects are callable and so
+        you can use this :attr:`transaction` property as like a method::
+
+            def block(trial, transaction):
+                list_[0] = list[0].upper()
+            session.transaction(block)
+
+        Or you can use it in a :keyword:`for` loop::
+
+            for trial in session.transaction:
+                list_[0] = list[0].upper()
+
+        .. seealso::
+
+           Method :meth:`sider.transaction.Transaction.__call__()`
+              Executes a given block in the transaction.
+
+           Method :meth:`sider.transaction.Transaction.__iter__()`
+              More explicit way to execute a routine in
+              the transaction than :meth:`Transaction.__call__()
+              <sider.transaction.Transaction.__call__>`
+
+        """
+        return Transaction(self)
+
+    def mark_manipulative(self, keys=frozenset()):
+        """Marks it is manipulative.
+
+        :param keys: optional set of keys to watch
+        :type keys: :class:`collections.Iterable`
+
+        .. note::
+
+           This method is for internal use.
+
+        """
+        transaction = self.current_transaction
+        if transaction is None:
+            return
+        transaction.watch(keys)
+        if not transaction.commit_phase:
+            transaction.begin_commit()
+
+    def mark_query(self, keys=frozenset()):
+        """Marks it is querying.
+
+        :param keys: optional set of keys to watch
+        :type keys: :class:`collections.Iterable`
+
+        :raises sider.exceptions.CommitError:
+           when it is tried during commit phase
+
+        .. note::
+
+           This method is for internal use.
+
+        """
+        transaction = self.current_transaction
+        if transaction is None:
+            return
+        if transaction.commit_phase:
+            raise CommitError('query operation was tried during commit phase' +
+                              transaction.format_commit_stack())
+        else:
+            transaction.watch(keys)
 
