@@ -154,21 +154,22 @@ def keys(session):
     set_ = session.set(key('test_sortedset_keys'),
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
-    assert set_.keys() == S('abc')
+    assert set_.keys() == ['b', 'c', 'a']
+    assert set_.keys(reverse=True) == ['a', 'c', 'b']
     setx = session.set(key('test_sortedsetx_keys'), {1: 3, 2: 1, 3: 2}, IntSet)
-    assert setx.keys() == S([1, 2, 3])
+    assert setx.keys(reverse=True) == [1, 3, 2]
 
 
 @tests.test
 def items(session):
-    set_ = session.set(key('test_sortedset_items'), S('abc'), SortedSet)
-    assert set_.items() == S([('a', 1), ('b', 1), ('c', 1)])
-    set_.update(b=1, c=2)
-    assert set_.items() == S([('a', 1), ('b', 2), ('c', 3)])
-    setx = session.set(key('test_sortedsetx_items'), S([1, 2, 3]), IntSet)
-    assert setx.items() == S([(1, 1), (2, 1), (3, 1)])
-    setx.update({2: 1, 3: 2})
-    assert setx.items() == S([(1, 1), (2, 2), (3, 3)])
+    set_ = session.set(key('test_sortedset_items'),
+                       {'a': 1, 'b': 2, 'c': 3},
+                       SortedSet)
+    assert set_.items() == [('a', 1), ('b', 2), ('c', 3)]
+    assert set_.items(reverse=True) == [('c', 3), ('b', 2), ('a', 1)]
+    setx = session.set(key('test_sortedsetx_items'), {1: 1, 2: 2, 3: 3}, IntSet)
+    assert setx.items() == [(1, 1), (2, 2), (3, 3)]
+    assert setx.items(reverse=True) == [(3, 3), (2, 2), (1, 1)]
 
 
 @tests.test
@@ -177,10 +178,12 @@ def values(session):
                        {'a': 3, 'b': 1, 'c': 2, 'd': 1},
                        SortedSet)
     assert set_.values() == [1, 1, 2, 3]
+    assert set_.values(reverse=True) == [3, 2, 1, 1]
     setx = session.set(key('test_sortedsetx_values'),
                        {1: 3, 2: 1, 3: 2, 4: 1},
                        IntSet)
     assert setx.values() == [1, 1, 2, 3]
+    assert setx.values(reverse=True) == [3, 2, 1, 1]
 
 
 @tests.test

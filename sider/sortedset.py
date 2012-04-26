@@ -224,13 +224,16 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     def __ne__(self, operand):
         return not (self == operand)
 
-    def keys(self):
+    def keys(self, reverse=False):
         """Gets its all elements.  Equivalent to :meth:`__iter__()`
-        except it returns a :class:`~collections.Set` instead of
-        iterable.  There isn't any meaningful order of keys.
+        except it returns an ordered :class:`~collections.Sequence`
+        instead of iterable.
 
-        :returns: the set of its all keys
-        :rtype: :class:`collections.KeysView`
+        :param reverse: order result descendingly if it's ``True``.
+                        default is ``False`` which means ascending order
+        :type reverse: :class:`bool`
+        :returns: the ordered list of its all keys
+        :rtype: :class:`collections.Sequence`
 
         .. note::
 
@@ -238,14 +241,21 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
            command.
 
         """
-        return frozenset(self)
+        client = self.session.client
+        zrange = client.zrevrange if reverse else client.zrange
+        decode = self.value_type.decode
+        return map(decode, zrange(self.key, 0, -1))
 
     @query
-    def items(self):
-        """Returns a set of pairs of elements and these scores.
+    def items(self, reverse=False):
+        """Returns an ordered of pairs of elements and these scores.
 
-        :returns: a set of pairs.  every pair looks like (element, score)
-        :rtype: :class:`collections.ItemsView`
+        :param reverse: order result descendingly if it's ``True``.
+                        default is ``False`` which means ascending order
+        :type reverse: :class:`bool`
+        :returns: an ordered list of pairs.
+                  every pair looks like (element, score)
+        :rtype: :class:`collections.Sequence`
 
         .. note::
 
@@ -253,23 +263,31 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
            command and ``WITHSCORES`` option.
 
         """
-        pairs = self.session.client.zrange(self.key, 0, -1, withscores=True)
+        client = self.session.client
+        zrange = client.zrevrange if reverse else client.zrange
+        pairs = zrange(self.key, 0, -1, withscores=True)
         decode = self.value_type.decode
-        return frozenset((decode(value), score) for value, score in pairs)
+        return [(decode(value), score) for value, score in pairs]
 
     @query
-    def values(self):
-        """Returns a list of scores in ascending order.
+    def values(self, reverse=False):
+        """Returns an ordered list of scores.
 
-        :returns: a list of scores in ascending order
-        :rtype: :class:`collections.ValuesView`
+        :param reverse: order result descendingly if it's ``True``.
+                        default is ``False`` which means ascending order
+        :type reverse: :class:`bool`
+        :returns: an ordered list of scores
+        :rtype: :class:`collections.Sequence`
 
         .. note::
 
-           This method internally uses :redis:`ZRANGE` command.
+           This method internally uses :redis:`ZRANGE` command
+           and ``WITHSCORES`` option.
 
         """
-        pairs = self.session.client.zrange(self.key, 0, -1, withscores=True)
+        client = self.session.client
+        zrange = client.zrevrange if reverse else client.zrange
+        pairs = zrange(self.key, 0, -1, withscores=True)
         return [score for _, score in pairs]
 
     @manipulative
