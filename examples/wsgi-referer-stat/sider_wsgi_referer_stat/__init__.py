@@ -159,7 +159,7 @@ Sider:
 
    Did you face :exc:`~exceptions.ImportError`?
 
-   >>> from redis.client import StrictClient
+   >>> from redis.client import StrictRedis
    Traceback (most recent call last):
      File "<console>", line 1, in <module>
    ImportError: No module named redis
@@ -282,7 +282,7 @@ look :meth:`RefererStatMiddleware.__init__()` method first::
 
    The following codes implictly assumes that it imports::
 
-       from redis.client import StrictClient
+       from redis.client import StrictRedis
        from sider.session import Session
        from sider.types import SortedSet
 
