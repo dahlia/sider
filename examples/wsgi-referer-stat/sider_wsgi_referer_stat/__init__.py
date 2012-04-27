@@ -195,7 +195,7 @@ Traceback (most recent call last):
   File "<console>", line 1, in <module>
 NameError: global name 'my_sorted_set' is not defined
 
-I didn't lie!  You have to load Sider session again first.
+I didn't lie!  You need to load the Sider session first.
 
 >>> from redis.client import StrictRedis
 >>> from sider.session import Session
