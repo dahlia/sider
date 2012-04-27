@@ -1,7 +1,7 @@
 r""":mod:`sider.ext.wsgi_referer_stat` --- Collecting referers using sorted sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This example will show you when and how to use sorted sets basically.
+This tutorial will show you basic example of how to use sorted sets.
 We will build a small WSGI middleware that simply collects all
 :mailheader:`Referer` of the given WSGI web application.
 
@@ -13,13 +13,6 @@ WSGI is a standard interface between web servers and Python web
 applications or frameworks to promote web application portability
 across a variety of web servers.  (If you are from Java think servlet.
 If you are from Ruby think Rack.)
-
-WSGI application is a callable object (function object).  It takes
-two arguments: the first one is an ``environ`` dictionary which
-contains request data e.g. ``PATH_INFO``, ``QUERY_STRING``,
-``REQUEST_METHOD``.  The last one is a ``start_response`` function
-to respond.  WSGI application returns an iterable object that
-contains content body of response.
 
 WSGI applications can be deployed into WSGI containers (server
 implementations).  There are a lot of production-ready WSGI
@@ -103,26 +96,6 @@ Prototyping with using in-memory dictionary
 First of all, we can implement a proof-of-concept prototype without Redis.
 Although Python has no sorted sets, but here we could use :class:`dict`
 instead. ::
-
-    def referer_stat_middleware(app):
-        assert callable(app)
-        referer_set = {}
-        def enchanted_app(environ, start_response):
-            try:
-                referer = environ['HTTP_REFERER']
-            except KeyError:
-                pass
-            else:
-                try:
-                    referer_set[referer] += 1
-                except KeyError:
-                    referer_set[referer] = 1
-            return app(environ, start_response)
-        return enchanged_app
-
-Middlewares usually are implemented as a class instead of nested higher-order
-functions when it's not plain so much.  We can rewrite it by using a class
-with :meth:`~object.__call__()` special method::
 
     class RefererStatMiddleware(object):
         '''A simple WSGI middleware that collects :mailheader:`Referer`
@@ -208,9 +181,9 @@ Okay, here's an empty set: ``my_sorted_set``.  Let's add something to it.
 
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set') {}>
->>> my_sorted_set.add('kimchi')  # ZINCRBY
+>>> my_sorted_set.add('http://dahlia.kr/')  # ZINCRBY
 >>> my_sorted_set
-<sider.sortedset.SortedSet ('my_sorted_set') {'kimchi'}>
+<sider.sortedset.SortedSet ('my_sorted_set') {'http://dahlia.kr/'}>
 
 Unlike Python's in-memory :class:`set` or :class:`dict`,
 it's a persistent object.  In other words, ``my_sorted_set``
@@ -235,7 +208,7 @@ I didn't lie!  You have to load Sider session again first.
 Good, and then:
 
 >>> my_sorted_set
-<sider.sortedset.SortedSet ('my_sorted_set') {'kimchi'}>
+<sider.sortedset.SortedSet ('my_sorted_set') {'http://dahlia.kr/'}>
 
 Yeah!
 
@@ -256,17 +229,22 @@ Sorted sets
 
 You can :meth:`~sider.sortedset.SortedSet.update()` multiple values at a time:
 
->>> my_sorted_set.update(['bibimbap', 'bulgogi'])  # ZINCRBY
->>> my_sorted_set
-<sider.sortedset.SortedSet ('my_sorted_set') {'bibimbap', 'bulgogi', 'kimchi'}>
->>> my_sorted_set.update(['kimchi', 'bibimbap'])  # ZINCRBY
+>>> my_sorted_set.update(['https://bitbucket.org/dahlia/sider',
+...                       'https://twitter.com/hongminhee'])  # ZINCRBY
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set')
- {'bulgogi', 'bibimbap': 2.0, 'kimchi': 2.0}>
->>> my_sorted_set['bibimbap']  # ZSCORE
+ {'https://bitbucket.org/dahlia/sider', 'https://twitter.com/hongminhee',
+  'http://dahlia.kr/'}>
+>>> my_sorted_set.update(['http://dahlia.kr/',
+...                       'https://twitter.com/hongminhee'])  # ZINCRBY
+>>> my_sorted_set
+<sider.sortedset.SortedSet ('my_sorted_set')
+ {'https://bitbucket.org/dahlia/sider', 'https://twitter.com/hongminhee': 2.0,
+  'http://dahlia.kr/': 2.0}>
+>>> my_sorted_set['http://dahlia.kr/']  # ZSCORE
 2.0
->>> my_sorted_set.add('bibimbap')
->>> my_sorted_set['bibimbap']  # ZSCORE
+>>> my_sorted_set.add('http://dahlia.kr/')
+>>> my_sorted_set['http://dahlia.kr/']  # ZSCORE
 3.0
 
 As you can see, doubly added members get double scores.  This property is
@@ -277,9 +255,13 @@ Similar to :class:`dict` there's :meth:`~sider.sortedset.SortedSet.items()`
 method.
 
 >>> my_sorted_set.items()  # ZRANGE
-[('bulgogi', 1.0), ('bibimbap', 2.0), ('kimchi', 2.0)]
+[('https://bitbucket.org/dahlia/sider', 1.0),
+ ('https://twitter.com/hongminhee', 2.0),
+ ('http://dahlia.kr/', 2.0)]
 >>> my_sorted_set.items(reverse=True)  # ZREVRANGE
-[('kimchi', 2.0), ('bibimbap', 2.0), ('bulgogi', 1.0)]
+[('http://dahlia.kr/', 2.0),
+ ('https://twitter.com/hongminhee', 2.0),
+ ('https://bitbucket.org/dahlia/sider', 1.0)]
 
 There are other many features to :class:`~sider.sortedset.SortedSet` type,
 but it's all we need to know to implement the middleware.  So we stop
