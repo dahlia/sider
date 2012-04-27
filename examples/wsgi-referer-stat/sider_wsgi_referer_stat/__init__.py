@@ -1,9 +1,9 @@
 r""":mod:`sider.ext.wsgi_referer_stat` --- Collecting referers using sorted sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This tutorial will show you basic example of how to use sorted sets.
+This tutorial will show you a basic example using sorted sets.
 We will build a small WSGI middleware that simply collects all
-:mailheader:`Referer` of the given WSGI web application.
+:mailheader:`Referer`\s of the given WSGI web application.
 
 
 WSGI and middlewares
@@ -11,8 +11,8 @@ WSGI and middlewares
 
 WSGI is a standard interface between web servers and Python web
 applications or frameworks to promote web application portability
-across a variety of web servers.  (If you are from Java think servlet.
-If you are from Ruby think Rack.)
+across a variety of web servers.  (If you are from Java, think servlet.
+If you are from Ruby, think Rack.)
 
 WSGI applications can be deployed into WSGI containers (server
 implementations).  There are a lot of production-ready WSGI
@@ -21,7 +21,7 @@ are very reliable.  Check `Green Unicorn`_, uWSGI_, mod_wsgi_,
 and so forth.
 
 WSGI middleware is somewhat like decorator pattern for WSGI
-applications.  Usually they are implemented by using nested
+applications.  Usually they are implemented using nested
 higher-order functions or classes with :meth:`~object.__call__()`
 special method.
 
@@ -62,7 +62,7 @@ Simple idea
 
 The simple idea we'll implement here is to collect all :mailheader:`Referer`
 and store it into a persistent storage.  We will use Redis as its persistent
-store.  We want to simply increment the number of count if it duplicates.
+store.  We want to increment the count for each :mailheader:`Referer`.
 
 Stored data will be like:
 
@@ -94,8 +94,7 @@ Prototyping with using in-memory dictionary
 -------------------------------------------
 
 First of all, we can implement a proof-of-concept prototype without Redis.
-Although Python has no sorted sets, but here we could use :class:`dict`
-instead. ::
+Python has no sorted sets, so we will use :class:`dict` instead. ::
 
     class RefererStatMiddleware(object):
         '''A simple WSGI middleware that collects :mailheader:`Referer`
