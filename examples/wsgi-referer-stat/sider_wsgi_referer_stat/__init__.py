@@ -204,7 +204,7 @@ I didn't lie!  You need to load the Sider session first.
 >>> session = Session(client)
 >>> my_sorted_set = session.get('my_sorted_set', SortedSet)
 
-Good, and then:
+Then:
 
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set') {'http://dahlia.kr/'}>
