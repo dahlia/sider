@@ -231,7 +231,8 @@ if readthedocs:
         'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
         'eventlet': ('http://eventlet.net/doc/', None),
         'gevent': ('http://gevent.org/', None),
-        'werkzeug': ('http://werkzeug.readthedocs.org/en/latest/', None)
+        'werkzeug': ('http://werkzeug.readthedocs.org/en/latest/', None),
+        'jinja2': ('http://jinja2.readthedocs.org/en/latest/', None)
     }
 else:
     intersphinx_mapping = {
@@ -239,7 +240,8 @@ else:
         'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
         'eventlet': ('http://eventlet.net/doc/', None),
         'gevent': ('http://gevent.org/', None),
-        'werkzeug': ('http://werkzeug.pocoo.org/docs/', None)
+        'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+        'jinja2': ('http://jinja.pocoo.org/docs/', None)
     }
 
 

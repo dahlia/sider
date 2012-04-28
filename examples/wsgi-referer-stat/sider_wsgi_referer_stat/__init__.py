@@ -337,6 +337,125 @@ So, those lines can be replaced by the following line::
 and it will be committed atomically.
 
 
+Referer list page
+-----------------
+
+Lastly, let's add an additional page for listing collected referers.
+This page simply shows you list of referers and counts.  Referers are
+ordered by these counts (descendingly).
+
+To deal with HTML this example will use Jinja_ template engine.
+Its syntax is similar to Django template language, but more expressive.
+You can install it through :program:`pip` or :program:`easy_install`:
+
+.. sourcecode:: console
+
+   $ pip install Jinja2  # or:
+   $ easy_install Jinja2
+
+Here is a HTML template code using Jinja:
+
+.. sourcecode:: html+jinja
+
+   <h1>Referer List</h1>
+   <table>
+     <thead>
+       <tr>
+         <th>URL</th>
+         <th>Count</th>
+       </tr>
+     </thead>
+     <tbody>
+       {% for url, count in referers %}
+         <tr>
+           <th><a href="{{ url|escape }}" rel="noreferrer">
+                 {{- url|escape }}</a></th>
+           <td>{{ count|int }}</td>
+         </tr>
+       {% endfor %}
+     </tbody>
+   </table>
+
+Save this template source to the file named :file:`templates/stat.html`.
+Remember we used an undefined variable in the above template code:
+``referers``.  So we have to pass this variable from the WSGI middleware code.
+
+To load this template file, Jinja environment object has to be set in the web
+application code.  Append the following lines to
+:meth:`RefererStatMiddleware.__init__()` method::
+
+    loader = PackageLoader(__name__)
+    environment = Environment(loader=loader)
+
+And then we now can load the template using :meth:`Environment.get_template()
+<jinja2.Environment.get_template>` method.  Append the following line to
+:meth:`RefererStatMiddleware.__init__()` method::
+
+    self.template = environment.get_template('stat.html')
+
+When :class:`RefererStatMiddleware` is initialized its template will be loaded
+together.
+
+Next, let's add a new :meth:`~RefererStatMiddleware.stat_application()` method,
+going to serve the list page, into the middleware class.  This method has to
+be a WSGI application as well::
+
+    def stat_application(self, environ, start_response):
+        content_type = 'text/html; charset=utf-8'
+        start_response('200 OK', [('Content-Type', content_type)])
+        referers = self.referer_set.items(reverse=True)
+        return self.template.render(referers=referers).encode('utf-8'),
+
+:meth:`Template.render() <jinja2.Template.render>` method takes variables to
+pass as keywords and returns a rendered result as :class:`unicode` string.
+We have passed the ``referers`` variable from this line.  Its value is made
+by :class:`SortedSet.items() <sider.sortedset.SortedSet.items>` method with
+``reverse=True`` option which means descending order.
+
+To connect this modular WSGI application into the main application, we should
+add the following conditional routine into the first of
+:meth:`RefererStatMiddleware.__call__()` method::
+
+    path = environ['PATH_INFO']
+    if path == '/__stat__' or path.startswith('/__stat__/'):
+        return self.stat_application(environ, start_response)
+
+It will delegate its responsibility of responding to
+:meth:`~RefererStatMiddleware.stat_application()` application if a request is
+to the path ``/__stat__`` or its subpath.
+
+Now go to ``/__stat__`` page and then your browser will show a table like
+this:
+
+    .. raw:: html
+
+       <h1>Referer List</h1>
+       <table>
+         <thead>
+           <tr>
+             <th>URL</th>
+             <th>Count</th>
+           </tr>
+         </thead>
+         <tbody>
+           <tr>
+             <th><a href="https://twitter.com/hongminhee"
+                    rel="noreferrer">https://twitter.com/hongminhee</a></th>
+             <td>6</td>
+           </tr>
+           <tr>
+             <th><a href="https://bitbucket.org/dahlia/sider"
+                    rel="noreferrer">https://bitbucket.org/dahlia/sider</a></th>
+             <td>3</td>
+           </tr>
+           <tr>
+             <th><a href="http://dahlia.kr/"
+                    rel="noreferrer">http://dahlia.kr/</a></th>
+             <td>1</td>
+           </tr>
+         </tbody>
+       </table>
+
 Source code
 -----------
 
