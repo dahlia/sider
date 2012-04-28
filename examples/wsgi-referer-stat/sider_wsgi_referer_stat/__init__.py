@@ -462,6 +462,8 @@ Source code
 The complete source code of this example can be found in
 :file:`examples/wsgi-referer-stat/` directory of the repository.
 
+https://bitbucket.org/dahlia/sider/src/tip/examples/wsgi-referer-stat
+
 It's public domain, feel free!
 
 
