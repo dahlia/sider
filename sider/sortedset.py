@@ -39,7 +39,9 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                                   :meth:`SortedSet.update()`
        :redis:`ZRANGE`            :func:`iter()`
                                   (:meth:`SortedSet.__iter__()`)
-       :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`
+       :redis:`ZRANGE` WITHSCORES :meth:`SortedSet.items()`,
+                                  :meth:`SortedSet.most_common()`,
+                                  :meth:`SortedSet.least_common()`
        :redis:`ZREM`              :keyword:`del`
                                   (:meth:`SortedSet.__delitem__()`),
                                   :meth:`SortedSet.discard()`
