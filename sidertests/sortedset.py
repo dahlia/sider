@@ -187,6 +187,44 @@ def values(session):
 
 
 @tests.test
+def most_common(session):
+    set_ = session.set(key('test_sortedset_most_common'),
+                       {'a': 5, 's': 4, 'd': 3, 'f': 2, 'g': 1},
+                       SortedSet)
+    assert set_.most_common(3) == [('a', 5), ('s', 4), ('d', 3)]
+    assert set_.most_common() == [('a',5), ('s',4), ('d',3), ('f',2), ('g',1)]
+    assert set_.most_common(3, reverse=True) == [('g', 1), ('f', 2), ('d', 3)]
+    assert (set_.most_common(reverse=True) ==
+            [('g', 1), ('f', 2), ('d', 3), ('s', 4), ('a',5)])
+    setx = session.set(key('test_sortedsetx_most_common'),
+                       {7: 5, 3: 4, 9: 3, 2: 2, 6: 1},
+                       IntSet)
+    assert setx.most_common(3) == [(7, 5), (3, 4), (9, 3)]
+    assert setx.most_common() == [(7, 5), (3, 4), (9, 3), (2, 2), (6, 1)]
+    assert setx.most_common(3, reverse=True) == [(6, 1), (2, 2), (9, 3)]
+    assert setx.most_common(reverse=True) == [(6,1), (2,2), (9,3), (3,4), (7,5)]
+
+
+@tests.test
+def least_common(session):
+    set_ = session.set(key('test_sortedset_least_common'),
+                       {'a': 5, 's': 4, 'd': 3, 'f': 2, 'g': 1},
+                       SortedSet)
+    assert set_.least_common(3) == [('g', 1), ('f', 2), ('d', 3)]
+    assert set_.least_common() == [('g',1), ('f',2), ('d',3), ('s',4), ('a',5)]
+    assert set_.least_common(3, reverse=True) == [('a', 5), ('s', 4), ('d', 3)]
+    assert (set_.least_common(reverse=True) ==
+            [('a', 5), ('s', 4), ('d', 3), ('f', 2), ('g', 1)])
+    setx = session.set(key('test_sortedsetx_least_common'),
+                       {7: 5, 3: 4, 9: 3, 2: 2, 6: 1},
+                       IntSet)
+    assert setx.least_common(3) == [(6, 1), (2, 2), (9, 3)]
+    assert setx.least_common() == [(6, 1), (2, 2), (9, 3), (3, 4), (7, 5)]
+    assert setx.least_common(3, reverse=True) == [(7, 5), (3, 4), (9, 3)]
+    assert setx.least_common(reverse=True) == [(7,5), (3,4), (9,3), (2,2), (6,1)]
+
+
+@tests.test
 def equals(session):
     set_ = session.set(key('test_set_equals'), S('abc'), SortedSet)
     set2 = session.set(key('test_set_equals2'), S('abc'), SortedSet)

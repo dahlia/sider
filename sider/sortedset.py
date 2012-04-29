@@ -263,11 +263,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
            command and ``WITHSCORES`` option.
 
         """
-        client = self.session.client
-        zrange = client.zrevrange if reverse else client.zrange
-        pairs = zrange(self.key, 0, -1, withscores=True)
-        decode = self.value_type.decode
-        return [(decode(value), score) for value, score in pairs]
+        return self.least_common(reverse=reverse)
 
     @query
     def values(self, reverse=False):
@@ -289,6 +285,57 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
         zrange = client.zrevrange if reverse else client.zrange
         pairs = zrange(self.key, 0, -1, withscores=True)
         return [score for _, score in pairs]
+
+    def most_common(self, n=None, reverse=False):
+        """Returns a list of the ``n`` most common (exactly, highly
+        scored) members and their counts (scores) from the most
+        common to the least.  If ``n`` is not specified, it returns
+        *all* members in the set.  Members with equal scores are
+        ordered arbitarily.
+
+        :param n: the number of members to get
+        :type n: :class:`numbers.Integral`
+        :returns: an ordered list of pairs.
+                  every pair looks like (element, score)
+        :rtype: :class:`collections.Sequence`
+
+        .. note::
+
+           This method is directly mapped to :redis:`ZRANGE`
+           command and ``WITHSCORES`` option.
+
+        """
+        return self.least_common(n, reverse=not reverse)
+
+    @query
+    def least_common(self, n=None, reverse=False):
+        """Returns a list of the ``n`` least common (exactly, lowly
+        scored) members and their counts (scores) from the least
+        common to the most.  If ``n`` is not specified, it returns
+        *all* members in the set.  Members with equal scores are
+        ordered arbitarily.
+
+        :param n: the number of members to get
+        :type n: :class:`numbers.Integral`
+        :returns: an ordered list of pairs.
+                  every pair looks like (element, score)
+        :rtype: :class:`collections.Sequence`
+
+        .. note::
+
+           This method is directly mapped to :redis:`ZREVRANGE`
+           command and ``WITHSCORES`` option.
+
+        """
+        if n is None:
+            n = 0
+        elif not isinstance(n, numbers.Integral):
+            raise TypeError('n must be an integer, not ' + repr(n))
+        client = self.session.client
+        zrange = client.zrevrange if reverse else client.zrange
+        pairs = zrange(self.key, 0, n - 1, withscores=True)
+        decode = self.value_type.decode
+        return [(decode(value), score) for value, score in pairs]
 
     @manipulative
     def add(self, member, score=1):
