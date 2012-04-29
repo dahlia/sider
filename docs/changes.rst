@@ -4,7 +4,7 @@ Sider Changelog
 Version 0.2.0
 -------------
 
-To be released.
+Released on April 30, 2012.  Alpha release.
 
 - Added :mod:`sider.transaction` module.
 - Added :mod:`sider.sortedset` module.
