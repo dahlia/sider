@@ -24,6 +24,7 @@ from __future__ import absolute_import
 import re
 import collections
 import numbers
+import itertools
 import datetime
 from .lazyimport import list, set, sortedset
 from .datetime import UTC, FixedOffset
@@ -443,6 +444,79 @@ class Bulk(Value):
         bulk = self.encode(value)
         session.client.set(key, bulk)
         return value
+
+
+class Tuple(Bulk):
+    r"""Stores tuples of fixed fields.  It can be used for
+    compositing multiple fields into one field in ad-hoc way.
+    For example, if you want to store 3D point value without
+    defining new :class:`Type`::
+
+        Tuple(Integer, Integer, Integer)
+
+    The above type will store three integers in a field.
+
+    .. sourcecode:: pycon
+
+       >>> int_str_int = Tuple(Integer, ByteString, Integer)
+       >>> int_str_int.encode((123, 'abc\ndef', 456))
+       '3,7,3\n123\nabc\ndef\n456'
+       >>> int_str_int.decode(_)
+       (123, 'abc\ndef', 456)
+
+    Encoded values become a bulk bytes.  It consists of a header
+    line and other lines that contain field values.  The first
+    header line is a comma-separated integers that represent
+    each byte size of encoded field values.
+
+    .. productionlist::
+       tuple: `header` (newline field)*
+       header: [`size` ("," `size`)*]
+       size: digit+
+       digit: "0" | "1" | "2" | "3" | "4" |
+            : "5" | "6" | "7" | "8" | "9"
+
+    :param \*field_types: the variable number of field types
+
+    """
+
+    #: (:class:`tuple`) The tuple of field types.
+    field_types = None
+
+    def __init__(self, *field_types):
+        self.field_types = tuple(itertools.imap(Bulk.ensure_value_type,
+                                                field_types))
+
+    def encode(self, value):
+        if not isinstance(value, tuple):
+            raise TypeError('expected a tuple, not ' + repr(value))
+        fields_num = len(self.field_types)
+        tuple_len = len(value)
+        if fields_num < tuple_len:
+            raise ValueError('too many values to unpack: ' + repr(value))
+        elif fields_num > tuple_len:
+            if fields_num > 1:
+                msg = 'need {0} values to unpack: {1!r}'
+            else:
+                msg = 'need {0} value to unpack: {1!r}'
+            raise ValueError(msg.format(fields_num, value))
+        codes = [field.encode(val)
+                 for field, val in itertools.izip(self.field_types, value)]
+        codes.insert(0, ','.join(str(len(code)) for code in codes))
+        return '\n'.join(codes)
+
+    def decode(self, bulk):
+        pos = bulk.index('\n')
+        header = bulk[:pos]
+        sizes = map(int, header.split(','))
+        pos += 1
+        values = []
+        for field, size in itertools.izip(self.field_types, sizes):
+            code = bulk[pos:pos + size]
+            value = field.decode(code)
+            values.append(value)
+            pos += size + 1
+        return tuple(values)
 
 
 class Integer(Bulk):

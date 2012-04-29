@@ -9,6 +9,8 @@ Version 0.2.0
 - Added :class:`sider.types.SortedSet` type.
 - Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
 - Added :class:`sider.types.TimeDelta` type.
+- Introduced :class:`sider.types.Tuple` type for ad-hoc composition of
+  multiple types.
 - Added :mod:`sider.threadlocal` module.
 - Added :attr:`sider.session.Session.verbose_transaction_error` option.
 
