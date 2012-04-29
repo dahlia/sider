@@ -4,6 +4,8 @@ Sider Changelog
 Version 0.2.0
 -------------
 
+To be released.
+
 - Added :mod:`sider.transaction` module.
 - Added :mod:`sider.sortedset` module.
 - Added :class:`sider.types.SortedSet` type.
