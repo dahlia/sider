@@ -60,7 +60,6 @@ Further reading
 
    examples
    doc
-   memo
    todo
    roadmap
    changes
