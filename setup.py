@@ -139,7 +139,7 @@ setup(name='Sider',
       test_suite='sidertests.tests',
       extras_require={'docs': ['Sphinx >= 1.1']},
       classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
