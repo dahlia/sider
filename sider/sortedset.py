@@ -54,6 +54,18 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
        N/A                        :meth:`SortedSet.popitem()`
        ========================== ==================================
 
+    .. todo::
+
+       - Implement :meth:`issuperset()` method.
+       - Implement :meth:`issubset()` method.
+       - Implement :meth:`isdisjoint()` method.
+       - Implement :meth:`union()` method.
+       - Implement :meth:`intersection()` method.
+       - Implement :meth:`intersection_update()` using :redis:`ZINTERSTORE`.
+       - Implement :meth:`difference()` method.
+       - Implement :meth:`difference_update()` method.
+       - Implement :meth:`subtract()` method.
+
     """
 
     #: (:class:`sider.types.Bulk`) The type of set elements.
