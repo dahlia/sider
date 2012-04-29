@@ -1,6 +1,12 @@
 """:mod:`sider.set` --- Set objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. seealso::
+
+    `Redis Data Types <http://redis.io/topics/data-types>`_
+       The Redis documentation that explains about its data
+       types: strings, lists, sets, sorted sets and hashes.
+
 """
 from __future__ import absolute_import
 import collections
