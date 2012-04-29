@@ -226,11 +226,19 @@ man_pages = [
 
 if readthedocs:
     intersphinx_mapping = {
-        'python': ('http://readthedocs.org/docs/python/en/v2.7.2/', None)
+        'python': ('http://python.readthedocs.org/en/v2.7.2/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.readthedocs.org/en/latest/', None)
     }
 else:
     intersphinx_mapping = {
-        'python': ('http://docs.python.org/', None)
+        'python': ('http://docs.python.org/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.pocoo.org/docs/', None)
     }
 
 

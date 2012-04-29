@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import collections
 from .session import Session
 from .types import Bulk, ByteString
+from .transaction import manipulative, query
 
 
 class Set(collections.MutableSet):
@@ -63,11 +64,13 @@ class Set(collections.MutableSet):
         self.value_type = Bulk.ensure_value_type(value_type,
                                                  parameter='value_type')
 
+    @query
     def __iter__(self):
         decode = self.value_type.decode
         for member in self.session.client.smembers(self.key):
             yield decode(member)
 
+    @query
     def __len__(self):
         """Gets the cardinality of the set.
 
@@ -84,6 +87,7 @@ class Set(collections.MutableSet):
         """
         return self.session.client.scard(self.key)
 
+    @query
     def __contains__(self, member):
         """:keyword:`in` operator.  Tests whether the set contains
         the given operand ``member``.
@@ -113,6 +117,7 @@ class Set(collections.MutableSet):
             if length == 0:
                 return len(operand) == 0
             elif self.value_type == operand.value_type:
+                self.session.mark_query([self.key])
                 for _ in self.session.client.sdiff(self.key, operand.key):
                     return False
                 for _ in self.session.client.sdiff(operand.key, self.key):
@@ -163,6 +168,7 @@ class Set(collections.MutableSet):
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
             client = self.session.client
+            self.session.mark_query([self.key])
             for _ in client.sdiff(self.key, operand.key):
                 return False
             card = len(self)
@@ -460,6 +466,7 @@ class Set(collections.MutableSet):
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
             client = self.session.client
+            self.session.mark_query([self.key])
             for _ in client.sdiff(self.key, operand.key):
                 return False
             return len(self) == len(client.sinter(self.key, operand.key))
@@ -496,6 +503,7 @@ class Set(collections.MutableSet):
         if isinstance(operand, Set) and self.session is operand.session:
             if self.value_type != operand.value_type:
                 return True
+            self.session.mark_query([self.key])
             for _ in self.session.client.sinter(self.key, operand.key):
                 return False
             return True
@@ -524,6 +532,7 @@ class Set(collections.MutableSet):
             else:
                 offline_sets.append(operand)
         keys = (operand.key for operand in online_sets)
+        self.session.mark_query([self.key])
         fetched = self.session.client.sdiff(self.key, *keys)
         decode = self.value_type.decode
         diff = set(decode(member) for member in fetched)
@@ -553,6 +562,7 @@ class Set(collections.MutableSet):
         """
         if (isinstance(operand, Set) and self.session is operand.session and
             self.value_type == operand.value_type):
+            self.session.mark_query([self.key])
             union = self.session.client.sunion(self.key, operand.key)
             inter = self.session.client.sinter(self.key, operand.key)
             symdiff = set(union)
@@ -587,6 +597,7 @@ class Set(collections.MutableSet):
         union = set()
         for value_type, group in online_sets.iteritems():
             keys = (s.key for s in group)
+            self.session.mark_query([self.key])
             subset = self.session.client.sunion(*keys)
             decode = value_type.decode
             union.update(decode(member) for member in subset)
@@ -614,6 +625,7 @@ class Set(collections.MutableSet):
                 offline_sets.append(operand)
         keys = frozenset(s.key for s in online_sets)
         if keys:
+            self.session.mark_query([self.key])
             inter = self.session.client.sinter(self.key, *keys)
             decode = self.value_type.decode
             online = set(decode(m) for m in inter)
@@ -625,6 +637,7 @@ class Set(collections.MutableSet):
             return base
         return online if isinstance(online, set) else set(online)
 
+    @manipulative
     def add(self, element):
         """Adds an ``element`` to the set.  This has no effect
         if the ``element`` is already present.
@@ -639,6 +652,7 @@ class Set(collections.MutableSet):
         member = self.value_type.encode(element)
         self.session.client.sadd(self.key, member)
 
+    @manipulative
     def discard(self, element):
         """Removes an ``element`` from the set if it is a member.
         If the ``element`` is not a member, does nothing.
@@ -668,11 +682,22 @@ class Set(collections.MutableSet):
            This method is directly mapped to :redis:`SPOP` command.
 
         """
-        popped = self.session.client.spop(self.key)
-        if popped is None:
-            raise KeyError('pop from an empty set')
-        return self.value_type.decode(popped)
+        if self.session.current_transaction is None:
+            popped = self.session.client.spop(self.key)
+            if popped is None:
+                raise KeyError('pop from an empty set')
+            return self.value_type.decode(popped)
+        else:
+            self.session.mark_query([self.key])
+            popped = self.session.client.srandmember(self.key)
+            if popped is None:
+                raise KeyError('pop from an empty set')
+            value = self.value_type.decode(popped)
+            self.session.mark_manipulative()
+            self._raw_delete([value], self.session.client)
+            return value
 
+    @manipulative
     def clear(self):
         """Removes all elements from this set.
 
@@ -713,20 +738,23 @@ class Set(collections.MutableSet):
                     )
             else:
                 offline_sets.append(operand)
-        pipe = self.session.client.pipeline()
-        if online_sets:
-            keys = (operand.key for operand in online_sets)
-            pipe.sunionstore(self.key, self.key, *keys)
-        update = self._raw_update
-        for operand in offline_sets:
-            update(operand, pipe)
-        pipe.execute()
+        def block(trial, transaction):
+            pipe = self.session.client
+            if online_sets:
+                keys = (operand.key for operand in online_sets)
+                self.session.mark_manipulative()
+                pipe.sunionstore(self.key, self.key, *keys)
+            update = self._raw_update
+            for operand in offline_sets:
+                update(operand, pipe)
+        self.session.transaction(block, [self.key], ignore_double=True)
 
     def _raw_update(self, members, pipe):
         key = self.key
         encode = self.value_type.encode
         members = [encode(v) for v in members]
         if members:
+            self.session.mark_manipulative()
             if self.session.server_version_info < (2, 4, 0):
                 for member in members:
                     pipe.sadd(key, member)
@@ -761,24 +789,31 @@ class Set(collections.MutableSet):
                 if self.value_type == operand.value_type:
                     online_sets.append(operand)
                 else:
+                    self.session.mark_manipulative()
                     self.session.client.delete(self.key)
                     return
             else:
                 offline_sets.append(operand)
-        pipe = self.session.client.pipeline()
-        if online_sets:
-            keys = (operand.key for operand in online_sets)
-            pipe.sinterstore(self.key, self.key, *keys)
         try:
             memory_set = offline_sets.pop()
         except IndexError:
-            pass
+            memory_set = frozenset()
         else:
             if offline_sets:
                 memory_set = set(memory_set)
                 memory_set.intersection_update(*offline_sets)
-            self._raw_delete(self.difference(memory_set), pipe)
-        pipe.execute()
+        keys = tuple(operand.key for operand in online_sets)
+        def block(trial, transaction):
+            pipe = self.session.client
+            if memory_set:
+                self.session.mark_query()
+                diff = self.difference(memory_set)
+                self.session.mark_manipulative()
+                self._raw_delete(diff, pipe)
+            if keys:
+                self.session.mark_manipulative()
+                pipe.sinterstore(self.key, self.key, *keys)
+        self.session.transaction(block, (self.key,) + keys, ignore_double=True)
 
     def difference_update(self, *sets):
         """Removes all elements of other ``sets`` from this set.
@@ -806,13 +841,16 @@ class Set(collections.MutableSet):
                     online_sets.append(operand)
             else:
                 offline_sets.append(operand)
-        pipe = self.session.client.pipeline()
-        if online_sets:
-            keys = (operand.key for operand in online_sets)
-            pipe.sdiffstore(self.key, self.key, *keys)
-        for elements in offline_sets:
-            self._raw_delete(elements, pipe)
-        pipe.execute()
+        def block(trial, transaction):
+            pipe = self.session.client
+            if online_sets:
+                keys = tuple(operand.key for operand in online_sets)
+                self.session.mark_manipulative(keys)
+                pipe.sdiffstore(self.key, self.key, *keys)
+            for elements in offline_sets:
+                self.session.mark_manipulative()
+                self._raw_delete(elements, pipe)
+        self.session.transaction(block, [self.key], ignore_double=True)
 
     def symmetric_difference_update(self, operand):
         """Updates the set with the symmetric difference of itself
@@ -830,12 +868,14 @@ class Set(collections.MutableSet):
         """
         if isinstance(operand, Set) and self.session == operand.session:
             if self.value_type == operand.value_type:
-                def block(pipe):
+                def block(trial, transaction):
+                    pipe = self.session.client
+                    self.session.mark_query()
                     inter = pipe.sinter(self.key, operand.key)
-                    pipe.multi()
+                    self.session.mark_manipulative()
                     pipe.sunionstore(self.key, self.key, operand.key)
                     self._raw_delete(inter, pipe, encoded=True)
-                self.session.client.transaction(block, self.key)
+                self.session.transaction(block, [self.key], ignore_double=True)
             else:
                 raise TypeError(
                     'value_type mismatch; tried update {0!r} with '
@@ -850,6 +890,7 @@ class Set(collections.MutableSet):
             self._raw_delete(inter, pipe)
             pipe.execute()
 
+    @manipulative
     def _raw_delete(self, elements, pipe, encoded=False):
         if not encoded:
             encode = self.value_type.encode
