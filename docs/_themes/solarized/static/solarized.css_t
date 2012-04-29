@@ -74,6 +74,13 @@ div.sphinxsidebar input {
 }
 
 
+div.admonition {
+  border-left: 10px solid #93a1a1;
+  padding-left: 10px;
+  background-color: #eee8d5;
+}
+
+
 ::selection { background-color: #ff5e99; color: white; }
 ::-moz-selection { background-color: #ff5e99; color: white; }
 
