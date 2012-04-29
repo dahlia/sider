@@ -7,6 +7,8 @@ Version 0.2.0
 - Added :mod:`sider.transaction` module.
 - Added :mod:`sider.sortedset` module.
 - Added :class:`sider.types.SortedSet` type.
+- Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
+- Added :class:`sider.types.TimeDelta` type.
 - Added :mod:`sider.threadlocal` module.
 - Added :attr:`sider.session.Session.verbose_transaction_error` option.
 

@@ -14,9 +14,6 @@ into Python :class:`int` ``3``.
 
 .. todo::
 
-   - :class:`Time` that takes naive :class:`datetime.time`.
-   - :class:`TZTime` that takes tz-aware :class:`datetime.time`.
-   - :class:`TimeDelta` that takes :class:`datetime.timedelta`.
    - :class:`Complex` that takes :class:`complex`.
    - :class:`Real` that takes real numbers (:class:`numbers.Real`).
 
@@ -617,7 +614,7 @@ class DateTime(Bulk):
 
     DATETIME_PATTERN = re.compile(
         r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
-        r'(?P<minute>\d\d):(?P<second>\d\d)(?:.(?P<microsecond>\d{6}))?'
+        r'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
         r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
         r'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
@@ -734,4 +731,166 @@ class TZDateTime(DateTime):
         if parsed.tzinfo is None:
             raise ValueError('datetime.datetime must be aware of tzinfo')
         return parsed
+
+
+class Time(Bulk):
+    """Stores naive :class:`datetime.time` values.
+
+    .. sourcecode:: pycon
+
+       >>> time = Time()
+       >>> time.decode('09:21:34.638972')
+       datetime.time(9, 21, 34, 638972)
+       >>> time.encode(_)
+       '09:21:34.638972'
+
+    It doesn't store :attr:`~datetime.time.tzinfo` data.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import UTC
+       >>> time = Time()
+       >>> decoded = time.decode('09:21:34.638972Z')
+       >>> decoded
+       datetime.time(9, 21, 34, 638972)
+       >>> time.encode(decoded.replace(tzinfo=UTC))
+       '09:21:34.638972'
+
+    .. note::
+
+       If you must be aware of time zone, use :class:`TZTime`
+       instead.
+
+    """
+
+    TIME_PATTERN = re.compile(
+        r'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
+        r'(?:\.(?P<microsecond>\d{6}))?'
+        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+    )
+
+    def encode(self, value):
+        if not isinstance(value, datetime.time):
+            raise TypeError('expected a datetime.time, not ' + repr(value))
+        if value.tzinfo is not None:
+            value = value.replace(tzinfo=None)
+        return value.isoformat()
+
+    def decode(self, bulk):
+        return self.parse_time(bulk, drop_tzinfo=True)
+
+    def parse_time(self, bulk, drop_tzinfo):
+        """Parses an encoded :class:`datetime.time`.
+
+        :param bulk: an encoded time
+        :type bulk: :class:`basestring`
+        :returns: a parsed time
+        :rtype: :class:`datetime.time`
+
+        .. note::
+
+           It is for internal use and :meth:`decode()` method actually
+           uses this method.
+
+        """
+        match = self.TIME_PATTERN.search(bulk)
+        if not match:
+            raise ValueError('malformed time: ' + repr(bulk))
+        hour = int(match.group('hour'))
+        minute = int(match.group('minute'))
+        second = int(match.group('second'))
+        microsecond = match.group('microsecond')
+        microsecond = int(microsecond) if microsecond else 0
+        if not drop_tzinfo and match.group('tz'):
+            if match.group('tz_utc'):
+                tzinfo = UTC
+            else:
+                tzplus = match.group('tz_offset_sign') == '+'
+                tzhour = int(match.group('tz_offset_hour'))
+                tzmin = int(match.group('tz_offset_minute'))
+                tzoffset = datetime.timedelta(hours=tzhour, minutes=tzmin)
+                tzinfo = FixedOffset(tzoffset if tzplus else -tzoffset)
+        else:
+            tzinfo = None
+        return datetime.time(hour, minute, second, microsecond, tzinfo=tzinfo)
+
+
+class TZTime(Time):
+    """Similar to :class:`Time` except it accepts only tz-aware
+    :class:`datetime.time` values.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import FixedOffset
+       >>> time = datetime.time(18, 21, 34, 638972,
+       ...                      tzinfo=FixedOffset(540))
+       >>> tztime = TZTime()
+       >>> tztime.encode(time)
+       '18:21:34.638972+09:00'
+       >>> tztime.decode(_)  # doctest: +NORMALIZE_WHITESPACE
+       datetime.time(18, 21, 34, 638972,
+                     tzinfo=sider.datetime.FixedOffset(540))
+       >>> utctime = datetime.time(9, 21, 34, 638972, tzinfo=UTC)
+       >>> tztime.encode(utctime)
+       '09:21:34.638972Z'
+       >>> tztime.decode(_)
+       datetime.time(9, 21, 34, 638972, tzinfo=sider.datetime.Utc())
+
+    If any naive :class:`datetime.time` has passed it will
+    raise :exc:`~exceptions.ValueError`.
+
+    """
+
+    def encode(self, value):
+        if not isinstance(value, datetime.time):
+            raise TypeError('expected a datetime.time, not ' + repr(value))
+        elif value.tzinfo is None:
+            raise ValueError('datetime.time must be aware of tzinfo')
+        if value.tzinfo is UTC:
+            return value.replace(tzinfo=None).isoformat() + 'Z'
+        return value.isoformat()
+
+    def decode(self, bulk):
+        time = self.parse_time(bulk, drop_tzinfo=False)
+        if time.tzinfo is None:
+            raise ValueError('datetime.time must be aware of tzinfo')
+        return time
+
+
+class TimeDelta(Bulk):
+    """Stores :class:`datetime.timedelta` values.
+
+    .. sourcecode:: pycon
+
+       >>> import datetime
+       >>> td = TimeDelta()
+       >>> delta = datetime.timedelta(days=3, seconds=53, microseconds=123123)
+       >>> td.encode(delta)
+       '3,53,123123'
+       >>> td.decode(_)
+       datetime.timedelta(3, 53, 123123)
+
+    """
+
+    TIMEDELTA_FORMAT = '{0.days},{0.seconds},{0.microseconds}'
+    TIMEDELTA_PATTERN = re.compile(r'^(?P<days>\d+),(?P<seconds>\d+),'
+                                   r'(?P<microseconds>\d{1,6})$')
+
+    def encode(self, value):
+        if not isinstance(value, datetime.timedelta):
+            raise TypeError('expected a datetime.timedelta, not ' +
+                            repr(value))
+        return self.TIMEDELTA_FORMAT.format(value)
+
+    def decode(self, bulk):
+        match = self.TIMEDELTA_PATTERN.search(bulk)
+        if match:
+            days = int(match.group('days'))
+            seconds = int(match.group('seconds'))
+            microseconds = int(match.group('microseconds'))
+            return datetime.timedelta(days=days,
+                                      seconds=seconds,
+                                      microseconds=microseconds)
+        raise ValueError('invalid bulk: ' + repr(bulk))
 
