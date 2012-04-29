@@ -57,6 +57,7 @@ Further reading
 .. toctree::
    :maxdepth: 2
 
+   examples
    doc
    memo
    todo

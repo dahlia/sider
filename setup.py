@@ -122,7 +122,8 @@ class upload(Command):
 
 
 setup(name='Sider',
-      packages=['sider', 'sidertests'],
+      packages=['sider', 'sider.ext', "sidertests"],
+      py_modules=["sider__exttest"],
       version=VERSION,
       description='A persistent object library based on Redis',
       long_description=readme(),

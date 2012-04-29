@@ -11,6 +11,7 @@ Version 0.2.0
 - Added :class:`sider.types.TimeDelta` type.
 - Introduced :class:`sider.types.Tuple` type for ad-hoc composition of
   multiple types.
+- The extensible namespace package :mod:`sider.ext` was introduced.
 - Added :mod:`sider.threadlocal` module.
 - Added :attr:`sider.session.Session.verbose_transaction_error` option.
 
