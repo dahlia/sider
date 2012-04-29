@@ -84,6 +84,12 @@ __ https://bitbucket.org/dahlia/sider
 __ https://bitbucket.org/dahlia/sider/issues
 
 
+Community
+---------
+
+Sider has the official IRC channel on freenode: irc://chat.freenode.org/sider
+
+
 Indices and tables
 ------------------
 
