@@ -17,5 +17,6 @@
       sider/exceptions
       sider/warnings
       sider/lazyimport
+      sider/ext
       sider/version
 
