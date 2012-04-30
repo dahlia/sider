@@ -37,6 +37,9 @@ session = DeferredModule('sider.session')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.types`.
 types = DeferredModule('sider.types')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.transaction`.
+transaction = DeferredModule('sider.transaction')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.hash`.
 hash = DeferredModule('sider.hash')
 

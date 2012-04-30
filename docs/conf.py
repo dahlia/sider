@@ -88,7 +88,9 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+# - solarized: https://github.com/altercation/solarized
+# - solarized-dark-pygments: https://github.com/gthank/solarized-dark-pygments
+#pygments_style = 'solarized.SolarizedStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -98,19 +100,19 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'solarized'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+#html_theme_options = {'codebgcolor': '#002B36', 'codetextcolor': '#586E75'}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = 'Sider ' + VERSION
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -224,15 +226,30 @@ man_pages = [
 
 if readthedocs:
     intersphinx_mapping = {
-        'python': ('http://readthedocs.org/docs/python/en/v2.7.2/', None)
+        'python': ('http://python.readthedocs.org/en/v2.7.2/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.readthedocs.org/en/latest/', None)
     }
 else:
     intersphinx_mapping = {
-        'python': ('http://docs.python.org/', None)
+        'python': ('http://docs.python.org/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.pocoo.org/docs/', None)
     }
 
 
-extlinks = {'redis': (lower_sprintf_str('http://redis.io/commands/%s'), '')}
+extlinks = {
+    'redis': (lower_sprintf_str('http://redis.io/commands/%s'), ''),
+    'issue': ('https://bitbucket.org/dahlia/sider/issue/%s', 'issue #'),
+    'commit': ('https://bitbucket.org/dahlia/sider/changeset/%s', ''),
+    'branch': ('https://bitbucket.org/dahlia/sider/changesets/tip/'
+               'branch%%28%%22%s%%22%%29', '')
+}
 
 todo_include_todos = not readthedocs
 
+inheritance_graph_attrs = {'bgcolor': 'transparent'}

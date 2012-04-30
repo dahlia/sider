@@ -1,8 +1,10 @@
 Sider
 =====
 
-Sider is a persistent object library based on Redis.  See more details
-in the `documentation <http://sider.readthedocs.org/>`_.
+Sider is a persistent object library based on Redis.  It is currently
+heavily under development, but you can check the `future roadmap
+<http://sider.readthedocs.org/en/latest/roadmap.html>`_ also.
+See more details in the `documentation <http://sider.readthedocs.org/>`_.
 
 You can install it from `PyPI <http://pypi.python.org/pypi/Sider>`_::
 

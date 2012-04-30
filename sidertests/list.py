@@ -1,16 +1,18 @@
 import warnings
 from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, key
+from .env import NInt, get_session, init_session, key
 from sider.types import List
+from sider.transaction import Transaction
+from sider.exceptions import CommitError
 from sider.warnings import PerformanceWarning
 
 
 tests = Tests()
+tests.context(init_session)
 
 
 @tests.test
-def iterate():
-    session = get_session()
+def iterate(session):
     view = session.set(key('test_list_iterate'), 'abc', List)
     assert ['a', 'b', 'c'] == list(view)
     view = session.set(key('test_listx_iterate'), [1, 2, 3], List(NInt))
@@ -18,8 +20,7 @@ def iterate():
 
 
 @tests.test
-def length():
-    session = get_session()
+def length(session):
     view = session.set(key('test_list_length'), 'abc', List)
     assert len(view) == 3
     viewx = session.set(key('test_listx_length'), [1, 2, 3], List(NInt))
@@ -27,8 +28,7 @@ def length():
 
 
 @tests.test
-def get():
-    session = get_session()
+def get(session):
     view = session.set(key('test_list_get'), 'abc', List)
     assert 'a' == view[0]
     assert 'b' == view[1]
@@ -54,8 +54,7 @@ def get():
 
 
 @tests.test
-def slice():
-    session = get_session()
+def slice(session):
     list_ = session.set(key('test_list_slice'), 'abcdefg', List)
     assert ['a'] == list(list_[:1])
     assert ['a', 'b', 'c', 'd'] == list(list_[:-3])
@@ -79,8 +78,7 @@ def slice():
 
 
 @tests.test
-def set():
-    session = get_session()
+def set(session):
     list_ = session.set(key('test_list_set'), 'abc', List)
     list_[1] = 'B'
     with raises(TypeError):
@@ -98,8 +96,24 @@ def set():
 
 
 @tests.test
-def set_slice():
-    session = get_session()
+def set_t(session):
+    session2 = get_session()
+    keyid = key('test_list_set_t')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        list_[1] = 'B'
+        assert list2[:] == list('abc')
+    assert list_[:] == list2[:] == list('aBc')
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            list_[3] = 'D'
+
+
+@tests.test
+def set_slice(session):
     list_ = session.set(key('test_list_set_slice'), 'abc', List)
     list_[:0] = ['-2', '-1']
     with raises(TypeError):
@@ -114,7 +128,7 @@ def set_slice():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
         list_[3:] = list('BC')
-        assert len(w) == 1
+        assert len(w) == 1, 'no warning'
         assert issubclass(w[0].category, PerformanceWarning)
     assert ['-2', '-1', 'a', 'B', 'C'] == list(list_)
     listx = session.set(key('test_listx_set_slice'), [1, 2, 3], List(NInt))
@@ -137,8 +151,29 @@ def set_slice():
 
 
 @tests.test
-def delete():
-    session = get_session()
+def set_slice_t(session):
+    session2 = get_session()
+    keyid = key('test_list_set_slice_t')
+    list_ = session.set(keyid, 'abc', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        list_[:0] = ['-2', '-1']
+        assert list2[:] == list('abc')
+    assert list_[:] == list2[:] == ['-2', '-1', 'a', 'b', 'c']
+    with Transaction(session, [keyid]):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            list_[3:] = list('BC')
+            assert len(w) == 1, 'no warning'
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == ['-2', '-1', 'a', 'b', 'c']
+    assert list_[:] == ['-2', '-1', 'a', 'B', 'C']
+
+
+@tests.test
+def delete(session):
     list_ = session.set(key('test_list_delete'), 'abcdefg', List)
     del list_[0]
     assert list('bcdefg') == list(list_)
@@ -174,8 +209,49 @@ def delete():
 
 
 @tests.test
-def delete_slice():
-    session = get_session()
+def delete_t(session):
+    session2 = get_session()
+    keyid = key('test_list_delete_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        del list_[0]
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('bcdefg')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 6
+        del list_[-1]
+        assert list2[:] == list('bcdefg')
+    assert list_[:] == list2[:] == list('bcdef')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 5
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            del list_[2]
+            assert len(w) == 1
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == list('bcdef')
+    assert list_[:] == list2[:] == list('bcef')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 4
+        del list_[:]
+        assert list2[:] == list('bcef')
+    assert len(list_[:]) == len(list2[:]) == 0
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            del list_[-1]
+    with Transaction(session, [keyid]):
+        with raises(IndexError):
+            del list_[0]
+
+
+@tests.test
+def delete_slice(session):
     list_ = session.set(key('test_list_delete_slice'), 'abcdefg', List)
     del list_[:2]
     assert list('cdefg') == list(list_)
@@ -209,8 +285,58 @@ def delete_slice():
 
 
 @tests.test
-def append():
-    session = get_session()
+def delete_slice_t(session):
+    session2 = get_session()
+    keyid = key('test_list_delete_slice_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        del list_[:2]
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('cdefg')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 5
+        del list_[3:]
+        assert list2[:] == list('cdefg')
+    assert list_[:] == list2[:] == list('cde')
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 3
+        del list_[:]
+        assert list2[:] == list('cde')
+    assert len(list_) == len(list2) == 0
+    keyid = key('test_list_delete_slice_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    list2 = session2.get(keyid, List)
+    with Transaction(session, [keyid]):
+        size = len(list_)
+        assert size == 7
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            del list_[2:5]
+            assert len(w) == 1
+            assert issubclass(w[0].category, PerformanceWarning)
+        assert list2[:] == list('abcdefg')
+    assert list_[:] == list2[:] == list('abfg')
+    try:
+        with Transaction(session, [keyid]):
+            del list_[:]
+            try:
+                len(list_)
+            except CommitError:
+                raise
+            else:
+                assert False, 'expected CommitError'
+    except CommitError:
+        pass
+    assert list_[:] == list2[:] == list('abfg')
+
+
+@tests.test
+def append(session):
     list_ = session.set(key('test_list_append'), 'abcd', List)
     list_.append('e')
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
@@ -228,8 +354,7 @@ def append():
 
 
 @tests.test
-def extend():
-    session = get_session()
+def extend(session):
     list_ = session.set(key('test_list_extend'), 'ab', List)
     list_.extend('cde')
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
@@ -247,30 +372,42 @@ def extend():
 
 
 @tests.test
-def insert():
-    session = get_session()
+def insert(session):
     list_ = session.set(key('test_list_insert'), ['b'], List)
     list_.insert(0, 'a')
     assert ['a', 'b'] == list(list_)
-    list_.insert(-1, 'c')
-    assert ['a', 'b', 'c'] == list(list_)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
-        list_.insert(1, 'a-b')
+        list_.insert(-1, 'a-b')
         assert len(w) == 1
         assert issubclass(w[0].category, PerformanceWarning)
-    assert ['a', 'a-b', 'b', 'c'] == list(list_)
+    assert ['a', 'a-b', 'b'] == list(list_)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        list_.insert(-2, 'a-a-b')
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert ['a', 'a-a-b', 'a-b', 'b'] == list(list_)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        list_.insert(1, 'a-a-a-b')
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
+    assert ['a', 'a-a-a-b', 'a-a-b', 'a-b', 'b'] == list(list_)
     with raises(TypeError):
         list_.insert(0, object())
     with raises(TypeError):
         list_.insert(-1, object())
     with raises(TypeError):
         list_.insert(1, object())
-    session = get_session()
-    listx = session.set(key('test_listx_insert'), [2], List(NInt))
+    listx = session.set(key('test_listx_insert'), [3], List(NInt))
     listx.insert(0, 1)
-    assert [1, 2] == list(listx)
-    listx.insert(-1, 3)
+    assert [1, 3] == list(listx)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        listx.insert(-1, 2)
+        assert len(w) == 1
+        assert issubclass(w[0].category, PerformanceWarning)
     assert [1, 2, 3] == list(listx)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
@@ -287,8 +424,33 @@ def insert():
 
 
 @tests.test
-def pop():
-    session = get_session()
+def insert_t(session):
+    keyid = key('test_list_insert_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'a'
+        list_.insert(0, 'Z')
+    assert list_[:] == list('Zabcdefg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(-1, 'G')
+    assert list_[:] == list('ZabcdefGg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(2, 'A')
+    assert list_[:] == list('ZaAbcdefGg')
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'Z'
+        list_.insert(-3, 'F')
+    assert list_[:] == list('ZaAbcdeFfGg')
+
+
+@tests.test
+def pop(session):
     list_ = session.set(key('test_list_pop'), 'abcdefg', List)
     popped = list_.pop(0)
     assert 'a' == popped
@@ -299,6 +461,9 @@ def pop():
     popped = list_.pop(2)
     assert 'd' == popped
     assert list('bcef') == list(list_)
+    popped = list_.pop(-2)
+    assert 'e' == popped
+    assert list('bcf') == list(list_)
     with raises(IndexError):
         list_.pop(10)
     with raises(IndexError):
@@ -318,6 +483,9 @@ def pop():
     popped = listx.pop(2)
     assert 4 == popped
     assert [2, 3, 5, 6] == list(listx)
+    popped = listx.pop(-2)
+    assert 5 == popped
+    assert [2, 3, 6] == list(listx)
     with raises(IndexError):
         listx.pop(10)
     with raises(IndexError):
@@ -330,8 +498,57 @@ def pop():
 
 
 @tests.test
-def repr_():
-    session = get_session()
+def pop_t(session):
+    keyid = key('test_list_pop_t')
+    list_ = session.set(keyid, 'abcdefg', List)
+    with Transaction(session, [keyid]):
+        first = list_[0]
+        assert first == 'a'
+        popped = list_.pop()
+        assert popped == 'g'
+        list_.append('h')
+    assert list_[:] == list('abcdefh')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'h'
+        popped = list_.pop(0)
+        assert popped == 'a'
+        list_.append('i')
+    assert list_[:] == list('bcdefhi')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'i'
+        popped = list_.pop(2)
+        assert popped == 'd'
+        list_.append('j')
+    assert list_[:] == list('bcefhij')
+    with Transaction(session, [keyid]):
+        last = list_[-1]
+        assert last == 'j'
+        popped = list_.pop(-3)
+        assert popped == 'h'
+        list_.append('k')
+    assert list_[:] == list('bcefijk')
+    with Transaction(session, [keyid]):
+        list_.pop()
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(-1)
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(2)
+        with raises(CommitError):
+            len(list_)
+    with Transaction(session, [keyid]):
+        list_.pop(-2)
+        with raises(CommitError):
+            len(list_)
+
+
+@tests.test
+def repr_(session):
     list_ = session.set(key('test_list_repr'), [1, 2, 3], List(NInt))
     r = repr(list_)
     assert "<sider.list.List [1, 2, 3]>" == r
