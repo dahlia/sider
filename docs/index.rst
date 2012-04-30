@@ -8,9 +8,9 @@ development currently, but but you can check the `future roadmap`__ if you want.
 
    >>> from sider.types import Set, Integer
    >>> s = session.get('my_set', Set(Integer))
-   >>> 3 in s  # SISMEMBER 3
+   >>> 3 in s  # SISMEMBER my_set 3
    True
-   >>> 4 in s  # SISMEMBER 4
+   >>> 4 in s  # SISMEMBER my_set 4
    False
    >>> s2 = session.get('another_set', Set(Integer))
    >>> s & s2  # SINTER my_set another_set
