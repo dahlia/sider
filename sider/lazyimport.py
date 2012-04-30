@@ -52,6 +52,9 @@ set = DeferredModule('sider.set')
 #: (:class:`DeferredModule`) Alias of :mod:`sider.sortedset`.
 sortedset = DeferredModule('sider.sortedset')
 
+#: (:class:`DeferredModule`) Alias of :mod:`sider.channel`.
+channel = DeferredModule('sider.channel')
+
 #: (:class:`DeferredModule`) Alias of :mod:`sider.datetime`.
 datetime = DeferredModule('sider.datetime')
 

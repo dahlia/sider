@@ -1,0 +1,4 @@
+
+.. automodule:: sider.channel
+   :members:
+

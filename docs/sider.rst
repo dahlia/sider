@@ -10,6 +10,7 @@
       sider/list
       sider/set
       sider/sortedset
+      sider/channel
       sider/transaction
       sider/threadlocal
       sider/datetime
