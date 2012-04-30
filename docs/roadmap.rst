@@ -39,6 +39,12 @@ Entity mapping (:mod:`sider.entity`)
 
    It has been being developed in the branch :branch:`entity-mapping`.
 
+Key templates (:mod:`sider.key`)
+   You can organize keys by grouped values instead of raw vanilla string
+   keys.
+
+   The branch name for this will be :branch:`key`.
+
 Channels (:mod:`sider.channel`)
    By using Redis' pub/sub channels you will be able to use Redis
    as your simple message queue.

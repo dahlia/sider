@@ -421,6 +421,7 @@ class List(collections.MutableSequence):
                 else:
                     yield '...'
         cls = type(self)
-        els = ', '.join(get_50())
-        return '<{0}.{1} [{2}]>'.format(cls.__module__, cls.__name__, els)
+        elements = ', '.join(get_50())
+        return '<{0}.{1} ({2!r}) [{3}]>'.format(cls.__module__, cls.__name__,
+                                                self.key, elements)
 

@@ -7,8 +7,9 @@
       sider/session
       sider/types
       sider/hash
-      sider/set
       sider/list
+      sider/set
+      sider/sortedset
       sider/entity
       sider/transaction
       sider/threadlocal
