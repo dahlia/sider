@@ -3,8 +3,10 @@ try:
 except ImportError:
     from .counter_recipe import Counter
 from attest import Tests, assert_hook, raises
-from .env import NInt, init_session, key
+from .env import NInt, get_session, init_session, key
 from sider.types import Hash
+from sider.transaction import Transaction
+from sider.exceptions import CommitError
 
 
 tests = Tests()
@@ -170,6 +172,23 @@ def delitem(session):
 
 
 @tests.test
+def delitem_t(session):
+    session2 = get_session()
+    keyid = key('test_hash_delitem_t')
+    hash_ = session.set(keyid, fixture_a, Hash)
+    hashx = session2.get(keyid, Hash)
+    with Transaction(session, [keyid]):
+        len(hash_)
+        del hash_['a']
+        assert 'a' in hashx
+        with raises(CommitError):
+            len(hash_)
+    assert len(hash_) == 1
+    assert 'a' not in hash_
+    assert 'a' not in hashx
+
+
+@tests.test
 def setitem(session):
     hash_ = session.set(key('test_hash_setitem'), fixture_a, Hash)
     hash_['a'] = 'changed'
@@ -225,6 +244,29 @@ def setdefault(session):
         hashx.setdefault('invalid', 'default')
     with raises(TypeError):
         hashx.setdefault('key', 1234)
+
+
+@tests.test
+def setdefault_t(session):
+    session2 = get_session()
+    keyid = key('test_hash_setdefault_t')
+    hash_ = session.set(keyid, fixture_a, Hash)
+    hashx = session2.get(keyid, Hash)
+    with Transaction(session, [keyid]):
+        curval = hash_.setdefault('a', 'would not get changed')
+        assert curval == hashx['a'] == 'b'
+    assert curval == hash_['a'] == hashx['a'] == 'b'
+    assert len(hash_) == len(hashx) == 2
+    with Transaction(session, [keyid]):
+        curval = hash_.setdefault('added', 'default value')
+        assert curval == 'default value'
+        assert 'added' not in hashx
+        with raises(CommitError):
+            len(hash_)
+    assert len(hash_) == len(hashx) == 3
+    assert 'added' in hash_
+    assert 'added' in hashx
+    assert curval == hash_['added'] == hashx['added'] == 'default value'
 
 
 @tests.test
@@ -284,4 +326,12 @@ def update(session):
         hashx.update([(1, 2, 3), (4, 5, 6)])
     with raises(TypeError):
         hashx.update(1234)
+
+
+@tests.test
+def repr_(session):
+    keyid = key('test_hash_repr')
+    hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))
+    expected = '<sider.hash.Hash (' + repr(keyid) + ') {1: 2, 3: 4, 5: 6}>'
+    assert expected == repr(hash_)
 

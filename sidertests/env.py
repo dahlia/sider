@@ -13,7 +13,9 @@ def get_client(cls=StrictRedis):
 
 
 def get_session():
-    return Session(get_client())
+    session = Session(get_client())
+    session.verbose_transaction_error = True
+    return session
 
 
 prefix = 'sidertests_{0:%Y%m%d%H%M%S%f}_'.format(datetime.datetime.now())
@@ -28,6 +30,7 @@ def init_session():
     client = get_client()
     try:
         session = Session(client)
+        session.verbose_transaction_error = True
         yield session
     finally:
         #: .. note::

@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, os.path
+import sys, os, os.path, glob
 
 # Whether it is built by ReadTheDocs.org
 readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
@@ -20,6 +20,7 @@ readthedocs = os.environ.get('READTHEDOCS', '') == 'True'
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path[:0] = [os.path.abspath('.'), os.path.abspath('..')]
+sys.path[2:2] = glob.glob(os.path.abspath(os.path.join('..', 'examples', '*')))
 from siderdocs import lower_sprintf_str
 from sider.version import VERSION
 
@@ -226,11 +227,21 @@ man_pages = [
 
 if readthedocs:
     intersphinx_mapping = {
-        'python': ('http://readthedocs.org/docs/python/en/v2.7.2/', None)
+        'python': ('http://python.readthedocs.org/en/v2.7.2/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.readthedocs.org/en/latest/', None),
+        'jinja2': ('http://jinja2.readthedocs.org/en/latest/', None)
     }
 else:
     intersphinx_mapping = {
-        'python': ('http://docs.python.org/', None)
+        'python': ('http://docs.python.org/', None),
+        'greenlet': ('http://greenlet.readthedocs.org/en/latest/', None),
+        'eventlet': ('http://eventlet.net/doc/', None),
+        'gevent': ('http://gevent.org/', None),
+        'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+        'jinja2': ('http://jinja.pocoo.org/docs/', None)
     }
 
 

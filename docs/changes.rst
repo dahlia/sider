@@ -1,6 +1,33 @@
 Sider Changelog
 ===============
 
+Version 0.2.0
+-------------
+
+Released on April 30, 2012.  Alpha release.
+
+- Added :mod:`sider.transaction` module.
+- Added :mod:`sider.sortedset` module.
+- Added :class:`sider.types.SortedSet` type.
+- Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
+- Added :class:`sider.types.TimeDelta` type.
+- Introduced :class:`sider.types.Tuple` type for ad-hoc composition of
+  multiple types.
+- The extensible namespace package :mod:`sider.ext` was introduced.
+- Added :mod:`sider.threadlocal` module.
+- Added :attr:`sider.session.Session.verbose_transaction_error` option.
+
+
+Version 0.1.3
+-------------
+
+Released on April 21, 2012.  Pre-alpha release.
+
+- Now :class:`sider.hash.Hash` objects show their contents for :func:`repr()`.
+- Now persist objects show their key name for :func:`repr()`.
+- Added :data:`sider.lazyimport.exceptions` deferred module.
+
+
 Version 0.1.2
 -------------
 

@@ -17,3 +17,6 @@ class PerformanceWarning(SiderWarning, RuntimeWarning):
     """
 
 
+class TransactionWarning(SiderWarning, RuntimeWarning):
+    """The category for warnings about transactions."""
+

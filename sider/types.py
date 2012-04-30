@@ -14,9 +14,6 @@ into Python :class:`int` ``3``.
 
 .. todo::
 
-   - :class:`Time` that takes naive :class:`datetime.time`.
-   - :class:`TZTime` that takes tz-aware :class:`datetime.time`.
-   - :class:`TimeDelta` that takes :class:`datetime.timedelta`.
    - :class:`Complex` that takes :class:`complex`.
    - :class:`Real` that takes real numbers (:class:`numbers.Real`).
 
@@ -27,8 +24,9 @@ from __future__ import absolute_import
 import re
 import collections
 import numbers
+import itertools
 import datetime
-from .lazyimport import list, set
+from .lazyimport import list, set, sortedset
 from .datetime import UTC, FixedOffset
 
 
@@ -347,6 +345,57 @@ class Set(Value):
         return False
 
 
+class SortedSet(Set):
+    """The type object for :class:`sider.sortedset.SortedSet` objects.
+
+    :param value_type: the type of values the sorted set will contain.
+                       default is :class:`ByteString`
+    :type value_type: :class:`Bulk`, :class:`type`
+
+    """
+
+    def load_value(self, session, key):
+        return sortedset.SortedSet(session, key, value_type=self.value_type)
+
+    def save_value(self, session, key, value):
+        if not isinstance(value, (collections.Set, collections.Mapping)):
+            raise TypeError('expected a set-like or mapping object, not ' +
+                            repr(value))
+        obj = sortedset.SortedSet(session, key, value_type=self.value_type)
+        encode = self.value_type.encode
+        if session.server_version < (2, 4, 0):
+            if isinstance(value, collections.Mapping):
+                pairs = [
+                    (encode(el), score)
+                    for el, score in getattr(value, 'iteritems', value.items)()
+                ]
+            else:
+                pairs = [(encode(el), 1) for el in value]
+            def block(trial, transaction):
+                obj.clear()
+                zadd = session.client.zadd
+                for el, score in pairs:
+                    zadd(key, score, el)
+        else:
+            if isinstance(value, collections.Mapping):
+                items = getattr(value, 'iteritems', value.items)
+                def args():
+                    for el, score in items():
+                        yield score
+                        yield encode(el)
+            else:
+                def args():
+                    for el in value:
+                        yield 1
+                        yield encode(el)
+            args = tuple(args())
+            def block(trial, transaction):
+                obj.clear()
+                session.client.zadd(key, *args)
+        session.transaction(block, [key], ignore_double=True)
+        return obj
+
+
 class Bulk(Value):
     """The abstract base class to be subclassed.  You have to implement
     :meth:`encode()` and :meth:`decode()` methods in subclasses.
@@ -395,6 +444,79 @@ class Bulk(Value):
         bulk = self.encode(value)
         session.client.set(key, bulk)
         return value
+
+
+class Tuple(Bulk):
+    r"""Stores tuples of fixed fields.  It can be used for
+    compositing multiple fields into one field in ad-hoc way.
+    For example, if you want to store 3D point value without
+    defining new :class:`Type`::
+
+        Tuple(Integer, Integer, Integer)
+
+    The above type will store three integers in a field.
+
+    .. sourcecode:: pycon
+
+       >>> int_str_int = Tuple(Integer, ByteString, Integer)
+       >>> int_str_int.encode((123, 'abc\ndef', 456))
+       '3,7,3\n123\nabc\ndef\n456'
+       >>> int_str_int.decode(_)
+       (123, 'abc\ndef', 456)
+
+    Encoded values become a bulk bytes.  It consists of a header
+    line and other lines that contain field values.  The first
+    header line is a comma-separated integers that represent
+    each byte size of encoded field values.
+
+    .. productionlist::
+       tuple: `header` (newline field)*
+       header: [`size` ("," `size`)*]
+       size: digit+
+       digit: "0" | "1" | "2" | "3" | "4" |
+            : "5" | "6" | "7" | "8" | "9"
+
+    :param \*field_types: the variable number of field types
+
+    """
+
+    #: (:class:`tuple`) The tuple of field types.
+    field_types = None
+
+    def __init__(self, *field_types):
+        self.field_types = tuple(itertools.imap(Bulk.ensure_value_type,
+                                                field_types))
+
+    def encode(self, value):
+        if not isinstance(value, tuple):
+            raise TypeError('expected a tuple, not ' + repr(value))
+        fields_num = len(self.field_types)
+        tuple_len = len(value)
+        if fields_num < tuple_len:
+            raise ValueError('too many values to unpack: ' + repr(value))
+        elif fields_num > tuple_len:
+            if fields_num > 1:
+                msg = 'need {0} values to unpack: {1!r}'
+            else:
+                msg = 'need {0} value to unpack: {1!r}'
+            raise ValueError(msg.format(fields_num, value))
+        codes = [field.encode(val)
+                 for field, val in itertools.izip(self.field_types, value)]
+        codes.insert(0, ','.join(str(len(code)) for code in codes))
+        return '\n'.join(codes)
+
+    def decode(self, bulk):
+        pos = bulk.index('\n')
+        header = bulk[:pos]
+        sizes = map(int, header.split(','))
+        pos += 1
+        values = []
+        for field, size in itertools.izip(self.field_types, sizes):
+            code = bulk[pos:pos + size]
+            value = field.decode(code)
+            values.append(value)
+            pos += size + 1
+        return tuple(values)
 
 
 class Integer(Bulk):
@@ -566,7 +688,7 @@ class DateTime(Bulk):
 
     DATETIME_PATTERN = re.compile(
         r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
-        r'(?P<minute>\d\d):(?P<second>\d\d)(?:.(?P<microsecond>\d{6}))?'
+        r'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
         r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
         r'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
@@ -683,4 +805,166 @@ class TZDateTime(DateTime):
         if parsed.tzinfo is None:
             raise ValueError('datetime.datetime must be aware of tzinfo')
         return parsed
+
+
+class Time(Bulk):
+    """Stores naive :class:`datetime.time` values.
+
+    .. sourcecode:: pycon
+
+       >>> time = Time()
+       >>> time.decode('09:21:34.638972')
+       datetime.time(9, 21, 34, 638972)
+       >>> time.encode(_)
+       '09:21:34.638972'
+
+    It doesn't store :attr:`~datetime.time.tzinfo` data.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import UTC
+       >>> time = Time()
+       >>> decoded = time.decode('09:21:34.638972Z')
+       >>> decoded
+       datetime.time(9, 21, 34, 638972)
+       >>> time.encode(decoded.replace(tzinfo=UTC))
+       '09:21:34.638972'
+
+    .. note::
+
+       If you must be aware of time zone, use :class:`TZTime`
+       instead.
+
+    """
+
+    TIME_PATTERN = re.compile(
+        r'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
+        r'(?:\.(?P<microsecond>\d{6}))?'
+        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+    )
+
+    def encode(self, value):
+        if not isinstance(value, datetime.time):
+            raise TypeError('expected a datetime.time, not ' + repr(value))
+        if value.tzinfo is not None:
+            value = value.replace(tzinfo=None)
+        return value.isoformat()
+
+    def decode(self, bulk):
+        return self.parse_time(bulk, drop_tzinfo=True)
+
+    def parse_time(self, bulk, drop_tzinfo):
+        """Parses an encoded :class:`datetime.time`.
+
+        :param bulk: an encoded time
+        :type bulk: :class:`basestring`
+        :returns: a parsed time
+        :rtype: :class:`datetime.time`
+
+        .. note::
+
+           It is for internal use and :meth:`decode()` method actually
+           uses this method.
+
+        """
+        match = self.TIME_PATTERN.search(bulk)
+        if not match:
+            raise ValueError('malformed time: ' + repr(bulk))
+        hour = int(match.group('hour'))
+        minute = int(match.group('minute'))
+        second = int(match.group('second'))
+        microsecond = match.group('microsecond')
+        microsecond = int(microsecond) if microsecond else 0
+        if not drop_tzinfo and match.group('tz'):
+            if match.group('tz_utc'):
+                tzinfo = UTC
+            else:
+                tzplus = match.group('tz_offset_sign') == '+'
+                tzhour = int(match.group('tz_offset_hour'))
+                tzmin = int(match.group('tz_offset_minute'))
+                tzoffset = datetime.timedelta(hours=tzhour, minutes=tzmin)
+                tzinfo = FixedOffset(tzoffset if tzplus else -tzoffset)
+        else:
+            tzinfo = None
+        return datetime.time(hour, minute, second, microsecond, tzinfo=tzinfo)
+
+
+class TZTime(Time):
+    """Similar to :class:`Time` except it accepts only tz-aware
+    :class:`datetime.time` values.
+
+    .. sourcecode:: pycon
+
+       >>> from sider.datetime import FixedOffset
+       >>> time = datetime.time(18, 21, 34, 638972,
+       ...                      tzinfo=FixedOffset(540))
+       >>> tztime = TZTime()
+       >>> tztime.encode(time)
+       '18:21:34.638972+09:00'
+       >>> tztime.decode(_)  # doctest: +NORMALIZE_WHITESPACE
+       datetime.time(18, 21, 34, 638972,
+                     tzinfo=sider.datetime.FixedOffset(540))
+       >>> utctime = datetime.time(9, 21, 34, 638972, tzinfo=UTC)
+       >>> tztime.encode(utctime)
+       '09:21:34.638972Z'
+       >>> tztime.decode(_)
+       datetime.time(9, 21, 34, 638972, tzinfo=sider.datetime.Utc())
+
+    If any naive :class:`datetime.time` has passed it will
+    raise :exc:`~exceptions.ValueError`.
+
+    """
+
+    def encode(self, value):
+        if not isinstance(value, datetime.time):
+            raise TypeError('expected a datetime.time, not ' + repr(value))
+        elif value.tzinfo is None:
+            raise ValueError('datetime.time must be aware of tzinfo')
+        if value.tzinfo is UTC:
+            return value.replace(tzinfo=None).isoformat() + 'Z'
+        return value.isoformat()
+
+    def decode(self, bulk):
+        time = self.parse_time(bulk, drop_tzinfo=False)
+        if time.tzinfo is None:
+            raise ValueError('datetime.time must be aware of tzinfo')
+        return time
+
+
+class TimeDelta(Bulk):
+    """Stores :class:`datetime.timedelta` values.
+
+    .. sourcecode:: pycon
+
+       >>> import datetime
+       >>> td = TimeDelta()
+       >>> delta = datetime.timedelta(days=3, seconds=53, microseconds=123123)
+       >>> td.encode(delta)
+       '3,53,123123'
+       >>> td.decode(_)
+       datetime.timedelta(3, 53, 123123)
+
+    """
+
+    TIMEDELTA_FORMAT = '{0.days},{0.seconds},{0.microseconds}'
+    TIMEDELTA_PATTERN = re.compile(r'^(?P<days>\d+),(?P<seconds>\d+),'
+                                   r'(?P<microseconds>\d{1,6})$')
+
+    def encode(self, value):
+        if not isinstance(value, datetime.timedelta):
+            raise TypeError('expected a datetime.timedelta, not ' +
+                            repr(value))
+        return self.TIMEDELTA_FORMAT.format(value)
+
+    def decode(self, bulk):
+        match = self.TIMEDELTA_PATTERN.search(bulk)
+        if match:
+            days = int(match.group('days'))
+            seconds = int(match.group('seconds'))
+            microseconds = int(match.group('microseconds'))
+            return datetime.timedelta(days=days,
+                                      seconds=seconds,
+                                      microseconds=microseconds)
+        raise ValueError('invalid bulk: ' + repr(bulk))
 

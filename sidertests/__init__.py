@@ -1,7 +1,8 @@
 import doctest
 import os
 from attest import Tests
-from . import session, types, hash, list, set
+from . import (session, types, hash, list, set, sortedset,
+               transaction, threadlocal)
 
 
 tests = Tests()
@@ -10,6 +11,9 @@ tests.register(types.tests)
 tests.register(hash.tests)
 tests.register(list.tests)
 tests.register(set.tests)
+tests.register(sortedset.tests)
+tests.register(transaction.tests)
+tests.register(threadlocal.tests)
 
 
 @tests.test
@@ -22,6 +26,24 @@ def doctest_types():
 def doctest_datetime():
     from sider import datetime
     assert 0 == doctest.testmod(datetime)[0]
+
+
+exttest_count = 0
+
+
+@tests.test
+def ext():
+    from sider.ext import _exttest
+    assert _exttest.ext_loaded == 'yes'
+    assert exttest_count == 1
+    from  sider import ext
+    assert ext._exttest is _exttest
+    try:
+        import sider.ext._noexttest
+    except ImportError as e:
+        assert str(e) == "No module named 'sider.ext._noexttest'"
+    else:
+        assert False, 'it must raise ImportError'
 
 
 @tests.test

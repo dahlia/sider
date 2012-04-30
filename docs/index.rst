@@ -1,8 +1,8 @@
 Sider
 =====
 
-Sider is a persistent object library based on Redis_.  This is being planned
-and heavily under development currently.
+Sider is a persistent object library based on Redis_.  This is heavily under
+development currently, but but you can check the `future roadmap`__ if you want.
 
 .. sourcecode:: pycon
 
@@ -29,7 +29,7 @@ You can install it from PyPI_:
    $ pip install Sider  # or
    $ easy_install Sider
    $ python -m sider.version
-   0.1.2
+   0.2.0
 
 What was the name 'Sider' originated from?:
 
@@ -38,6 +38,7 @@ What was the name 'Sider' originated from?:
    >>> 'redis'[::-1]
    'sider'
 
+__ http://sider.dahlia.kr/en/latest/roadmap.html
 .. _PyPI: http://pypi.python.org/pypi/Sider
 .. _Redis: http://redis.io/
 
@@ -57,8 +58,8 @@ Further reading
 .. toctree::
    :maxdepth: 2
 
+   examples
    doc
-   memo
    todo
    roadmap
    changes

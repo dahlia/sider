@@ -7,10 +7,15 @@
       sider/session
       sider/types
       sider/hash
-      sider/set
       sider/list
+      sider/set
+      sider/sortedset
+      sider/transaction
+      sider/threadlocal
       sider/datetime
+      sider/exceptions
       sider/warnings
       sider/lazyimport
+      sider/ext
       sider/version
 
