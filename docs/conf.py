@@ -106,7 +106,7 @@ html_theme = 'solarized'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {'codebgcolor': '#002B36', 'codetextcolor': '#586E75'}
+html_theme_options = {'bitbucket': 'sider/dahlia'}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_themes']

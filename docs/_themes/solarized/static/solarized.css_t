@@ -73,6 +73,29 @@ div.sphinxsidebar input {
   font-size: 1em;
 }
 
+{% if theme_bitbucket %}
+  body {
+    padding-top: 30px;
+  }
+
+  .bitbucket {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 30px;
+    background-color: #ff5e99;
+    color: white;
+    text-align: center;
+    font-family: {{ body_font_stack }};
+    padding-top: 2px;
+  }
+  .bitbucket a {
+    font-style: italic;
+    text-decoration: none;
+    color: white;
+  }
+{% endif %}
+
 
 div.admonition {
   border-left: 10px solid #93a1a1;

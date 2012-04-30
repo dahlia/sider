@@ -23,3 +23,12 @@
   </script>
   {{ super() }}
 {% endblock %}
+{% block relbar2 %}
+  {% if theme_bitbucket %}
+    <div class="bitbucket">
+      This project is hosted on
+      <a href="https://bitbucket/{{ theme_bitbucket }}">Bitbucket</a>.
+      <a href="https://bitbucket/{{ theme_bitbucket }}">Fork/follow us!</a>
+    </div>
+  {% endif %}
+{% endblock %}
