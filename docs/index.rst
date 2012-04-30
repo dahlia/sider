@@ -60,6 +60,7 @@ Further reading
 
    examples
    doc
+   test
    todo
    roadmap
    changes
