@@ -1,25 +1,19 @@
 Sider Changelog
 ===============
 
-Branch :branch:`ext`
---------------------
+Version 0.2.0
+-------------
 
-- The extensible namespace package :mod:`sider.ext` was introduced.
-
-
-Branch :branch:`sortedset`
---------------------------
-
-- Added :mod:`sider.sortedset` module.
-- Added :class:`sider.types.SortedSet` type.
-
-
-Branch :branch:`transaction`
-----------------------------
-
-Experiements about transactions.
+Released on April 30, 2012.  Alpha release.
 
 - Added :mod:`sider.transaction` module.
+- Added :mod:`sider.sortedset` module.
+- Added :class:`sider.types.SortedSet` type.
+- Added :class:`sider.types.Time` and :class:`sider.types.TZTime` types.
+- Added :class:`sider.types.TimeDelta` type.
+- Introduced :class:`sider.types.Tuple` type for ad-hoc composition of
+  multiple types.
+- The extensible namespace package :mod:`sider.ext` was introduced.
 - Added :mod:`sider.threadlocal` module.
 - Added :attr:`sider.session.Session.verbose_transaction_error` option.
 

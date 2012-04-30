@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Referer List</title>
+  </head>
+  <body>
+    <h1>Referer List</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for url, count in referers %}
+          <tr>
+            <th><a href="{{ url|escape }}" rel="noreferrer">
+                  {{- url|escape }}</a></th>
+            <td>{{ count|int }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <script src="http://fw.mearie.org/script"></script>
+  </body>
+</html>

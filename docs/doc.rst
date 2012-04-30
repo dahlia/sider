@@ -84,6 +84,12 @@ __ http://pygments.org/docs/lexers/
 Tips
 ----
 
+- You can link Redis commands through :rst:role:`redis` role.  For example:
+
+  .. sourcecode:: rst
+
+     Linking :redis:`ZRANGEBYSCORE` command.
+
 - You can link :rst:role:`issue`, :rst:role:`commit` and :rst:role:`branch`.
   For example:
 
