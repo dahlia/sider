@@ -43,6 +43,15 @@ __ http://sider.dahlia.kr/en/latest/roadmap.html
 .. _Redis: http://redis.io/
 
 
+User's guide
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   guide
+
+
 References
 ----------
 
