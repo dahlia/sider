@@ -186,7 +186,7 @@ Okay, here's an empty set: ``my_sorted_set``.  Let's add something to it.
 
 Unlike Python's in-memory :class:`set` or :class:`dict`,
 it's a persistent object.  In other words, ``my_sorted_set``
-still contains ``'kimchi'`` even if you quit this session of
+still contains ``'http://dahlia.kr/'`` even if you quit this session of
 Python interactive shell.  Try yourself: type :data:`exit() <exit>`
 to quit the session and enter :program:`python` again.  And then...
 
