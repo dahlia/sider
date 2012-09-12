@@ -68,6 +68,10 @@ Further reading
 Open source
 -----------
 
+.. image:: https://secure.travis-ci.org/dahlia/sider.png?branch=master
+  :alt: Build Status
+  :target: http://travis-ci.org/dahlia/sider
+
 Sider is an open source software written in `Hong Minhee`__.  The source code
 is distributed under `MIT license`__ and you can find it at `GitHub
 repository`__.  Check out now:

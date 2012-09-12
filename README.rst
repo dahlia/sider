@@ -16,3 +16,6 @@ See also ``LICENSE`` file.
 
 Written by `Hong Minhee <http://dahlia.kr/>`_.
 
+.. image:: https://secure.travis-ci.org/dahlia/sider.png?branch=master
+  :alt: Build Status
+  :target: http://travis-ci.org/dahlia/sider
