@@ -2,7 +2,8 @@ Sider
 =====
 
 Sider is a persistent object library based on Redis_.  This is heavily under
-development currently, but you can check the `future roadmap`__ if you want.
+development currently, but you can check the :doc:`future roadmap <roadmap>`
+if you want.
 
 .. sourcecode:: pycon
 
