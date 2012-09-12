@@ -68,6 +68,6 @@ Any other features?
 Isn't there the feature what you're looking for?  So write__ the feature
 request in our `issue tracker`__.
 
-__ https://bitbucket.org/dahlia/sider/issues/new
-__ https://bitbucket.org/dahlia/sider/issues
+__ https://github.com/dahlia/sider/issues/new
+__ https://github.com/dahlia/sider/issues
 

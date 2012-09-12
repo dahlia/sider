@@ -70,7 +70,7 @@ Stored data will be like:
 Referer                             Count
 ==================================  =====
 http://dahlia.kr/                   1
-https://bitbucket.org/dahlia/sider  3
+https://github.com/dahlia/sider     3
 https://twitter.com/hongminhee      6
 ==================================  =====
 
@@ -228,17 +228,17 @@ Sorted sets
 
 You can :meth:`~sider.sortedset.SortedSet.update()` multiple values at a time:
 
->>> my_sorted_set.update(['https://bitbucket.org/dahlia/sider',
+>>> my_sorted_set.update(['https://github.com/dahlia/sider',
 ...                       'https://twitter.com/hongminhee'])  # ZINCRBY
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set')
- {'https://bitbucket.org/dahlia/sider', 'https://twitter.com/hongminhee',
+ {'https://github.com/dahlia/sider', 'https://twitter.com/hongminhee',
   'http://dahlia.kr/'}>
 >>> my_sorted_set.update(['http://dahlia.kr/',
 ...                       'https://twitter.com/hongminhee'])  # ZINCRBY
 >>> my_sorted_set
 <sider.sortedset.SortedSet ('my_sorted_set')
- {'https://bitbucket.org/dahlia/sider', 'https://twitter.com/hongminhee': 2.0,
+ {'https://github.com/dahlia/sider', 'https://twitter.com/hongminhee': 2.0,
   'http://dahlia.kr/': 2.0}>
 >>> my_sorted_set['http://dahlia.kr/']  # ZSCORE
 2.0
@@ -254,13 +254,13 @@ Similar to :class:`dict` there's :meth:`~sider.sortedset.SortedSet.items()`
 method.
 
 >>> my_sorted_set.items()  # ZRANGE
-[('https://bitbucket.org/dahlia/sider', 1.0),
+[('https://github.com/dahlia/sider', 1.0),
  ('https://twitter.com/hongminhee', 2.0),
  ('http://dahlia.kr/', 2.0)]
 >>> my_sorted_set.items(reverse=True)  # ZREVRANGE
 [('http://dahlia.kr/', 2.0),
  ('https://twitter.com/hongminhee', 2.0),
- ('https://bitbucket.org/dahlia/sider', 1.0)]
+ ('https://github.com/dahlia/sider', 1.0)]
 
 There are other many features to :class:`~sider.sortedset.SortedSet` type,
 but it's all we need to know to implement the middleware.  So we stop
@@ -444,8 +444,8 @@ this:
              <td>6</td>
            </tr>
            <tr>
-             <th><a href="https://bitbucket.org/dahlia/sider"
-                    rel="noreferrer">https://bitbucket.org/dahlia/sider</a></th>
+             <th><a href="https://github.com/dahlia/sider"
+                    rel="noreferrer">https://github.com/dahlia/sider</a></th>
              <td>3</td>
            </tr>
            <tr>
@@ -462,7 +462,7 @@ Source code
 The complete source code of this example can be found in
 :file:`examples/wsgi-referer-stat/` directory of the repository.
 
-https://bitbucket.org/dahlia/sider/src/tip/examples/wsgi-referer-stat
+https://github.com/dahlia/sider/tree/master/examples/wsgi-referer-stat
 
 It's public domain, feel free!
 

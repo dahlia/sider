@@ -38,7 +38,6 @@ What was the name 'Sider' originated from?:
    >>> 'redis'[::-1]
    'sider'
 
-__ http://sider.dahlia.kr/en/latest/roadmap.html
 .. _PyPI: http://pypi.python.org/pypi/Sider
 .. _Redis: http://redis.io/
 
@@ -69,19 +68,19 @@ Open source
 -----------
 
 Sider is an open source software written in `Hong Minhee`__.  The source code
-is distributed under `MIT license`__ and you can find it at `Bitbucket
+is distributed under `MIT license`__ and you can find it at `GitHub
 repository`__.  Check out now:
 
 .. sourcecode:: console
 
-   $ hg clone https://bitbucket.org/dahlia/sider
+   $ git clone git://github.com/dahlia/sider.git
 
 If you find a bug, report it to `the issue tracker`__ or send pull requests.
 
 __ http://dahlia.kr/
 __ http://minhee.mit-license.org/
-__ https://bitbucket.org/dahlia/sider
-__ https://bitbucket.org/dahlia/sider/issues
+__ https://github.com/dahlia/sider
+__ https://github.com/dahlia/sider/issues
 
 
 Community

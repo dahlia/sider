@@ -247,10 +247,9 @@ else:
 
 extlinks = {
     'redis': (lower_sprintf_str('http://redis.io/commands/%s'), ''),
-    'issue': ('https://bitbucket.org/dahlia/sider/issue/%s', 'issue #'),
-    'commit': ('https://bitbucket.org/dahlia/sider/changeset/%s', ''),
-    'branch': ('https://bitbucket.org/dahlia/sider/changesets/tip/'
-               'branch%%28%%22%s%%22%%29', '')
+    'issue': ('https://github.com/dahlia/wand/issues/%s', 'issue #'),
+    'commit': ('https://github.com/dahlia/sider/commit/%s', ''),
+    'branch': ('https://github.com/dahlia/sider/compare/master...%s', '')
 }
 
 todo_include_todos = not readthedocs
