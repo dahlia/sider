@@ -4,7 +4,7 @@
  *
  * Inspired by Solarized <http://ethanschoonover.com/solarized>.
  *
- * Copyright 2012 by Hong Minhee
+ * Copyright 2013 by Hong Minhee
  */
 
 {% set page_width = 940 %}
