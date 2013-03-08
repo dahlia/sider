@@ -526,7 +526,7 @@ def test_pop_t(session):
             len(list_)
 
 
-def test_repr_(session):
+def test_repr(session):
     keyid = key('test_list_repr')
     list_ = session.set(keyid, [1, 2, 3], List(NInt))
     r = repr(list_)

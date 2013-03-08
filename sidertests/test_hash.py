@@ -311,7 +311,7 @@ def test_update(session):
         hashx.update(1234)
 
 
-def test_repr_(session):
+def test_repr(session):
     keyid = key('test_hash_repr')
     hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))
     expected = '<sider.hash.Hash (' + repr(keyid) + ') {1: 2, 3: 4, 5: 6}>'
