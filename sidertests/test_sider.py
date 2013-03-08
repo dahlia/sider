@@ -1,15 +1,4 @@
-import doctest
 import os
-
-
-def test_doctest_types():
-    from sider import types
-    assert 0 == doctest.testmod(types)[0]
-
-
-def test_doctest_datetime():
-    from sider import datetime
-    assert 0 == doctest.testmod(datetime)[0]
 
 
 exttest_count = 0
