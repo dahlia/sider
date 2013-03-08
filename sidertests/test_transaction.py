@@ -1,5 +1,5 @@
 import warnings
-from attest import Tests, assert_hook, raises
+from pytest import raises
 from .env import get_session, key
 from sider.types import List
 from sider.transaction import Transaction
@@ -7,11 +7,7 @@ from sider.exceptions import CommitError, ConflictError, DoubleTransactionError
 from sider.warnings import SiderWarning
 
 
-tests = Tests()
-
-
-@tests.test
-def raw_transaction():
+def test_raw_transaction():
     session1 = get_session()
     session2 = get_session()
     keyid = key('test_transaction_raw')
@@ -27,8 +23,7 @@ def raw_transaction():
     assert list1[:] == list2[:] == ['a', 'b', 'c', 'd']
 
 
-@tests.test
-def transaction_iterate():
+def test_transaction_iterate():
     session = get_session()
     session2 = get_session()
     keyid = key('test_transaction_iterate')
@@ -43,8 +38,7 @@ def transaction_iterate():
     assert trial == 3
 
 
-@tests.test
-def transaction_call():
+def test_transaction_call():
     session = get_session()
     session2 = get_session()
     keyid = key('test_transaction_call')
@@ -63,8 +57,7 @@ def transaction_call():
     assert total_trial[0] == 3
 
 
-@tests.test
-def automatic_watch():
+def test_automatic_watch():
     session = get_session()
     session2 = get_session()
     keyid = key('test_transaction_automatic_watch')
@@ -90,8 +83,7 @@ def automatic_watch():
             assert issubclass(w[0].category, SiderWarning)
 
 
-@tests.test
-def conflict_error():
+def test_conflict_error():
     session = get_session()
     session2 = get_session()
     keyid = key('test_transaction_conflict_error')
@@ -103,8 +95,7 @@ def conflict_error():
             list2.append('e')
 
 
-@tests.test
-def commit_error():
+def test_commit_error():
     session = get_session()
     keyid = key('test_transaction_commit_error')
     list_ = session.set(keyid, 'abc', List)
@@ -122,12 +113,10 @@ def commit_error():
     assert list_[:] == list('abc'), 'transaction must be rolled back'
 
 
-@tests.test
-def double_transaction_error():
+def test_double_transaction_error():
     session = get_session()
     keyid = key('test_transaction_double_error')
     with Transaction(session, [keyid]):
         with raises(DoubleTransactionError):
             with Transaction(session, [keyid]):
                 pass
-

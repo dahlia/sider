@@ -1,5 +1,4 @@
-import sidertests
+import sidertests.test_sider
 
 ext_loaded = 'yes'
-sidertests.exttest_count += 1
-
+sidertests.test_sider.exttest_count += 1

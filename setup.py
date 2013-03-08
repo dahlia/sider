@@ -1,14 +1,9 @@
 from __future__ import with_statement
-import re
 import os.path
-import mimetypes
-import getpass
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError
 from sider.version import VERSION
 
 
@@ -33,9 +28,7 @@ setup(name='Sider',
       maintainer_email='minhee' '@' 'dahlia.kr',
       url='http://sider.dahlia.kr/',
       install_requires=['redis'],
-      tests_require=['Attest'],
-      test_loader='attest:auto_reporter.test_loader',
-      test_suite='sidertests.tests',
+      tests_require=['pytest'],
       extras_require={'docs': ['Sphinx >= 1.1']},
       classifiers=[
         'Development Status :: 3 - Alpha',
@@ -50,4 +43,3 @@ setup(name='Sider',
         'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Database'
       ])
-

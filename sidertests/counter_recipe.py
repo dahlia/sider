@@ -5,6 +5,7 @@ from operator import itemgetter
 from heapq import nlargest
 from itertools import repeat, ifilter
 
+
 class Counter(dict):
     '''Dict subclass for counting hashable objects.  Sometimes called a bag
     or multiset.  Elements are stored as dictionary keys and their counts
@@ -20,12 +21,12 @@ class Counter(dict):
         from an input iterable.  Or, initialize the count from another mapping
         of elements to their counts.
 
-        >>> c = Counter()                           # a new, empty counter
-        >>> c = Counter('gallahad')                 # a new counter from an iterable
-        >>> c = Counter({'a': 4, 'b': 2})           # a new counter from a mapping
-        >>> c = Counter(a=4, b=2)                   # a new counter from keyword args
+        >>> c = Counter()                     # a new, empty counter
+        >>> c = Counter('gallahad')           # a new counter from an iterable
+        >>> c = Counter({'a': 4, 'b': 2})     # a new counter from a mapping
+        >>> c = Counter(a=4, b=2)             # a new counter from keyword args
 
-        '''        
+        '''
         self.update(iterable, **kwds)
 
     def __missing__(self, key):
@@ -38,7 +39,7 @@ class Counter(dict):
         >>> Counter('abracadabra').most_common(3)
         [('a', 5), ('r', 2), ('b', 2)]
 
-        '''        
+        '''
         if n is None:
             return sorted(self.iteritems(), key=itemgetter(1), reverse=True)
         return nlargest(n, self.iteritems(), key=itemgetter(1))
@@ -77,7 +78,7 @@ class Counter(dict):
         >>> c['h']                      # four 'h' in which, witch, and watch
         4
 
-        '''        
+        '''
         if iterable is not None:
             if hasattr(iterable, 'iteritems'):
                 if self:
@@ -85,7 +86,8 @@ class Counter(dict):
                     for elem, count in iterable.iteritems():
                         self[elem] = self_get(elem, 0) + count
                 else:
-                    dict.update(self, iterable) # fast path when counter is empty
+                    # fast path when counter is empty
+                    dict.update(self, iterable)
             else:
                 self_get = self.get
                 for elem in iterable:

@@ -1,35 +1,30 @@
-from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, init_session, key
+from pytest import raises
+from .env import NInt, get_session, key
+from .env import session
 from sider.types import Set
 from sider.transaction import Transaction
 from sider.exceptions import CommitError
 
 
-tests = Tests()
-tests.context(init_session)
-
 S = frozenset
 IntSet = Set(NInt)
 
 
-@tests.test
-def iterate(session):
+def test_iterate(session):
     set_ = session.set(key('test_set_iterate'), S('abc'), Set)
     assert S(['a', 'b', 'c']) == S(set_)
     setx = session.set(key('test_setx_iterate'), S([1, 2, 3]), IntSet)
     assert S([1, 2, 3]) == S(setx)
 
 
-@tests.test
-def length(session):
+def test_length(session):
     set_ = session.set(key('test_set_length'), S('abc'), Set)
     assert len(set_) == 3
     setx = session.set(key('test_setx_length'), S([1, 2, 3]), IntSet)
     assert len(setx) == 3
 
 
-@tests.test
-def contains(session):
+def test_contains(session):
     set_ = session.set(key('test_set_contains'), S('abc'), Set)
     assert 'a' in set_
     assert 'd' not in set_
@@ -40,8 +35,7 @@ def contains(session):
     assert '4' not in setx
 
 
-@tests.test
-def equals(session):
+def test_equals(session):
     set_ = session.set(key('test_set_equals'), S('abc'), Set)
     set2 = session.set(key('test_set_equals2'), S('abc'), Set)
     set3 = session.set(key('test_set_equals3'), S('abcd'), Set)
@@ -58,8 +52,7 @@ def equals(session):
     assert emptyset == emptyset2 and emptyset2 == emptyset
 
 
-@tests.test
-def isdisjoint(session):
+def test_isdisjoint(session):
     set_ = session.set(key('test_set_isdisjoint'), S('abc'), Set)
     setj = session.set(key('test_set_isdisjoint2'), S('cde'), Set)
     setd = session.set(key('test_set_isdisjoint3'), S('def1'), Set)
@@ -91,8 +84,7 @@ def isdisjoint(session):
     assert setxd.isdisjoint(setd)
 
 
-@tests.test
-def issubset(session):
+def test_issubset(session):
     test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
     for value_type, members in test_sets.iteritems():
@@ -151,8 +143,7 @@ def issubset(session):
     assert not fixtures[Set()][0].issubset(fixtures[Set(NInt)][2])
 
 
-@tests.test
-def issuperset(session):
+def test_issuperset(session):
     test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
     for value_type, members in test_sets.iteritems():
@@ -211,8 +202,7 @@ def issuperset(session):
     assert not fixtures[Set()][0].issuperset(fixtures[Set(NInt)][2])
 
 
-@tests.test
-def difference(session):
+def test_difference(session):
     set_ = session.set(key('test_set_difference'), S('abcd'), Set)
     set2 = session.set(key('test_set_difference2'), S('bde1'), Set)
     set3 = session.set(key('test_set_difference3'), S('az'), Set)
@@ -251,7 +241,7 @@ def difference(session):
     assert setx.difference(S([2, 4, 5, 6]), S([1, 7])) == S([3])
     assert setx - sety == S([1, 3])
     assert setx - S([2, 4, 5, 6]) == S([1, 3])
-    assert S([2, 4, 5, 6]) -setx == S([5, 6])
+    assert S([2, 4, 5, 6]) - setx == S([5, 6])
     with raises(TypeError):
         setx - [2, 4, 5, 6]
     # mismatched value_type NInt vs. Bulk:
@@ -261,8 +251,7 @@ def difference(session):
     assert setx == setx.difference(set2, set3)
 
 
-@tests.test
-def symmetric_difference(session):
+def test_symmetric_difference(session):
     set_ = session.set(key('test_set_symmdiff'), S('abcd'), Set)
     set2 = session.set(key('test_set_symmdiff2'), S('bde1'), Set)
     assert set_.symmetric_difference(set2) == S('ace1')
@@ -288,8 +277,7 @@ def symmetric_difference(session):
     assert set2.union(setx) == set2.symmetric_difference(setx)
 
 
-@tests.test
-def union(session):
+def test_union(session):
     set_ = session.set(key('test_set_union'), S('abc'), Set)
     set2 = session.set(key('test_set_union2'), S('cde'), Set)
     set3 = session.set(key('test_set_union3'), S('def'), Set)
@@ -329,8 +317,7 @@ def union(session):
     assert set_ | setx == S(['a', 'b', 'c', 1, 2, 3])
 
 
-@tests.test
-def intersection(session):
+def test_intersection(session):
     set_ = session.set(key('test_set_intersection'), S('abc'), Set)
     set2 = session.set(key('test_set_intersection2'), S('bcd'), Set)
     set3 = session.set(key('test_set_intersection3'), S('bef'), Set)
@@ -370,8 +357,7 @@ def intersection(session):
     assert set_ & setx == S([])
 
 
-@tests.test
-def add(session):
+def test_add(session):
     set_ = session.set(key('test_set_add'), S('abc'), Set)
     set_.add('d')
     assert set_ == S('abcd')
@@ -388,8 +374,7 @@ def add(session):
         setx.add('a')
 
 
-@tests.test
-def discard(session):
+def test_discard(session):
     set_ = session.set(key('test_set_discard'), S('abc'), Set)
     set_.discard('a')
     assert set_ == S('bc')
@@ -406,8 +391,7 @@ def discard(session):
     assert setx == S([2, 3])
 
 
-@tests.test
-def pop(session):
+def test_pop(session):
     expected = set('abc')
     set_ = session.set(key('test_set_pop'), expected, Set)
     popped = set_.pop()
@@ -427,8 +411,7 @@ def pop(session):
         set_.pop()
 
 
-@tests.test
-def pop_t(session):
+def test_pop_t(session):
     session2 = get_session()
     expected = set('abc')
     keyid = key('test_set_pop_t')
@@ -464,15 +447,13 @@ def pop_t(session):
             set_.pop()
 
 
-@tests.test
-def clear(session):
+def test_clear(session):
     set_ = session.set(key('test_set_clear'), S('abc'), Set)
     set_.clear()
     assert len(set_) == 0
 
 
-@tests.test
-def update(session):
+def test_update(session):
     def reset():
         return session.set(key('test_set_update'), S('abc'), Set)
     set_ = reset()
@@ -551,8 +532,7 @@ def update(session):
         set_ |= setx == S(['a', 'b', 'c', 1, 2, 3])
 
 
-@tests.test
-def update_t(session):
+def test_update_t(session):
     session2 = get_session()
     keyid = key('test_set_update_t')
     keyid2 = key('test_set_update_t2')
@@ -569,7 +549,7 @@ def update_t(session):
         with raises(CommitError):
             len(set_)
     assert set_ == S(setx) == S('abcde')
-    set_= reset()
+    set_ = reset()
     with Transaction(session, [keyid]):
         card = len(set_)
         assert card == 3
@@ -578,7 +558,7 @@ def update_t(session):
         with raises(CommitError):
             len(set_)
     assert set_ == S(setx) == S('abcde')
-    set_= reset()
+    set_ = reset()
     with Transaction(session, [keyid]):
         card = len(set_)
         assert card == 3
@@ -589,8 +569,7 @@ def update_t(session):
     assert set_ == S(setx) == S('abcdefg')
 
 
-@tests.test
-def intersection_update(session):
+def test_intersection_update(session):
     def reset():
         return session.set(key('test_set_intersection_update'), S('abc'), Set)
     set_ = reset()
@@ -682,8 +661,7 @@ def intersection_update(session):
     assert set_ == S([])
 
 
-@tests.test
-def intersection_update_t(session):
+def test_intersection_update_t(session):
     session2 = get_session()
     keyid = key('test_set_intersection_update_t')
     keyid2 = key('test_set_intersection_update_t2')
@@ -702,8 +680,7 @@ def intersection_update_t(session):
             len(set_)
 
 
-@tests.test
-def difference_update(session):
+def test_difference_update(session):
     def reset():
         return session.set(key('test_set_difference_update'), S('abcd'), Set)
     set_ = reset()
@@ -828,8 +805,7 @@ def difference_update(session):
     assert setx == S([1, 2, 3, 4])
 
 
-@tests.test
-def difference_update_t(session):
+def test_difference_update_t(session):
     session2 = get_session()
     keyid = key('test_set_difference_update_t')
     keyid2 = key('test_set_difference_update_t2')
@@ -848,8 +824,7 @@ def difference_update_t(session):
             len(set_)
 
 
-@tests.test
-def symmetric_difference_update(session):
+def test_symmetric_difference_update(session):
     def reset():
         return session.set(key('test_set_symmdiff'), S('abcd'), Set)
     set_ = reset()
@@ -900,8 +875,7 @@ def symmetric_difference_update(session):
         set2.symmetric_difference_update(setx)
 
 
-@tests.test
-def symmetric_difference_update_t(session):
+def test_symmetric_difference_update_t(session):
     session2 = get_session()
     keyid = key('test_set_symmdiff_t')
     keyid2 = key('test_set_symmdiff_t2')
@@ -920,9 +894,7 @@ def symmetric_difference_update_t(session):
             len(set_)
 
 
-@tests.test
-def repr_(session):
+def test_repr(session):
     keyid = key('test_set_repr')
     set_ = session.set(keyid, set([1, 2, 3]), IntSet)
     assert '<sider.set.Set (' + repr(keyid) + ') {1, 2, 3}>' == repr(set_)
-

@@ -1,19 +1,16 @@
-from attest import Tests, assert_hook, raises
-from .env import NInt, get_session, init_session, key
+from pytest import raises
+from .env import NInt, get_session, key
+from .env import session
 from sider.types import SortedSet
 from sider.transaction import Transaction
 from sider.exceptions import CommitError
 
 
-tests = Tests()
-tests.context(init_session)
-
 S = frozenset
 IntSet = SortedSet(NInt)
 
 
-@tests.test
-def iterate(session):
+def test_iterate(session):
     set_ = session.set(key('test_sortedset_iterate'),
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
@@ -24,16 +21,14 @@ def iterate(session):
     assert list(setx) == [2, 3, 1]
 
 
-@tests.test
-def length(session):
+def test_length(session):
     set_ = session.set(key('test_sortedset_length'), S('abc'), SortedSet)
     assert len(set_) == 3
     setx = session.set(key('test_sortedsetx_length'), S([1, 2, 3]), IntSet)
     assert len(setx) == 3
 
 
-@tests.test
-def contains(session):
+def test_contains(session):
     set_ = session.set(key('test_sortedset_contains'), S('abc'), SortedSet)
     assert 'a' in set_
     assert 'd' not in set_
@@ -44,8 +39,7 @@ def contains(session):
     assert '4' not in setx
 
 
-@tests.test
-def getitem(session):
+def test_getitem(session):
     set_ = session.set(key('test_sortedset_getitem'), S('abc'), SortedSet)
     assert set_['a'] == 1
     assert set_['b'] == 1
@@ -72,8 +66,7 @@ def getitem(session):
     assert setx[3] == -1
 
 
-@tests.test
-def setitem(session):
+def test_setitem(session):
     set_ = session.set(key('test_sortedset_setitem'), S('abc'), SortedSet)
     set_['d'] = 1
     set_['a'] = 2.1
@@ -92,8 +85,7 @@ def setitem(session):
         setx[123] = 'a'
 
 
-@tests.test
-def delitem(session):
+def test_delitem(session):
     set_ = session.set(key('test_sortedset_delitem'), S('abc'), SortedSet)
     del set_['b']
     assert S(set_) == S('ac')
@@ -110,8 +102,7 @@ def delitem(session):
         del setx['a']
 
 
-@tests.test
-def delitem_t(session):
+def test_delitem_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_delitem_t')
     set_ = session.set(keyid, S('abc'), SortedSet)
@@ -149,8 +140,7 @@ def delitem_t(session):
             del setx['a']
 
 
-@tests.test
-def keys(session):
+def test_keys(session):
     set_ = session.set(key('test_sortedset_keys'),
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
@@ -160,20 +150,20 @@ def keys(session):
     assert setx.keys(reverse=True) == [1, 3, 2]
 
 
-@tests.test
-def items(session):
+def test_items(session):
     set_ = session.set(key('test_sortedset_items'),
                        {'a': 1, 'b': 2, 'c': 3},
                        SortedSet)
     assert set_.items() == [('a', 1), ('b', 2), ('c', 3)]
     assert set_.items(reverse=True) == [('c', 3), ('b', 2), ('a', 1)]
-    setx = session.set(key('test_sortedsetx_items'), {1: 1, 2: 2, 3: 3}, IntSet)
+    setx = session.set(key('test_sortedsetx_items'),
+                       {1: 1, 2: 2, 3: 3},
+                       IntSet)
     assert setx.items() == [(1, 1), (2, 2), (3, 3)]
     assert setx.items(reverse=True) == [(3, 3), (2, 2), (1, 1)]
 
 
-@tests.test
-def values(session):
+def test_values(session):
     set_ = session.set(key('test_sortedset_values'),
                        {'a': 3, 'b': 1, 'c': 2, 'd': 1},
                        SortedSet)
@@ -186,8 +176,7 @@ def values(session):
     assert setx.values(reverse=True) == [3, 2, 1, 1]
 
 
-@tests.test
-def most_common(session):
+def test_most_common(session):
     set_ = session.set(key('test_sortedset_most_common'),
                        {'a': 5, 's': 4, 'd': 3, 'f': 2, 'g': 1},
                        SortedSet)
@@ -195,18 +184,18 @@ def most_common(session):
     assert set_.most_common() == [('a',5), ('s',4), ('d',3), ('f',2), ('g',1)]
     assert set_.most_common(3, reverse=True) == [('g', 1), ('f', 2), ('d', 3)]
     assert (set_.most_common(reverse=True) ==
-            [('g', 1), ('f', 2), ('d', 3), ('s', 4), ('a',5)])
+            [('g', 1), ('f', 2), ('d', 3), ('s', 4), ('a', 5)])
     setx = session.set(key('test_sortedsetx_most_common'),
                        {7: 5, 3: 4, 9: 3, 2: 2, 6: 1},
                        IntSet)
     assert setx.most_common(3) == [(7, 5), (3, 4), (9, 3)]
     assert setx.most_common() == [(7, 5), (3, 4), (9, 3), (2, 2), (6, 1)]
     assert setx.most_common(3, reverse=True) == [(6, 1), (2, 2), (9, 3)]
-    assert setx.most_common(reverse=True) == [(6,1), (2,2), (9,3), (3,4), (7,5)]
+    assert setx.most_common(reverse=True) == [(6, 1), (2, 2), (9, 3),
+                                              (3, 4), (7, 5)]
 
 
-@tests.test
-def least_common(session):
+def test_least_common(session):
     set_ = session.set(key('test_sortedset_least_common'),
                        {'a': 5, 's': 4, 'd': 3, 'f': 2, 'g': 1},
                        SortedSet)
@@ -221,11 +210,11 @@ def least_common(session):
     assert setx.least_common(3) == [(6, 1), (2, 2), (9, 3)]
     assert setx.least_common() == [(6, 1), (2, 2), (9, 3), (3, 4), (7, 5)]
     assert setx.least_common(3, reverse=True) == [(7, 5), (3, 4), (9, 3)]
-    assert setx.least_common(reverse=True) == [(7,5), (3,4), (9,3), (2,2), (6,1)]
+    assert setx.least_common(reverse=True) == [(7, 5), (3, 4), (9, 3),
+                                               (2, 2), (6, 1)]
 
 
-@tests.test
-def equals(session):
+def test_equals(session):
     set_ = session.set(key('test_set_equals'), S('abc'), SortedSet)
     set2 = session.set(key('test_set_equals2'), S('abc'), SortedSet)
     set3 = session.set(key('test_set_equals3'), S('abcd'), SortedSet)
@@ -248,8 +237,7 @@ def equals(session):
     assert emptyset == emptyset2 and emptyset2 == emptyset
 
 
-@tests.test
-def add(session):
+def test_add(session):
     set_ = session.set(key('test_sortedset_add'), S('abc'), SortedSet)
     set_.add('d')
     assert dict(set_) == {'a': 1, 'b': 1, 'c': 1, 'd': 1}
@@ -278,8 +266,7 @@ def add(session):
         setx.add(1, score='1.5')
 
 
-@tests.test
-def discard(session):
+def test_discard(session):
     set_ = session.set(key('test_sortedset_discard'), S('abc'), SortedSet)
     set_.discard('a')
     assert dict(set_) == {'b': 1, 'c': 1}
@@ -308,8 +295,7 @@ def discard(session):
         setx.discard(1, score='1.5')
 
 
-@tests.test
-def discard_t(session):
+def test_discard_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_discard_t')
     set_ = session.set(keyid, S('abc'), SortedSet)
@@ -342,8 +328,7 @@ def discard_t(session):
     assert dict(set_) == dict(set2) == {'b': 0, 'c': 1}
 
 
-@tests.test
-def setdefault(session):
+def test_setdefault(session):
     set_ = session.set(key('test_sortedset_setdefault'),
                        {'h': 1, 'o': 2, 'n': 3, 'g': 4},
                        SortedSet)
@@ -376,8 +361,7 @@ def setdefault(session):
         setx.setdefault(700, '123')
 
 
-@tests.test
-def setdefault_t(session):
+def test_setdefault_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_setdefault_t')
     set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4}, SortedSet)
@@ -413,8 +397,7 @@ def setdefault_t(session):
             == dict(set_) == dict(set2))
 
 
-@tests.test
-def pop_set(session):
+def test_pop_set(session):
     set_ = session.set(key('test_sortedset_pop_set'),
                        {'h': 1, 'o': 2, 'n': 3, 'g': 4.5},
                        SortedSet)
@@ -459,8 +442,7 @@ def pop_set(session):
         setx.pop()
 
 
-@tests.test
-def pop_set_t(session):
+def test_pop_set_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_pop_set_t')
     set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}, SortedSet)
@@ -505,8 +487,7 @@ def pop_set_t(session):
             set_.pop()
 
 
-@tests.test
-def pop_dict(session):
+def test_pop_dict(session):
     set_ = session.set(key('test_sortedset_dict_set'),
                        {'h': 1, 'o': 1, 'n': 3, 'g': 4},
                        SortedSet)
@@ -549,8 +530,7 @@ def pop_dict(session):
     assert popped == 'default value'
 
 
-@tests.test
-def pop_dict_t(session):
+def test_pop_dict_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_dict_set_t')
     set_ = session.set(keyid, {'h': 1, 'o': 1, 'n': 3, 'g': 4}, SortedSet)
@@ -601,8 +581,7 @@ def pop_dict_t(session):
     assert dict(set_) == dict(set2) == {'h': 1}
 
 
-@tests.test
-def popitem(session):
+def test_popitem(session):
     set_ = session.set(key('test_sortedset_popitem'),
                        {'h': 1, 'o': 2, 'n': 3, 'g': 4.5},
                        SortedSet)
@@ -647,8 +626,7 @@ def popitem(session):
         setx.popitem()
 
 
-@tests.test
-def popitem_t(session):
+def test_popitem_t(session):
     session2 = get_session()
     keyid = key('test_sortedset_popitem_t')
     set_ = session.set(keyid, {'h': 1, 'o': 2, 'n': 3, 'g': 4.5}, SortedSet)
@@ -693,8 +671,7 @@ def popitem_t(session):
             set_.popitem()
 
 
-@tests.test
-def clear(session):
+def test_clear(session):
     set_ = session.set(key('test_sortedset_clear'), S('abc'), SortedSet)
     set_.clear()
     assert len(set_) == 0
@@ -703,8 +680,7 @@ def clear(session):
     assert len(setx) == 0
 
 
-@tests.test
-def update(session):
+def test_update(session):
     def reset():
         return session.set(key('test_sortedset_update'), S('abc'), SortedSet)
     set_ = reset()
@@ -732,8 +708,7 @@ def update(session):
     assert dict(setx) == {1: 1, 2: 3, 3: 4.1, 4: 6, 5: 1}
 
 
-@tests.test
-def repr_(session):
+def test_repr(session):
     keyid = key('test_sortedset_repr')
     set_ = session.set(keyid, set([1, 2, 3]), IntSet)
     expected = '<sider.sortedset.SortedSet (' + repr(keyid) + ') {1, 2, 3}>'
@@ -742,4 +717,3 @@ def repr_(session):
     expected = '<sider.sortedset.SortedSet (' + repr(keyid) + \
                ') {2, 3, 1: 2.0}>'
     assert expected == repr(set_)
-
