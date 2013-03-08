@@ -1,5 +1,6 @@
 import os
 import datetime
+import numbers
 import pytest
 from redis.client import StrictRedis
 from sider.session import Session
@@ -53,7 +54,7 @@ class NInt(Integer):
     """Saves integers as its negative number.  Testing purpose."""
 
     def encode(self, value):
-        if not isinstance(value, (int, long)):
+        if not isinstance(value, numbers.Integral):
             raise TypeError('expected an integer, not {0!r}; something went '
                             'wrong!'.format(value))
         return Integer.encode(self, -value + 6)
