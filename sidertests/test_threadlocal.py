@@ -3,11 +3,7 @@ try:
     import greenlet
 except ImportError:
     greenlet = None
-from attest import Tests, assert_hook, raises
 from sider.threadlocal import LocalDict, get_ident
-
-
-tests = Tests()
 
 
 def thread_test(generator, args1=(), args2=()):
@@ -48,7 +44,6 @@ else:
         pass # skip
 
 
-@tests.test
 def test_get_ident():
     result = [None, None]
     local = {}
@@ -65,7 +60,6 @@ def test_get_ident():
         assert result == [123, 456]
 
 
-@tests.test
 def test_local_dict():
     local = LocalDict()
     result = [None, None]

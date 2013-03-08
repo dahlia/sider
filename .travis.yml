@@ -4,10 +4,10 @@ python:
 - 2.7
 - pypy
 install:
-- python setup.py develop
-- pip install Attest
+- pip install -e .
+- pip install pytest
 script:
-- python -mattest.run sidertests.tests
+- py.test
 notifications:
   irc:
     channels:

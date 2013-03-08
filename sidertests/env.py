@@ -1,5 +1,6 @@
 import os
 import datetime
+import pytest
 from redis.client import StrictRedis
 from sider.session import Session
 from sider.types import Integer
@@ -26,13 +27,14 @@ def key(key):
     return prefix + str(key)
 
 
-def init_session():
+@pytest.fixture
+def session(request):
     client = get_client()
-    try:
-        session = Session(client)
-        session.verbose_transaction_error = True
-        yield session
-    finally:
+    session = Session(client)
+    session.verbose_transaction_error = True
+
+    @request.addfinalizer
+    def fin():
         #: .. note::
         #:
         #:    Using ``FLUSHALL`` command is more easier and faster, but it's
@@ -44,6 +46,7 @@ def init_session():
         used_keys = client.keys(prefix + '*')
         if used_keys:
             client.delete(*used_keys)
+    return session
 
 
 class NInt(Integer):

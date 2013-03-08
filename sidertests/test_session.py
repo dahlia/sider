@@ -1,23 +1,19 @@
 import warnings
 from redis.client import StrictRedis, Redis
-from attest import Tests, assert_hook, raises
-from .env import NInt, init_session, get_client, key
+from pytest import raises
+from .env import NInt, get_client, key
+from .env import session
 from sider.session import Session
 from sider.types import (Set as SetT, List as ListT, Integer)
 from sider.set import Set
 from sider.list import List
 
 
-tests = Tests()
-tests.context(init_session)
-
-
 class CustomRedis(StrictRedis):
     """A custom subclass of StrictRedis for test."""
 
 
-@tests.test
-def warn_old_client():
+def test_warn_old_client():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
         Session(get_client(cls=CustomRedis))
@@ -30,24 +26,21 @@ def warn_old_client():
         assert issubclass(w[0].category, DeprecationWarning)
 
 
-@tests.test
-def getset_int(session):
+def test_getset_int(session):
     int_ = session.set(key('test_session_getset_int'), 1234, Integer)
     assert int_ == 1234
     int_ = session.get(key('test_session_getset_int'), Integer)
     assert int_ == 1234
 
 
-@tests.test
-def getset_nint(session):
+def test_getset_nint(session):
     int_ = session.set(key('test_session_getset_nint'), 1234, NInt)
     assert int_ == 1234
     int_ = session.get(key('test_session_getset_nint'), NInt)
     assert int_ == 1234
 
 
-@tests.test
-def getset_set(session):
+def test_getset_set(session):
     set_ = session.set(key('test_session_getset_set'), set('abc'), SetT)
     assert isinstance(set_, Set)
     assert set(set_) == set(['a', 'b', 'c'])
@@ -60,8 +53,7 @@ def getset_set(session):
         session.set(key('test_session_getset_set'), 'abc', SetT)
 
 
-@tests.test
-def getset_list(session):
+def test_getset_list(session):
     lst = session.set(key('test_session_getset_list'), 'abc', ListT)
     assert isinstance(lst, List)
     assert list(lst) == ['a', 'b', 'c']
