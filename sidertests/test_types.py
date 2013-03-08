@@ -2,7 +2,7 @@ import datetime
 from pytest import raises
 from .env import key
 from .env import session
-from sider.types import Boolean, ByteString, Date, DateTime,TZDateTime
+from sider.types import Boolean, ByteString, Date, DateTime, TZDateTime
 from sider.datetime import FixedOffset
 
 
@@ -58,4 +58,3 @@ def test_tzdatetime(session):
     session.set(key('test_types_tzdatetime'), '1988-08-04', ByteString)
     with raises(ValueError):
         session.get(key('test_types_tzdatetime'), TZDateTime)
-

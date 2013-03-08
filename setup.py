@@ -1,14 +1,9 @@
 from __future__ import with_statement
-import re
 import os.path
-import mimetypes
-import getpass
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError
 from sider.version import VERSION
 
 
@@ -48,4 +43,3 @@ setup(name='Sider',
         'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Database'
       ])
-

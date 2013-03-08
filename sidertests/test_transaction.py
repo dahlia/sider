@@ -120,4 +120,3 @@ def test_double_transaction_error():
         with raises(DoubleTransactionError):
             with Transaction(session, [keyid]):
                 pass
-

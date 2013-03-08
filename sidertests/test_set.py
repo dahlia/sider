@@ -241,7 +241,7 @@ def test_difference(session):
     assert setx.difference(S([2, 4, 5, 6]), S([1, 7])) == S([3])
     assert setx - sety == S([1, 3])
     assert setx - S([2, 4, 5, 6]) == S([1, 3])
-    assert S([2, 4, 5, 6]) -setx == S([5, 6])
+    assert S([2, 4, 5, 6]) - setx == S([5, 6])
     with raises(TypeError):
         setx - [2, 4, 5, 6]
     # mismatched value_type NInt vs. Bulk:
@@ -549,7 +549,7 @@ def test_update_t(session):
         with raises(CommitError):
             len(set_)
     assert set_ == S(setx) == S('abcde')
-    set_= reset()
+    set_ = reset()
     with Transaction(session, [keyid]):
         card = len(set_)
         assert card == 3
@@ -558,7 +558,7 @@ def test_update_t(session):
         with raises(CommitError):
             len(set_)
     assert set_ == S(setx) == S('abcde')
-    set_= reset()
+    set_ = reset()
     with Transaction(session, [keyid]):
         card = len(set_)
         assert card == 3
@@ -894,8 +894,7 @@ def test_symmetric_difference_update_t(session):
             len(set_)
 
 
-def test_repr_(session):
+def test_repr(session):
     keyid = key('test_set_repr')
     set_ = session.set(keyid, set([1, 2, 3]), IntSet)
     assert '<sider.set.Set (' + repr(keyid) + ') {1, 2, 3}>' == repr(set_)
-

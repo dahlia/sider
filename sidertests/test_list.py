@@ -539,4 +539,3 @@ def test_repr_(session):
     expected = '<sider.list.List ({0!r}) {1}, ...]>'.format(keyid,
         repr(range(20))[:-1])
     assert expected == r
-

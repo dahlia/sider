@@ -60,4 +60,3 @@ class NInt(Integer):
 
     def decode(self, bulk):
         return -(Integer.decode(self, bulk) - 6)
-

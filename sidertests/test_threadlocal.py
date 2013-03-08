@@ -41,7 +41,7 @@ if greenlet:
                   *args1)
 else:
     def coro_test(*a, **k):
-        pass # skip
+        pass  # skip
 
 
 def test_get_ident():
@@ -70,7 +70,7 @@ def test_local_dict():
         result[result_idx] = (
             len(local), list(iter(local)), 'a' in local, 'b' in local,
             local['a'], local.copy(), local.get('a', 1), local.get('b', 2),
-            local.has_key('a'), local.has_key('b'), local.items(),
+            'a' in local, 'b' in local, local.items(),
             list(local.iteritems()), list(local.iterkeys()),
             list(local.itervalues()), local.keys(), local.values()
         )
@@ -99,4 +99,3 @@ def test_local_dict():
         coro_test(run, (789, 0), (123, 1))
         assert_expects(result[0], 789)
         assert_expects(result[1], 123)
-

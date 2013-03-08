@@ -156,7 +156,9 @@ def test_items(session):
                        SortedSet)
     assert set_.items() == [('a', 1), ('b', 2), ('c', 3)]
     assert set_.items(reverse=True) == [('c', 3), ('b', 2), ('a', 1)]
-    setx = session.set(key('test_sortedsetx_items'), {1: 1, 2: 2, 3: 3}, IntSet)
+    setx = session.set(key('test_sortedsetx_items'),
+                       {1: 1, 2: 2, 3: 3},
+                       IntSet)
     assert setx.items() == [(1, 1), (2, 2), (3, 3)]
     assert setx.items(reverse=True) == [(3, 3), (2, 2), (1, 1)]
 
@@ -182,14 +184,15 @@ def test_most_common(session):
     assert set_.most_common() == [('a',5), ('s',4), ('d',3), ('f',2), ('g',1)]
     assert set_.most_common(3, reverse=True) == [('g', 1), ('f', 2), ('d', 3)]
     assert (set_.most_common(reverse=True) ==
-            [('g', 1), ('f', 2), ('d', 3), ('s', 4), ('a',5)])
+            [('g', 1), ('f', 2), ('d', 3), ('s', 4), ('a', 5)])
     setx = session.set(key('test_sortedsetx_most_common'),
                        {7: 5, 3: 4, 9: 3, 2: 2, 6: 1},
                        IntSet)
     assert setx.most_common(3) == [(7, 5), (3, 4), (9, 3)]
     assert setx.most_common() == [(7, 5), (3, 4), (9, 3), (2, 2), (6, 1)]
     assert setx.most_common(3, reverse=True) == [(6, 1), (2, 2), (9, 3)]
-    assert setx.most_common(reverse=True) == [(6,1), (2,2), (9,3), (3,4), (7,5)]
+    assert setx.most_common(reverse=True) == [(6, 1), (2, 2), (9, 3),
+                                              (3, 4), (7, 5)]
 
 
 def test_least_common(session):
@@ -207,7 +210,8 @@ def test_least_common(session):
     assert setx.least_common(3) == [(6, 1), (2, 2), (9, 3)]
     assert setx.least_common() == [(6, 1), (2, 2), (9, 3), (3, 4), (7, 5)]
     assert setx.least_common(3, reverse=True) == [(7, 5), (3, 4), (9, 3)]
-    assert setx.least_common(reverse=True) == [(7,5), (3,4), (9,3), (2,2), (6,1)]
+    assert setx.least_common(reverse=True) == [(7, 5), (3, 4), (9, 3),
+                                               (2, 2), (6, 1)]
 
 
 def test_equals(session):
@@ -713,4 +717,3 @@ def test_repr(session):
     expected = '<sider.sortedset.SortedSet (' + repr(keyid) + \
                ') {2, 3, 1: 2.0}>'
     assert expected == repr(set_)
-

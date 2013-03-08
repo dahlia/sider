@@ -31,9 +31,9 @@ def test_length(session):
 def test_contains(session):
     hash_ = session.set(key('test_hash_contains'), fixture_a, Hash)
     assert 'a' in hash_
-    assert 'b' not in hash_ 
+    assert 'b' not in hash_
     assert 'c' in hash_
-    assert 1 not in hash_ 
+    assert 1 not in hash_
     hashx = session.set(key('test_hashx_contains'), fixture_b, Hash(NInt))
     assert 1 in hashx
     assert 2 in hashx
@@ -316,4 +316,3 @@ def test_repr_(session):
     hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))
     expected = '<sider.hash.Hash (' + repr(keyid) + ') {1: 2, 3: 4, 5: 6}>'
     assert expected == repr(hash_)
-

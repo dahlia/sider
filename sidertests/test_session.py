@@ -62,4 +62,3 @@ def test_getset_list(session):
     assert list(lst) == ['a', 'b', 'c']
     with raises(TypeError):
         session.set(key('test_session_getset_list'), 1234, ListT)
-
