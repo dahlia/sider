@@ -501,8 +501,9 @@ class Tuple(Bulk):
             raise ValueError(msg.format(fields_num, value))
         codes = [field.encode(val)
                  for field, val in zip(self.field_types, value)]
-        codes.insert(0, ','.join(str(len(code)) for code in codes))
-        return '\n'.join(codes)
+        codes.insert(0, b','.join(str(len(code)).encode('ascii')
+                                 for code in codes))
+        return b'\n'.join(codes)
 
     def decode(self, bulk):
         pos = bulk.index('\n')
@@ -640,7 +641,7 @@ class Date(Bulk):
     #: The :mod:`re` pattern that matches to :rfc:`3339` formatted date
     #: string e.g. ``'2012-03-28'``.
     DATE_PATTERN = re.compile(
-        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)$'
+        br'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)$'
     )
 
     #: (:class:`str`) The :meth:`~datetime.date.strftime()` format string
@@ -650,7 +651,7 @@ class Date(Bulk):
     def encode(self, value):
         if not isinstance(value, datetime.date):
             raise TypeError('expected a datetime.date, not ' + repr(value))
-        return value.strftime(self.DATE_FORMAT)
+        return value.strftime(self.DATE_FORMAT).encode('ascii')
 
     def decode(self, bulk):
         match = self.DATE_PATTERN.search(bulk)
@@ -696,10 +697,10 @@ class DateTime(Bulk):
     """
 
     DATETIME_PATTERN = re.compile(
-        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
-        r'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
-        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
-        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+        br'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
+        br'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
+        br'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        br'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
 
     def encode(self, value):
@@ -707,7 +708,7 @@ class DateTime(Bulk):
             raise TypeError('expected a datetime.datetime, not ' + repr(value))
         if value.tzinfo is not None:
             value = value.replace(tzinfo=None)
-        return value.isoformat()
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         parsed = self.parse_datetime(bulk)
@@ -807,7 +808,7 @@ class TZDateTime(DateTime):
         elif value.tzinfo is None:
             raise ValueError('datetime.datetime must be aware of tzinfo')
         encoded = super(TZDateTime, self).encode(value.astimezone(UTC))
-        return encoded + 'Z'
+        return encoded + b'Z'
 
     def decode(self, bulk):
         parsed = self.parse_datetime(bulk)
@@ -847,10 +848,10 @@ class Time(Bulk):
     """
 
     TIME_PATTERN = re.compile(
-        r'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
-        r'(?:\.(?P<microsecond>\d{6}))?'
-        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
-        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+        br'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
+        br'(?:\.(?P<microsecond>\d{6}))?'
+        br'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        br'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
 
     def encode(self, value):
@@ -858,7 +859,7 @@ class Time(Bulk):
             raise TypeError('expected a datetime.time, not ' + repr(value))
         if value.tzinfo is not None:
             value = value.replace(tzinfo=None)
-        return value.isoformat()
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         return self.parse_time(bulk, drop_tzinfo=True)
@@ -931,8 +932,9 @@ class TZTime(Time):
         elif value.tzinfo is None:
             raise ValueError('datetime.time must be aware of tzinfo')
         if value.tzinfo is UTC:
-            return value.replace(tzinfo=None).isoformat() + 'Z'
-        return value.isoformat()
+            result = value.replace(tzinfo=None).isoformat() + 'Z'
+            return result.encode('ascii')
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         time = self.parse_time(bulk, drop_tzinfo=False)
@@ -957,14 +959,14 @@ class TimeDelta(Bulk):
     """
 
     TIMEDELTA_FORMAT = '{0.days},{0.seconds},{0.microseconds}'
-    TIMEDELTA_PATTERN = re.compile(r'^(?P<days>\d+),(?P<seconds>\d+),'
-                                   r'(?P<microseconds>\d{1,6})$')
+    TIMEDELTA_PATTERN = re.compile(br'^(?P<days>\d+),(?P<seconds>\d+),'
+                                   br'(?P<microseconds>\d{1,6})$')
 
     def encode(self, value):
         if not isinstance(value, datetime.timedelta):
             raise TypeError('expected a datetime.timedelta, not ' +
                             repr(value))
-        return self.TIMEDELTA_FORMAT.format(value)
+        return self.TIMEDELTA_FORMAT.format(value).encode('ascii')
 
     def decode(self, bulk):
         match = self.TIMEDELTA_PATTERN.search(bulk)
