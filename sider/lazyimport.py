@@ -65,6 +65,6 @@ exceptions = DeferredModule('sider.exceptions')
 version = DeferredModule('sider.version')
 
 
-__all__ = tuple(name for name, value in globals().iteritems()
+__all__ = tuple(name for name, value in globals().items()
                      if isinstance(value, DeferredModule))
 

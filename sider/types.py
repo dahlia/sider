@@ -24,7 +24,6 @@ from __future__ import absolute_import
 import re
 import collections
 import numbers
-import itertools
 import datetime
 from .lazyimport import list, set, sortedset
 from .datetime import UTC, FixedOffset
@@ -484,8 +483,8 @@ class Tuple(Bulk):
     field_types = None
 
     def __init__(self, *field_types):
-        self.field_types = tuple(itertools.imap(Bulk.ensure_value_type,
-                                                field_types))
+        self.field_types = tuple(Bulk.ensure_value_type(t)
+                                 for t in field_types)
 
     def encode(self, value):
         if not isinstance(value, tuple):
@@ -501,7 +500,7 @@ class Tuple(Bulk):
                 msg = 'need {0} value to unpack: {1!r}'
             raise ValueError(msg.format(fields_num, value))
         codes = [field.encode(val)
-                 for field, val in itertools.izip(self.field_types, value)]
+                 for field, val in zip(self.field_types, value)]
         codes.insert(0, ','.join(str(len(code)) for code in codes))
         return '\n'.join(codes)
 
@@ -511,7 +510,7 @@ class Tuple(Bulk):
         sizes = map(int, header.split(','))
         pos += 1
         values = []
-        for field, size in itertools.izip(self.field_types, sizes):
+        for field, size in zip(self.field_types, sizes):
             code = bulk[pos:pos + size]
             value = field.decode(code)
             values.append(value)
@@ -540,7 +539,7 @@ class Integer(Bulk):
     def encode(self, value):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expected an integer, not ' + repr(value))
-        return str(value)
+        return str(value).encode('ascii')
 
     def decode(self, bulk):
         return int(bulk)
@@ -560,8 +559,13 @@ class ByteString(Bulk):
 
     """
 
+    try:
+        bytes_type = bytes
+    except NameError:
+        bytes_type = str
+
     def encode(self, value):
-        if not isinstance(value, str):
+        if not isinstance(value, self.bytes_type):
             raise TypeError('expected a byte str, not ' + repr(value))
         return value
 
@@ -584,8 +588,13 @@ class UnicodeString(Bulk):
 
     """
 
+    try:
+        string_type = unicode
+    except NameError:
+        string_type = str
+
     def encode(self, value):
-        if not isinstance(value, unicode):
+        if not isinstance(value, self.string_type):
             raise TypeError('expected a unicode string, not ' + repr(value))
         return value.encode('utf-8')
 

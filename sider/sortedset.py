@@ -727,7 +727,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     def __repr__(self):
         cls = type(self)
         pairs= list(self.items())
-        pairs.sort(key=lambda (element, score): (score, element))
+        pairs.sort(key=lambda pair: (pair[1], pair[0]))
         elements = ', '.join(repr(v) if s == 1 else '{0!r}: {1!r}'.format(v, s)
                              for v, s in pairs)
         return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,

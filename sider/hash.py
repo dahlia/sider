@@ -366,7 +366,7 @@ class Hash(collections.MutableMapping):
     def __repr__(self):
         cls = type(self)
         items = list(self.iteritems())
-        items.sort(key=lambda (key, _): key)
+        items.sort(key=lambda elem: elem[0])
         elements = ', '.join('{0!r}: {1!r}'.format(*pair) for pair in items)
         return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,
                                                   self.key, elements)
