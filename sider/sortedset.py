@@ -12,7 +12,7 @@ import numbers
 import collections
 import itertools
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import query, manipulative
 
 
@@ -71,7 +71,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     #: (:class:`sider.types.Bulk`) The type of set elements.
     value_type = None
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))

@@ -13,7 +13,7 @@ import collections
 import numbers
 import warnings
 from redis.exceptions import ResponseError
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .session import Session
 from .transaction import manipulative, query
 from .warnings import PerformanceWarning
@@ -61,7 +61,7 @@ class List(collections.MutableSequence):
     #: (:class:`sider.types.Bulk`) The type of list values.
     value_type = None
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))

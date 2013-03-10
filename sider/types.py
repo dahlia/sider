@@ -21,6 +21,7 @@ into Python :class:`int` ``3``.
 
 """
 from __future__ import absolute_import
+import sys
 import re
 import collections
 import numbers
@@ -231,11 +232,11 @@ class Hash(Value):
 
     def __init__(self, key_type=None, value_type=None):
         if key_type is None:
-            key_type = ByteString()
+            key_type = String()
         else:
             key_type = Bulk.ensure_value_type(key_type, parameter='key_type')
         if value_type is None:
-            value_type = ByteString()
+            value_type = String()
         else:
             value_type = Bulk.ensure_value_type(value_type,
                                                 parameter='value_type')
@@ -276,7 +277,7 @@ class List(Value):
 
     def __init__(self, value_type=None):
         if value_type is None:
-            self.value_type = ByteString()
+            self.value_type = String()
         else:
             self.value_type = Bulk.ensure_value_type(value_type,
                                                      parameter='value_type')
@@ -316,7 +317,7 @@ class Set(Value):
 
     def __init__(self, value_type=None):
         if value_type is None:
-            self.value_type = ByteString()
+            self.value_type = String()
         else:
             self.value_type = Bulk.ensure_value_type(value_type,
                                                      parameter='value_type')
@@ -601,6 +602,12 @@ class UnicodeString(Bulk):
 
     def decode(self, bulk):
         return bulk.decode('utf-8')
+
+
+if sys.version_info[0] == 3:  # python 3.x
+    String = UnicodeString
+else:
+    String = ByteString
 
 
 class Boolean(Integer):

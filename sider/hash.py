@@ -10,7 +10,7 @@
 """
 import collections
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import query, manipulative
 
 
@@ -53,7 +53,7 @@ class Hash(collections.MutableMapping):
     value_type = None
 
     def __init__(self, session, key,
-                 key_type=ByteString, value_type=ByteString):
+                 key_type=String, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))

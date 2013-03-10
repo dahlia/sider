@@ -11,7 +11,7 @@
 from __future__ import absolute_import
 import collections
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import manipulative, query
 
 
@@ -61,7 +61,7 @@ class Set(collections.MutableSet):
 
     """
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))
