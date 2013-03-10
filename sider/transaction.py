@@ -72,6 +72,12 @@ from .warnings import SiderWarning, TransactionWarning
 from . import lazyimport
 
 
+try:
+    _string_type = basestring
+except NameError:
+    _string_type = str
+
+
 class Transaction(object):
     """Transaction block.
 
@@ -222,7 +228,7 @@ class Transaction(object):
         :type initialize: :class:`bool`
 
         """
-        if isinstance(keys, basestring):
+        if isinstance(keys, _string_type):
             warnings.warn('you could probably want to watch [{0!r}] instead of '
                           '{1!r}; do not directly pass a string but a list of '
                           'string to be explicit'.format(keys, list(keys)),

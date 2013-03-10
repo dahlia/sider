@@ -237,8 +237,8 @@ class Hash(collections.MutableMapping):
         items = self.session.client.hgetall(self.key)
         decode_key = self.key_type.decode
         decode_value = self.value_type.decode
-        return frozenset((decode_key(k), decode_value(v))
-                         for k, v in items.iteritems())
+        return frozenset((decode_key(k), decode_value(items[k]))
+                         for k in items)
 
     @manipulative
     def clear(self):
@@ -365,7 +365,7 @@ class Hash(collections.MutableMapping):
 
     def __repr__(self):
         cls = type(self)
-        items = list(self.iteritems())
+        items = list(self.items())
         items.sort(key=lambda elem: elem[0])
         elements = ', '.join('{0!r}: {1!r}'.format(*pair) for pair in items)
         return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,
