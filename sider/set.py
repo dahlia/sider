@@ -601,7 +601,8 @@ class Set(collections.MutableSet):
             else:
                 offline_sets.append(operand)
         union = set()
-        for value_type, group in online_sets.iteritems():
+        for value_type in online_sets:
+            group = online_sets[value_type]
             keys = (s.key for s in group)
             self.session.mark_query([self.key])
             subset = self.session.client.sunion(*keys)

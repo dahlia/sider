@@ -87,7 +87,7 @@ def test_isdisjoint(session):
 def test_issubset(session):
     test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
-    for value_type, members in test_sets.iteritems():
+    for value_type, members in test_sets.items():
         typeid = str(hash(value_type))
         d = list(members)
         e = d[1:-1]
@@ -146,7 +146,7 @@ def test_issubset(session):
 def test_issuperset(session):
     test_sets = {Set(): 'abcdefg', Set(NInt): range(1, 8)}
     fixtures = {}
-    for value_type, members in test_sets.iteritems():
+    for value_type, members in test_sets.items():
         typeid = str(hash(value_type))
         f = list(members)
         e = f[1:-1]
