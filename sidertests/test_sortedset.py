@@ -144,10 +144,10 @@ def test_keys(session):
     set_ = session.set(key('test_sortedset_keys'),
                        {'a': 3, 'b': 1, 'c': 2},
                        SortedSet)
-    assert set_.keys() == ['b', 'c', 'a']
-    assert set_.keys(reverse=True) == ['a', 'c', 'b']
+    assert list(set_.keys()) == ['b', 'c', 'a']
+    assert list(set_.keys(reverse=True)) == ['a', 'c', 'b']
     setx = session.set(key('test_sortedsetx_keys'), {1: 3, 2: 1, 3: 2}, IntSet)
-    assert setx.keys(reverse=True) == [1, 3, 2]
+    assert list(setx.keys(reverse=True)) == [1, 3, 2]
 
 
 def test_items(session):

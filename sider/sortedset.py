@@ -98,7 +98,8 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     @query
     def __iter__(self):
         result = self.session.client.zrange(self.key, 0, -1)
-        return itertools.imap(self.value_type.decode, result)
+        for i in result:
+            yield self.value_type.decode(i)
 
     @query
     def __contains__(self, member):
@@ -713,7 +714,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                         zincrby(key, value=el, amount=1)
                 else:
                     raise TypeError('expected iterable, not ' + repr(set_))
-            for el, score in keywords.iteritems():
+            for el, score in getattr(keywords, 'iteritems', keywords.items)():
                 if not isinstance(score, numbers.Real):
                     raise TypeError('score must be a float, not ' +
                                     repr(score))
