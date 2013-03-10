@@ -8,7 +8,7 @@ from sider.threadlocal import LocalDict, get_ident
 
 def thread_test(generator, args1=(), args2=()):
     def test(g, *args):
-        g.next()
+        next(g)
         for arg in args:
             try:
                 g.send(arg)
@@ -24,8 +24,9 @@ def thread_test(generator, args1=(), args2=()):
 
 if greenlet:
     def coro_test(generator, args1=(), args2=()):
-        def test(g, (cc, next_args), *args):
-            g.next()
+        def test(g, v, *args):
+            cc, next_args = v
+            next(g)
             for arg in args:
                 try:
                     g.send(arg)
@@ -70,9 +71,9 @@ def test_local_dict():
         result[result_idx] = (
             len(local), list(iter(local)), 'a' in local, 'b' in local,
             local['a'], local.copy(), local.get('a', 1), local.get('b', 2),
-            'a' in local, 'b' in local, local.items(),
+            'a' in local, 'b' in local, list(local.items()),
             list(local.iteritems()), list(local.iterkeys()),
-            list(local.itervalues()), local.keys(), local.values()
+            list(local.itervalues()), list(local.keys()), list(local.values()),
         )
     def assert_expects(result, value):
         assert result[0] == 1

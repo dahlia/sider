@@ -115,13 +115,22 @@ class LocalDict(collections.MutableMapping):
         return self.current.items()
 
     def iteritems(self):
-        return self.current.iteritems()
+        try:
+            return self.current.iteritems()
+        except AttributeError:
+            return self.items()
 
     def iterkeys(self):
-        return self.current.keys()
+        try:
+            return self.current.iterkeys()
+        except AttributeError:
+            return self.keys()
 
     def itervalues(self):
-        return self.current.itervalues()
+        try:
+            return self.current.itervalues()
+        except AttributeError:
+            return self.values()
 
     def keys(self):
         return self.current.keys()
