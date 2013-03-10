@@ -2,7 +2,7 @@ import os
 import datetime
 import numbers
 import pytest
-from redis.client import StrictRedis
+from redis.client import StrictRedis, ConnectionError
 from sider.session import Session
 from sider.types import Integer
 
@@ -11,11 +11,20 @@ def get_client(cls=StrictRedis):
     host = os.environ.get('SIDERTEST_HOST', 'localhost')
     port = int(os.environ.get('SIDERTEST_PORT', 6379))
     db = int(os.environ.get('SIDERTEST_DB', 0))
-    return cls(host=host, port=port, db=db)
+    try:
+        client = cls(host=host, port=port, db=db)
+        # To connect on the server forcibly,
+        # send a ping explicitly at this line.
+        client.ping()
+        return client
+    except ConnectionError as e:
+        pytest.fail(str(e), pytrace=False)
 
 
-def get_session():
-    session = Session(get_client())
+def get_session(client=None):
+    if client is None:
+        client = get_client()
+    session = Session(client)
     session.verbose_transaction_error = True
     return session
 
@@ -31,8 +40,7 @@ def key(key):
 @pytest.fixture
 def session(request):
     client = get_client()
-    session = Session(client)
-    session.verbose_transaction_error = True
+    session = get_session(client)
 
     @request.addfinalizer
     def fin():
