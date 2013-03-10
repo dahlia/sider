@@ -62,3 +62,12 @@ def test_getset_list(session):
     assert list(lst) == ['a', 'b', 'c']
     with raises(TypeError):
         session.set(key('test_session_getset_list'), 1234, ListT)
+
+
+def test_version_info(session):
+    assert isinstance(session.server_version, str)
+    assert isinstance(session.server_version_info, tuple)
+    for v in session.server_version_info:
+        assert isinstance(v, int)
+    version_str = '.'.join(map(str, session.server_version_info))
+    assert session.server_version == version_str
