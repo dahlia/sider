@@ -132,7 +132,7 @@ class List(collections.MutableSequence):
             result = self.session.client.lrange(self.key, start, stop)
             if index.step is not None:
                 result = result[::index.step]
-            return map(decode, result)
+            return list(map(decode, result))
         raise TypeError('indices must be integers, not ' + repr(index))
 
     def __setitem__(self, index, value):
@@ -157,7 +157,7 @@ class List(collections.MutableSequence):
                 raise ValueError('slice with step is not supported for '
                                  'assignment')
             elif index.start in (0, None) and index.stop == 1:
-                seq = map(encode, value)
+                seq = list(map(encode, value))
                 seq.reverse()
                 self.session.mark_manipulative([self.key])
                 if self.session.server_version_info < (2, 4, 0):
