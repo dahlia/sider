@@ -363,7 +363,7 @@ class SortedSet(Set):
                             repr(value))
         obj = sortedset.SortedSet(session, key, value_type=self.value_type)
         encode = self.value_type.encode
-        if session.server_version < (2, 4, 0):
+        if session.server_version_info < (2, 4, 0):
             if isinstance(value, collections.Mapping):
                 pairs = [
                     (encode(el), score)
@@ -391,7 +391,8 @@ class SortedSet(Set):
             args = tuple(args())
             def block(trial, transaction):
                 obj.clear()
-                session.client.zadd(key, *args)
+                if args:
+                    session.client.zadd(key, *args)
         session.transaction(block, [key], ignore_double=True)
         return obj
 
