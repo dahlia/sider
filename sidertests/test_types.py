@@ -1,8 +1,9 @@
 import datetime
+import uuid
 from pytest import raises
 from .env import key
 from .env import session
-from sider.types import Boolean, ByteString, Date, DateTime, TZDateTime
+from sider.types import Boolean, ByteString, Date, DateTime, TZDateTime, UUID
 from sider.datetime import FixedOffset
 
 
@@ -58,3 +59,18 @@ def test_tzdatetime(session):
     session.set(key('test_types_tzdatetime'), '1988-08-04', ByteString)
     with raises(ValueError):
         session.get(key('test_types_tzdatetime'), TZDateTime)
+
+
+def test_uuid(session):
+    uuid_v4 = uuid.UUID('ed386d46-fbe2-4cbc-98ab-72e90436b4a3')
+    session.set(key('test_types_uuid'), uuid_v4, UUID)
+    u = session.get(key('test_types_uuid'), UUID)
+    assert u == uuid_v4
+    assert u.version == 4
+    with raises(TypeError):
+        session.set(key('test_types_uuid'),
+                    22474335462895695114168873682703774849, UUID)
+    session.set(key('test_types_uuid'),
+                b'\x11\xea.X\x97bG\xf3\xa31\xf2\xfaY\x95\xb7m', ByteString)
+    with raises(ValueError):
+        session.get(key('test_types_uuid'), UUID)
