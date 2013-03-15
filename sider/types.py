@@ -222,10 +222,10 @@ class Hash(Value):
     :class:`collections.Mapping` objects.
 
     :param key_type: the type of keys the hash will contain.
-                     default is :class:`ByteString`
+                     default is :class:`String`
     :type key_type: :class:`Bulk`, :class:`type`
     :param value_type: the type of values the hash will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
@@ -270,7 +270,7 @@ class List(Value):
     (Use :class:`ByteString` or :class:`UnicodeString` for strings.)
 
     :param value_type: the type of values the list will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
@@ -310,7 +310,7 @@ class Set(Value):
     :class:`collections.Set` objects.
 
     :param value_type: the type of values the set will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
@@ -349,7 +349,7 @@ class SortedSet(Set):
     """The type object for :class:`sider.sortedset.SortedSet` objects.
 
     :param value_type: the type of values the sorted set will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
