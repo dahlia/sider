@@ -354,6 +354,13 @@ def test_extend(session):
         listx.extend([object(), object()])
 
 
+def test_massive_extend(session):
+    huge_data = [chr(i) * 16 for i in range(ord('a'), ord('z') + 1)] * 100
+    list_ = session.get(key('test_list_massive_extend'), List)
+    list_.extend(huge_data)
+    assert huge_data == list(list_)
+
+
 def test_insert(session):
     list_ = session.set(key('test_list_insert'), ['b'], List)
     list_.insert(0, 'a')
