@@ -4,9 +4,13 @@ from pytest import raises
 from .env import NInt, get_client, key
 from .env import session
 from sider.session import Session
-from sider.types import (Set as SetT, List as ListT, Integer)
+from sider.types import (Set as SetT,
+                         List as ListT,
+                         Hash as HashT,
+                         Integer)
 from sider.set import Set
 from sider.list import List
+from sider.hash import Hash
 
 
 class CustomRedis(StrictRedis):
@@ -62,6 +66,23 @@ def test_getset_list(session):
     assert list(lst) == ['a', 'b', 'c']
     with raises(TypeError):
         session.set(key('test_session_getset_list'), 1234, ListT)
+
+
+def test_getset_hash(session):
+    hash_ = session.set(key('test_session_getset_hash'),
+                        {'a': 'b', 'c': 'd'}, HashT)
+    assert isinstance(hash_, Hash)
+    assert dict(hash_) == {'a': 'b', 'c': 'd'}
+    hash_ = session.get(key('test_session_getset_hash'), HashT)
+    assert isinstance(hash_, Hash)
+    assert dict(hash_) == {'a': 'b', 'c': 'd'}
+    with raises(TypeError):
+        session.set(key('test_session_getset_hash'), 1234, HashT)
+    with raises(TypeError):
+        session.set(key('test_session_getset_hash'), 'abc', HashT)
+    with raises(TypeError):
+        session.set(key('test_session_getset_hash'),
+                    {'a': 1, 'b': 2}, HashT)
 
 
 def test_version_info(session):

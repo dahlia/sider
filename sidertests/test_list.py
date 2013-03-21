@@ -343,6 +343,8 @@ def test_extend(session):
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
     list_.extend(['fg', 'hi'])
     assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi'] == list(list_)
+    list_.extend(str(i) for i in range(1, 4))
+    assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi', '1', '2', '3'] == list(list_)
     with raises(TypeError):
         list_.extend([object(), object()])
     listx = session.set(key('test_listx_extend'), [1, 2], List(NInt))
