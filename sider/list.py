@@ -75,13 +75,12 @@ class List(collections.MutableSequence):
         step = 100  # FIXME: it is an arbitarary magic number.
         chunk = None
         decode = self.value_type.decode
-        mark = self.session.mark_query
+        self.session.mark_query([self.key])
         while chunk is None or len(chunk) >= step:
-            mark([self.key])
-            mark = lambda *_: _
-            chunk = self.session.client.lrange(self.key, i, i + step)
+            chunk = self.session.client.lrange(self.key, i, i + step - 1)
             for val in chunk:
                 yield decode(val)
+            i += step
 
     @query
     def __len__(self):
