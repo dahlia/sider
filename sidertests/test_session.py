@@ -17,6 +17,17 @@ class CustomRedis(StrictRedis):
     """A custom subclass of StrictRedis for test."""
 
 
+def ensure_encoding_error(excinfo):
+    """Ensure that given error is raised from :meth:`~Bulk.encode()`
+
+    .. seealso:: <https://gist.github.com/Kroisse/5211709>
+
+    """
+    assert 'argument after * must be a sequence' not in excinfo.value.message,\
+        'Ensure to not use an iterable object as a variadic arugments'
+    assert excinfo.traceback[-1].name == 'encode'
+
+
 def test_warn_old_client():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
@@ -66,6 +77,15 @@ def test_getset_list(session):
     assert list(lst) == ['a', 'b', 'c']
     with raises(TypeError):
         session.set(key('test_session_getset_list'), 1234, ListT)
+    with raises(TypeError) as excinfo:
+        session.set(key('test_session_getset_list'), [1, 2, 3], ListT)
+    ensure_encoding_error(excinfo)
+
+
+def test_set_empty_list(session):
+    lst = session.set(key('test_session_set_empty_list'), [], ListT)
+    assert isinstance(lst, List)
+    assert list(lst) == []
 
 
 def test_getset_hash(session):
