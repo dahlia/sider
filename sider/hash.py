@@ -12,6 +12,7 @@ import collections
 from .session import Session
 from .types import Bulk, String
 from .transaction import query, manipulative
+from . import utils
 
 
 class Hash(collections.MutableMapping):
@@ -350,7 +351,12 @@ class Hash(collections.MutableMapping):
             mapping = mapping.items()
         value = dict(mapping)
         value.update(keywords)
-        self._raw_update(value, self.session.client)
+        pipe = self.session.client
+        if self.session.current_transaction is None:
+            pipe = pipe.pipeline()
+        self._raw_update(value, pipe)
+        if self.session.current_transaction is None:
+            pipe.execute()
 
     def _raw_update(self, value, pipe, encoded=False):
         items = getattr(value, 'iteritems', value.items)()
@@ -361,7 +367,9 @@ class Hash(collections.MutableMapping):
             encode_value = self.value_type.encode
             flatten = (val for k, v in items
                            for val in (encode_key(k), encode_value(v)))
-        pipe.execute_command('HMSET', self.key, *flatten)
+        n = 100  # FIXME: it is an arbitarary magic number.
+        for chunk in utils.chunk(flatten, n * 2):
+            pipe.execute_command('HMSET', self.key, *chunk)
 
     def __repr__(self):
         cls = type(self)

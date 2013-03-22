@@ -17,6 +17,7 @@ from .types import Bulk, String
 from .session import Session
 from .transaction import manipulative, query
 from .warnings import PerformanceWarning
+from . import utils
 
 
 class List(collections.MutableSequence):
@@ -75,13 +76,12 @@ class List(collections.MutableSequence):
         step = 100  # FIXME: it is an arbitarary magic number.
         chunk = None
         decode = self.value_type.decode
-        mark = self.session.mark_query
+        self.session.mark_query([self.key])
         while chunk is None or len(chunk) >= step:
-            mark([self.key])
-            mark = lambda *_: _
-            chunk = self.session.client.lrange(self.key, i, i + step)
+            chunk = self.session.client.lrange(self.key, i, i + step - 1)
             for val in chunk:
                 yield decode(val)
+            i += step
 
     @query
     def __len__(self):
@@ -272,7 +272,9 @@ class List(collections.MutableSequence):
         else:
             if not encoded:
                 iterable = (encode(v) for v in iterable)
-            pipe.rpush(self.key, *iterable)
+            n = 100  # FIXME: it is an arbitarary magic number.
+            for chunk in utils.chunk(iterable, n):
+                pipe.rpush(self.key, *chunk)
 
     def insert(self, index, value):
         """Inserts the ``value`` right after the offset ``index``.

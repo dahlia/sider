@@ -26,6 +26,7 @@ import re
 import collections
 import numbers
 import datetime
+import uuid
 from .lazyimport import list, set, sortedset
 from .datetime import UTC, FixedOffset
 
@@ -987,3 +988,24 @@ class TimeDelta(Bulk):
                                       microseconds=microseconds)
         raise ValueError('invalid bulk: ' + repr(bulk))
 
+
+class UUID(Bulk):
+    """Stores :class:`uuid.UUID` values.  For example:
+
+    .. sourcecode:: pycon
+
+       >>> import uuid
+       >>> u = UUID()
+       >>> u.encode(uuid.UUID(int=134626331218489933988508161913704617318))
+       '65481698-2f85-4bd6-8f7c-ee8aaecf1566'
+       >>> u.decode('65481698-2f85-4bd6-8f7c-ee8aaecf1566')
+       UUID('65481698-2f85-4bd6-8f7c-ee8aaecf1566')
+
+    """
+    def encode(self, value):
+        if not isinstance(value, uuid.UUID):
+            raise TypeError('expected an uuid.UUID, not ' + repr(value))
+        return str(value).encode('ascii')
+
+    def decode(self, bulk):
+        return uuid.UUID(bulk.decode('ascii'))

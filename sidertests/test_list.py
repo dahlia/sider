@@ -343,6 +343,8 @@ def test_extend(session):
     assert ['a', 'b', 'c', 'd', 'e'] == list(list_)
     list_.extend(['fg', 'hi'])
     assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi'] == list(list_)
+    list_.extend(str(i) for i in range(1, 4))
+    assert ['a', 'b', 'c', 'd', 'e', 'fg', 'hi', '1', '2', '3'] == list(list_)
     with raises(TypeError):
         list_.extend([object(), object()])
     listx = session.set(key('test_listx_extend'), [1, 2], List(NInt))
@@ -352,6 +354,13 @@ def test_extend(session):
     assert [1, 2, 3, 4, 5, 67, 89] == list(listx)
     with raises(TypeError):
         listx.extend([object(), object()])
+
+
+def test_massive_extend(session):
+    huge_data = [chr(i) * 16 for i in range(ord('a'), ord('z') + 1)] * 100
+    list_ = session.get(key('test_list_massive_extend'), List)
+    list_.extend(huge_data)
+    assert huge_data == list(list_)
 
 
 def test_insert(session):

@@ -722,7 +722,8 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                 zincrby(key, value=el, amount=score)
             if online_sets:
                 keys = [set_.key for set_ in online_sets]
-                session.client.zunionstore(key, len(keys) + 1, key, *keys)
+                keys.insert(0, key)
+                session.client.zunionstore(key, keys)
         session.transaction(block, [key], ignore_double=True)
 
     def __repr__(self):

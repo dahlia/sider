@@ -9,7 +9,7 @@ __ http://martinfowler.com/eaaCatalog/unitOfWork.html
 """
 from __future__ import absolute_import
 import warnings
-from redis.client import StrictRedis, Redis
+from redis.client import StrictRedis, Redis, BasePipeline
 from .threadlocal import LocalDict
 from .types import Value, ByteString
 from .transaction import Transaction
@@ -53,7 +53,10 @@ class Session(object):
         try:
             info = self._server_info
         except AttributeError:
-            info = self.client.info()
+            client = self.client
+            if isinstance(client, BasePipeline):
+                client = self.context_locals['original_client']
+            info = client.info()
             self._server_info = info
         return info['redis_version']
 
