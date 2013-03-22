@@ -100,9 +100,16 @@ def test_getset_hash(session):
         session.set(key('test_session_getset_hash'), 1234, HashT)
     with raises(TypeError):
         session.set(key('test_session_getset_hash'), 'abc', HashT)
-    with raises(TypeError):
+    with raises(TypeError) as excinfo:
         session.set(key('test_session_getset_hash'),
                     {'a': 1, 'b': 2}, HashT)
+    ensure_encoding_error(excinfo)
+
+
+def test_set_empty_hash(session):
+    hash_ = session.set(key('test_session_set_empty_hash'), {}, HashT)
+    assert isinstance(hash_, Hash)
+    assert dict(hash_) == {}
 
 
 def test_version_info(session):
