@@ -720,6 +720,12 @@ def test_massive_update(session):
     for i in a_to_z:
         huge_data[i] += 1
     assert dict(set_) == huge_data
+    data = dict((chr(a), a) for a in xrange(ord('a'), ord('z') + 1))
+    setx = session.set(key('test_sortedsetx_massive_update'), data, SortedSet)
+    set_.update(setx)
+    for e, score in setx.items():
+        huge_data[e] += score
+    assert dict(set_) == huge_data
 
 
 def test_repr(session):
