@@ -13,6 +13,7 @@ import collections
 from .session import Session
 from .types import Bulk, ByteString
 from .transaction import manipulative, query
+from . import utils
 
 
 class Set(collections.MutableSet):
@@ -747,7 +748,7 @@ class Set(collections.MutableSet):
         def block(trial, transaction):
             pipe = self.session.client
             if online_sets:
-                keys = (operand.key for operand in online_sets)
+                keys = [operand.key for operand in online_sets]
                 self.session.mark_manipulative()
                 pipe.sunionstore(self.key, self.key, *keys)
             update = self._raw_update
@@ -758,14 +759,15 @@ class Set(collections.MutableSet):
     def _raw_update(self, members, pipe):
         key = self.key
         encode = self.value_type.encode
-        members = [encode(v) for v in members]
-        if members:
-            self.session.mark_manipulative()
-            if self.session.server_version_info < (2, 4, 0):
-                for member in members:
-                    pipe.sadd(key, member)
-            else:
-                pipe.sadd(key, *members)
+        members = (encode(v) for v in members)
+        self.session.mark_manipulative()
+        if self.session.server_version_info < (2, 4, 0):
+            for member in members:
+                pipe.sadd(key, member)
+        else:
+            n = 100  # FIXME: it is an arbitarary magic number.
+            for chunk in utils.chunk(members, n):
+                pipe.sadd(key, *chunk)
 
     def intersection_update(self, *sets):
         """Updates the set with the intersection of itself and

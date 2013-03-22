@@ -66,6 +66,15 @@ def test_getset_set(session):
         session.set(key('test_session_getset_set'), 1234, SetT)
     with raises(TypeError):
         session.set(key('test_session_getset_set'), 'abc', SetT)
+    with raises(TypeError) as excinfo:
+        session.set(key('test_session_getset_set'), set([1, 2, 3]), SetT)
+    ensure_encoding_error(excinfo)
+
+
+def test_set_empty_set(session):
+    set_ = session.set(key('test_session_set_empty_set'), set(), SetT)
+    assert isinstance(set_, Set)
+    assert set(set_) == set()
 
 
 def test_getset_list(session):
