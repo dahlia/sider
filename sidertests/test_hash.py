@@ -311,6 +311,14 @@ def test_update(session):
         hashx.update(1234)
 
 
+def test_massive_update(session):
+    huge_data = dict(('{0}'.format(i), chr(ord('a') + (i % 26)) * i)
+                     for i in xrange(1235))
+    hash_ = session.get(key('test_hash_massive_update'), Hash)
+    hash_.update(huge_data)
+    assert dict(hash_) == huge_data
+
+
 def test_repr(session):
     keyid = key('test_hash_repr')
     hash_ = session.set(keyid, {1: 2, 3: 4, 5: 6}, Hash(NInt, NInt))

@@ -17,6 +17,7 @@ from .types import Bulk, ByteString
 from .session import Session
 from .transaction import manipulative, query
 from .warnings import PerformanceWarning
+from . import utils
 
 
 class List(collections.MutableSequence):
@@ -271,7 +272,9 @@ class List(collections.MutableSequence):
         else:
             if not encoded:
                 iterable = (encode(v) for v in iterable)
-            pipe.rpush(self.key, *iterable)
+            n = 100  # FIXME: it is an arbitarary magic number.
+            for chunk in utils.chunk(iterable, n):
+                pipe.rpush(self.key, *chunk)
 
     def insert(self, index, value):
         """Inserts the ``value`` right after the offset ``index``.

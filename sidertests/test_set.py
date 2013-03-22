@@ -532,6 +532,13 @@ def test_update(session):
         set_ |= setx == S(['a', 'b', 'c', 1, 2, 3])
 
 
+def test_massive_update(session):
+    huge_data = set('{0}'.format(i) for i in range(1010))
+    set_ = session.get(key('test_set_massive_update'), Set)
+    set_.update(huge_data)
+    assert set(set_) == huge_data
+
+
 def test_update_t(session):
     session2 = get_session()
     keyid = key('test_set_update_t')
