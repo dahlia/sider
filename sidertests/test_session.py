@@ -25,7 +25,7 @@ def ensure_encoding_error(excinfo):
     .. seealso:: <https://gist.github.com/Kroisse/5211709>
 
     """
-    assert 'argument after * must be a sequence' not in excinfo.value.message,\
+    assert 'argument after * must be a sequence' not in str(excinfo.value), \
         'Ensure to not use an iterable object as a variadic arugments'
     assert excinfo.traceback[-1].name == 'encode'
 

@@ -710,8 +710,8 @@ def test_update(session):
 
 def test_massive_update(session):
     huge_data = dict((chr(a) * i, (a - ord('a') + 1) * i)
-                     for a in xrange(ord('a'), ord('z') + 1)
-                     for i in xrange(1, 101))
+                     for a in range(ord('a'), ord('z') + 1)
+                     for i in range(1, 101))
     set_ = session.get(key('test_sortedset_massive_update'), SortedSet)
     set_.update(huge_data)
     assert dict(set_) == huge_data
@@ -720,7 +720,7 @@ def test_massive_update(session):
     for i in a_to_z:
         huge_data[i] += 1
     assert dict(set_) == huge_data
-    data = dict((chr(a), a) for a in xrange(ord('a'), ord('z') + 1))
+    data = dict((chr(a), a) for a in range(ord('a'), ord('z') + 1))
     setx = session.set(key('test_sortedsetx_massive_update'), data, SortedSet)
     set_.update(setx)
     for e, score in setx.items():

@@ -313,7 +313,7 @@ def test_update(session):
 
 def test_massive_update(session):
     huge_data = dict(('{0}'.format(i), chr(ord('a') + (i % 26)) * i)
-                     for i in xrange(1235))
+                     for i in range(1235))
     hash_ = session.get(key('test_hash_massive_update'), Hash)
     hash_.update(huge_data)
     assert dict(hash_) == huge_data
