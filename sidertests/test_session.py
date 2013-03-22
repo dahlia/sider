@@ -7,10 +7,12 @@ from sider.session import Session
 from sider.types import (Set as SetT,
                          List as ListT,
                          Hash as HashT,
+                         SortedSet as SortedSetT,
                          Integer)
 from sider.set import Set
 from sider.list import List
 from sider.hash import Hash
+from sider.sortedset import SortedSet
 
 
 class CustomRedis(StrictRedis):
@@ -119,6 +121,13 @@ def test_set_empty_hash(session):
     hash_ = session.set(key('test_session_set_empty_hash'), {}, HashT)
     assert isinstance(hash_, Hash)
     assert dict(hash_) == {}
+
+
+def test_set_empty_sortedset(session):
+    set_ = session.set(key('test_session_set_empty_sortedset'),
+                       set(), SortedSetT)
+    assert isinstance(set_, SortedSet)
+    assert dict(set_) == {}
 
 
 def test_version_info(session):
