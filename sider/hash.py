@@ -10,7 +10,7 @@
 """
 import collections
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import query, manipulative
 from . import utils
 
@@ -54,7 +54,7 @@ class Hash(collections.MutableMapping):
     value_type = None
 
     def __init__(self, session, key,
-                 key_type=ByteString, value_type=ByteString):
+                 key_type=String, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))
@@ -238,8 +238,8 @@ class Hash(collections.MutableMapping):
         items = self.session.client.hgetall(self.key)
         decode_key = self.key_type.decode
         decode_value = self.value_type.decode
-        return frozenset((decode_key(k), decode_value(v))
-                         for k, v in items.iteritems())
+        return frozenset((decode_key(k), decode_value(items[k]))
+                         for k in items)
 
     @manipulative
     def clear(self):
@@ -373,8 +373,8 @@ class Hash(collections.MutableMapping):
 
     def __repr__(self):
         cls = type(self)
-        items = list(self.iteritems())
-        items.sort(key=lambda (key, _): key)
+        items = list(self.items())
+        items.sort(key=lambda elem: elem[0])
         elements = ', '.join('{0!r}: {1!r}'.format(*pair) for pair in items)
         return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,
                                                   self.key, elements)

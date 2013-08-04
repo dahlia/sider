@@ -11,7 +11,7 @@
 from __future__ import absolute_import
 import collections
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import manipulative, query
 from . import utils
 
@@ -62,7 +62,7 @@ class Set(collections.MutableSet):
 
     """
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))
@@ -602,7 +602,8 @@ class Set(collections.MutableSet):
             else:
                 offline_sets.append(operand)
         union = set()
-        for value_type, group in online_sets.iteritems():
+        for value_type in online_sets:
+            group = online_sets[value_type]
             keys = (s.key for s in group)
             self.session.mark_query([self.key])
             subset = self.session.client.sunion(*keys)

@@ -21,10 +21,10 @@ into Python :class:`int` ``3``.
 
 """
 from __future__ import absolute_import
+import sys
 import re
 import collections
 import numbers
-import itertools
 import datetime
 import uuid
 from .lazyimport import list, set, sortedset
@@ -223,21 +223,21 @@ class Hash(Value):
     :class:`collections.Mapping` objects.
 
     :param key_type: the type of keys the hash will contain.
-                     default is :class:`ByteString`
+                     default is :class:`String`
     :type key_type: :class:`Bulk`, :class:`type`
     :param value_type: the type of values the hash will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
 
     def __init__(self, key_type=None, value_type=None):
         if key_type is None:
-            key_type = ByteString()
+            key_type = String()
         else:
             key_type = Bulk.ensure_value_type(key_type, parameter='key_type')
         if value_type is None:
-            value_type = ByteString()
+            value_type = String()
         else:
             value_type = Bulk.ensure_value_type(value_type,
                                                 parameter='value_type')
@@ -271,14 +271,14 @@ class List(Value):
     (Use :class:`ByteString` or :class:`UnicodeString` for strings.)
 
     :param value_type: the type of values the list will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
 
     def __init__(self, value_type=None):
         if value_type is None:
-            self.value_type = ByteString()
+            self.value_type = String()
         else:
             self.value_type = Bulk.ensure_value_type(value_type,
                                                      parameter='value_type')
@@ -311,14 +311,14 @@ class Set(Value):
     :class:`collections.Set` objects.
 
     :param value_type: the type of values the set will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
 
     def __init__(self, value_type=None):
         if value_type is None:
-            self.value_type = ByteString()
+            self.value_type = String()
         else:
             self.value_type = Bulk.ensure_value_type(value_type,
                                                      parameter='value_type')
@@ -350,7 +350,7 @@ class SortedSet(Set):
     """The type object for :class:`sider.sortedset.SortedSet` objects.
 
     :param value_type: the type of values the sorted set will contain.
-                       default is :class:`ByteString`
+                       default is :class:`String`
     :type value_type: :class:`Bulk`, :class:`type`
 
     """
@@ -486,8 +486,8 @@ class Tuple(Bulk):
     field_types = None
 
     def __init__(self, *field_types):
-        self.field_types = tuple(itertools.imap(Bulk.ensure_value_type,
-                                                field_types))
+        self.field_types = tuple(Bulk.ensure_value_type(t)
+                                 for t in field_types)
 
     def encode(self, value):
         if not isinstance(value, tuple):
@@ -503,9 +503,10 @@ class Tuple(Bulk):
                 msg = 'need {0} value to unpack: {1!r}'
             raise ValueError(msg.format(fields_num, value))
         codes = [field.encode(val)
-                 for field, val in itertools.izip(self.field_types, value)]
-        codes.insert(0, ','.join(str(len(code)) for code in codes))
-        return '\n'.join(codes)
+                 for field, val in zip(self.field_types, value)]
+        codes.insert(0, b','.join(str(len(code)).encode('ascii')
+                                 for code in codes))
+        return b'\n'.join(codes)
 
     def decode(self, bulk):
         pos = bulk.index('\n')
@@ -513,7 +514,7 @@ class Tuple(Bulk):
         sizes = map(int, header.split(','))
         pos += 1
         values = []
-        for field, size in itertools.izip(self.field_types, sizes):
+        for field, size in zip(self.field_types, sizes):
             code = bulk[pos:pos + size]
             value = field.decode(code)
             values.append(value)
@@ -542,7 +543,7 @@ class Integer(Bulk):
     def encode(self, value):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expected an integer, not ' + repr(value))
-        return str(value)
+        return str(value).encode('ascii')
 
     def decode(self, bulk):
         return int(bulk)
@@ -562,8 +563,13 @@ class ByteString(Bulk):
 
     """
 
+    try:
+        bytes_type = bytes
+    except NameError:
+        bytes_type = str
+
     def encode(self, value):
-        if not isinstance(value, str):
+        if not isinstance(value, self.bytes_type):
             raise TypeError('expected a byte str, not ' + repr(value))
         return value
 
@@ -586,13 +592,24 @@ class UnicodeString(Bulk):
 
     """
 
+    try:
+        string_type = unicode
+    except NameError:
+        string_type = str
+
     def encode(self, value):
-        if not isinstance(value, unicode):
+        if not isinstance(value, self.string_type):
             raise TypeError('expected a unicode string, not ' + repr(value))
         return value.encode('utf-8')
 
     def decode(self, bulk):
         return bulk.decode('utf-8')
+
+
+if sys.version_info[0] == 3:  # python 3.x
+    String = UnicodeString
+else:
+    String = ByteString
 
 
 class Boolean(Integer):
@@ -633,7 +650,7 @@ class Date(Bulk):
     #: The :mod:`re` pattern that matches to :rfc:`3339` formatted date
     #: string e.g. ``'2012-03-28'``.
     DATE_PATTERN = re.compile(
-        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)$'
+        br'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)$'
     )
 
     #: (:class:`str`) The :meth:`~datetime.date.strftime()` format string
@@ -643,7 +660,7 @@ class Date(Bulk):
     def encode(self, value):
         if not isinstance(value, datetime.date):
             raise TypeError('expected a datetime.date, not ' + repr(value))
-        return value.strftime(self.DATE_FORMAT)
+        return value.strftime(self.DATE_FORMAT).encode('ascii')
 
     def decode(self, bulk):
         match = self.DATE_PATTERN.search(bulk)
@@ -689,10 +706,10 @@ class DateTime(Bulk):
     """
 
     DATETIME_PATTERN = re.compile(
-        r'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
-        r'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
-        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
-        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+        br'^(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)T(?P<hour>\d\d):'
+        br'(?P<minute>\d\d):(?P<second>\d\d)(?:\.(?P<microsecond>\d{6}))?'
+        br'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        br'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
 
     def encode(self, value):
@@ -700,7 +717,7 @@ class DateTime(Bulk):
             raise TypeError('expected a datetime.datetime, not ' + repr(value))
         if value.tzinfo is not None:
             value = value.replace(tzinfo=None)
-        return value.isoformat()
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         parsed = self.parse_datetime(bulk)
@@ -800,7 +817,7 @@ class TZDateTime(DateTime):
         elif value.tzinfo is None:
             raise ValueError('datetime.datetime must be aware of tzinfo')
         encoded = super(TZDateTime, self).encode(value.astimezone(UTC))
-        return encoded + 'Z'
+        return encoded + b'Z'
 
     def decode(self, bulk):
         parsed = self.parse_datetime(bulk)
@@ -840,10 +857,10 @@ class Time(Bulk):
     """
 
     TIME_PATTERN = re.compile(
-        r'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
-        r'(?:\.(?P<microsecond>\d{6}))?'
-        r'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
-        r'\d\d):(?P<tz_offset_minute>\d\d))?$'
+        br'^(?P<hour>\d\d):(?P<minute>\d\d):(?P<second>\d\d)'
+        br'(?:\.(?P<microsecond>\d{6}))?'
+        br'(?P<tz>(?P<tz_utc>Z)|(?P<tz_offset_sign>[+-])(?P<tz_offset_hour>'
+        br'\d\d):(?P<tz_offset_minute>\d\d))?$'
     )
 
     def encode(self, value):
@@ -851,7 +868,7 @@ class Time(Bulk):
             raise TypeError('expected a datetime.time, not ' + repr(value))
         if value.tzinfo is not None:
             value = value.replace(tzinfo=None)
-        return value.isoformat()
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         return self.parse_time(bulk, drop_tzinfo=True)
@@ -924,8 +941,9 @@ class TZTime(Time):
         elif value.tzinfo is None:
             raise ValueError('datetime.time must be aware of tzinfo')
         if value.tzinfo is UTC:
-            return value.replace(tzinfo=None).isoformat() + 'Z'
-        return value.isoformat()
+            result = value.replace(tzinfo=None).isoformat() + 'Z'
+            return result.encode('ascii')
+        return value.isoformat().encode('ascii')
 
     def decode(self, bulk):
         time = self.parse_time(bulk, drop_tzinfo=False)
@@ -950,14 +968,14 @@ class TimeDelta(Bulk):
     """
 
     TIMEDELTA_FORMAT = '{0.days},{0.seconds},{0.microseconds}'
-    TIMEDELTA_PATTERN = re.compile(r'^(?P<days>\d+),(?P<seconds>\d+),'
-                                   r'(?P<microseconds>\d{1,6})$')
+    TIMEDELTA_PATTERN = re.compile(br'^(?P<days>\d+),(?P<seconds>\d+),'
+                                   br'(?P<microseconds>\d{1,6})$')
 
     def encode(self, value):
         if not isinstance(value, datetime.timedelta):
             raise TypeError('expected a datetime.timedelta, not ' +
                             repr(value))
-        return self.TIMEDELTA_FORMAT.format(value)
+        return self.TIMEDELTA_FORMAT.format(value).encode('ascii')
 
     def decode(self, bulk):
         match = self.TIMEDELTA_PATTERN.search(bulk)

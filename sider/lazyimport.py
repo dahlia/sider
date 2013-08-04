@@ -7,6 +7,7 @@ the :mod:`sider` package.  These are for workaround circular importing.
 """
 from __future__ import absolute_import
 import types
+import functools
 
 
 class DeferredModule(types.ModuleType):
@@ -23,7 +24,7 @@ class DeferredModule(types.ModuleType):
         mod = self.__actual_module__
         if mod is None:
             mod = __import__(self.__name__)
-            mod = reduce(getattr, self.__name__.split('.')[1:], mod)
+            mod = functools.reduce(getattr, self.__name__.split('.')[1:], mod)
             self.__actual_module__ = mod
         return getattr(mod, name)
 
@@ -65,6 +66,6 @@ exceptions = DeferredModule('sider.exceptions')
 version = DeferredModule('sider.version')
 
 
-__all__ = tuple(name for name, value in globals().iteritems()
+__all__ = tuple(name for name, value in globals().items()
                      if isinstance(value, DeferredModule))
 

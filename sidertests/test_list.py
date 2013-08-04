@@ -180,9 +180,9 @@ def test_delete(session):
         del list_[0]
     listx = session.set(key('test_listx_delete'), range(1, 8), List(NInt))
     del listx[0]
-    assert range(2, 8) == list(listx)
+    assert list(range(2, 8)) == list(listx)
     del listx[-1]
-    assert range(2, 7) == list(listx)
+    assert list(range(2, 7)) == list(listx)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
         del listx[2]
@@ -255,7 +255,7 @@ def test_delete_slice(session):
     listx = session.set(key('test_listx_delete_slice'), range(1, 8),
                         value_type=List(NInt))
     del listx[:2]
-    assert range(3, 8) == list(listx)
+    assert list(range(3, 8)) == list(listx)
     del listx[3:]
     assert [3, 4, 5] == list(listx)
     del listx[:]
@@ -330,9 +330,9 @@ def test_append(session):
         list_.append(123)
     listx = session.set(key('test_listx_append'), range(1, 5), List(NInt))
     listx.append(5)
-    assert range(1, 6) == list(listx)
+    assert list(range(1, 6)) == list(listx)
     listx.append(6)
-    assert range(1, 7) == list(listx)
+    assert list(range(1, 7)) == list(listx)
     with raises(TypeError):
         listx.append('abc')
 
@@ -349,7 +349,7 @@ def test_extend(session):
         list_.extend([object(), object()])
     listx = session.set(key('test_listx_extend'), [1, 2], List(NInt))
     listx.extend([3, 4, 5])
-    assert range(1, 6) == list(listx)
+    assert list(range(1, 6)) == list(listx)
     listx.extend([67, 89])
     assert [1, 2, 3, 4, 5, 67, 89] == list(listx)
     with raises(TypeError):
@@ -465,10 +465,10 @@ def test_pop(session):
     listx = session.set(key('test_listx_pop'), range(1, 8), List(NInt))
     popped = listx.pop(0)
     assert 1 == popped
-    assert range(2, 8) == list(listx)
+    assert list(range(2, 8)) == list(listx)
     popped = listx.pop(-1)
     assert 7 == popped
-    assert range(2, 7) == list(listx)
+    assert list(range(2, 7)) == list(listx)
     popped = listx.pop(2)
     assert 4 == popped
     assert [2, 3, 5, 6] == list(listx)
@@ -542,9 +542,10 @@ def test_repr(session):
     assert '<sider.list.List (' + repr(keyid) + ') [1, 2, 3]>' == r
     list_ = session.set(keyid, range(20), List(NInt))
     r = repr(list_)
-    assert '<sider.list.List ({0!r}) {1!r}>'.format(keyid, range(20)) == r
+    assert '<sider.list.List ({0!r}) {1!r}>'.format(keyid,
+        list(range(20))) == r
     list_.append(50)
     r = repr(list_)
     expected = '<sider.list.List ({0!r}) {1}, ...]>'.format(keyid,
-        repr(range(20))[:-1])
+        repr(list(range(20)))[:-1])
     assert expected == r

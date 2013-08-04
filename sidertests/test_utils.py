@@ -5,7 +5,7 @@ from sider import utils
 def test_chunk():
     data_length = 1000
     chunk_length = 7
-    data = range(data_length)
+    data = list(range(data_length))
     chunks = utils.chunk(data, chunk_length)
     assert isinstance(chunks, collections.Iterable)
     chunks = list(chunks)

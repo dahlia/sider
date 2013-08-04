@@ -12,7 +12,7 @@ import numbers
 import collections
 import itertools
 from .session import Session
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .transaction import query, manipulative
 
 
@@ -71,7 +71,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     #: (:class:`sider.types.Bulk`) The type of set elements.
     value_type = None
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))
@@ -98,7 +98,8 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     @query
     def __iter__(self):
         result = self.session.client.zrange(self.key, 0, -1)
-        return itertools.imap(self.value_type.decode, result)
+        for i in result:
+            yield self.value_type.decode(i)
 
     @query
     def __contains__(self, member):
@@ -713,7 +714,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
                         zincrby(key, value=el, amount=1)
                 else:
                     raise TypeError('expected iterable, not ' + repr(set_))
-            for el, score in keywords.iteritems():
+            for el, score in getattr(keywords, 'iteritems', keywords.items)():
                 if not isinstance(score, numbers.Real):
                     raise TypeError('score must be a float, not ' +
                                     repr(score))
@@ -728,7 +729,7 @@ class SortedSet(collections.MutableMapping, collections.MutableSet):
     def __repr__(self):
         cls = type(self)
         pairs= list(self.items())
-        pairs.sort(key=lambda (element, score): (score, element))
+        pairs.sort(key=lambda pair: (pair[1], pair[0]))
         elements = ', '.join(repr(v) if s == 1 else '{0!r}: {1!r}'.format(v, s)
                              for v, s in pairs)
         return '<{0}.{1} ({2!r}) {{{3}}}>'.format(cls.__module__, cls.__name__,

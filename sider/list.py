@@ -13,7 +13,7 @@ import collections
 import numbers
 import warnings
 from redis.exceptions import ResponseError
-from .types import Bulk, ByteString
+from .types import Bulk, String
 from .session import Session
 from .transaction import manipulative, query
 from .warnings import PerformanceWarning
@@ -62,7 +62,7 @@ class List(collections.MutableSequence):
     #: (:class:`sider.types.Bulk`) The type of list values.
     value_type = None
 
-    def __init__(self, session, key, value_type=ByteString):
+    def __init__(self, session, key, value_type=String):
         if not isinstance(session, Session):
             raise TypeError('session must be a sider.session.Session '
                             'instance, not ' + repr(session))
@@ -132,7 +132,7 @@ class List(collections.MutableSequence):
             result = self.session.client.lrange(self.key, start, stop)
             if index.step is not None:
                 result = result[::index.step]
-            return map(decode, result)
+            return list(map(decode, result))
         raise TypeError('indices must be integers, not ' + repr(index))
 
     def __setitem__(self, index, value):
@@ -157,7 +157,7 @@ class List(collections.MutableSequence):
                 raise ValueError('slice with step is not supported for '
                                  'assignment')
             elif index.start in (0, None) and index.stop == 1:
-                seq = map(encode, value)
+                seq = list(map(encode, value))
                 seq.reverse()
                 self.session.mark_manipulative([self.key])
                 if self.session.server_version_info < (2, 4, 0):
