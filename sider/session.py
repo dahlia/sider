@@ -122,13 +122,13 @@ class Session(object):
         you can use this :attr:`transaction` property as like a method::
 
             def block(trial, transaction):
-                list_[0] = list[0].upper()
+                list_[0] = list_[0].upper()
             session.transaction(block)
 
         Or you can use it in a :keyword:`for` loop::
 
             for trial in session.transaction:
-                list_[0] = list[0].upper()
+                list_[0] = list_[0].upper()
 
         .. seealso::
 
