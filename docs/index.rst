@@ -1,6 +1,10 @@
 Sider
 =====
 
+.. image:: https://badge.fury.io/py/Sider.svg?
+   :target: https://pypi.python.org/pypi/Sider
+   :alt: Latest PyPI version
+
 Sider is a persistent object library based on Redis_.  This is heavily under
 development currently, but you can check the :doc:`future roadmap <roadmap>`
 if you want.
@@ -27,8 +31,7 @@ You can install it from PyPI_:
 
 .. sourcecode:: console
 
-   $ pip install Sider  # or
-   $ easy_install Sider
+   $ pip install Sider
    $ python -m sider.version
    0.2.0
 
@@ -39,7 +42,7 @@ What was the name 'Sider' originated from?:
    >>> 'redis'[::-1]
    'sider'
 
-.. _PyPI: http://pypi.python.org/pypi/Sider
+.. _PyPI: https://pypi.python.org/pypi/Sider
 .. _Redis: http://redis.io/
 
 
@@ -68,9 +71,13 @@ Further reading
 Open source
 -----------
 
-.. image:: https://secure.travis-ci.org/dahlia/sider.png?branch=master
-  :alt: Build Status
-  :target: http://travis-ci.org/dahlia/sider
+.. image:: https://travis-ci.org/dahlia/sider.svg?branch=master
+   :target: https://travis-ci.org/dahlia/sider
+   :alt: Build Status
+
+.. image:: https://img.shields.io/coveralls/dahlia/sider.svg?
+   :target: https://coveralls.io/r/dahlia/sider
+   :alt: Coverage Status
 
 Sider is an open source software written in `Hong Minhee`__.  The source code
 is distributed under `MIT license`__ and you can find it at `GitHub
