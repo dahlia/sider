@@ -25,4 +25,4 @@ You can install it from `PyPI <https://pypi.python.org/pypi/Sider>`_::
 Distributed under `MIT license <http://minhee.mit-license.org/>`_.
 See also ``LICENSE`` file.
 
-Written by `Hong Minhee <http://dahlia.kr/>`_.
+Written by `Hong Minhee <http://hongminhee.org/>`_.

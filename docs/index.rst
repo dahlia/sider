@@ -89,7 +89,7 @@ repository`__.  Check out now:
 
 If you find a bug, report it to `the issue tracker`__ or send pull requests.
 
-__ http://dahlia.kr/
+__ http://hongminhee.org/
 __ http://minhee.mit-license.org/
 __ https://github.com/dahlia/sider
 __ https://github.com/dahlia/sider/issues
