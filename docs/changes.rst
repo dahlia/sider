@@ -1,6 +1,23 @@
 Sider Changelog
 ===============
 
+Version 0.3.0
+-------------
+
+To be released.
+
+- Now Sider supports Python 3.3 or higher.  Of course Python 2.6, Python 2.7,
+  and PyPy are still supported.  Thanks to Eunchong Yu.
+  [:issue:`4` by Eunchong Yu]
+- Fixed a bug that :class:`~sider.types.SortedSet` incorrectly saves
+  values on Redis 2.4.0 or higher.  [:issue:`3` by Eunchong Yu]
+- Added :class:`sider.types.UUID` type.  [:issue:`5` by Eunchong Yu]
+- Fixed missing incrementation of :meth:`List.__iter__()
+  <sider.list.List.__iter__>`.  [:issue:`6` by Eunchong Yu]
+- Added a workaround to http://bugs.python.org/issue4806.
+  [:issue:`7` by Eunchong Yu]
+
+
 Version 0.2.0
 -------------
 

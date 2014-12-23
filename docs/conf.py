@@ -247,7 +247,7 @@ else:
 
 extlinks = {
     'redis': (lower_sprintf_str('http://redis.io/commands/%s'), ''),
-    'issue': ('https://github.com/dahlia/wand/issues/%s', 'issue #'),
+    'issue': ('https://github.com/dahlia/sider/issues/%s', 'issue #'),
     'commit': ('https://github.com/dahlia/sider/commit/%s', ''),
     'branch': ('https://github.com/dahlia/sider/compare/master...%s', '')
 }

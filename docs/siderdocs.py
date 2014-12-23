@@ -1,3 +1,9 @@
+import sys
+
+
+if sys.version_info >= (3, 0, 0):
+    basestring = str
+
 
 class lower_sprintf_str(str):
     def __mod__(self, values):
