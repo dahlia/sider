@@ -1,11 +1,12 @@
 language: python
 sudo: false
 python:
+- pypy
+- pypy3
 - 2.6
 - 2.7
 - 3.3
 - 3.4
-- pypy
 services:
 - redis-server
 install:

@@ -4,7 +4,7 @@ Sider Changelog
 Version 0.3.0
 -------------
 
-To be released.
+Released on December 23, 2014.  Beta release.
 
 - Now Sider supports Python 3.3 or higher.  Of course Python 2.6, Python 2.7,
   and PyPy are still supported.  Thanks to Eunchong Yu.
