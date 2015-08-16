@@ -1,6 +1,15 @@
 Sider Changelog
 ===============
 
+Version 0.3.1
+-------------
+
+To be released.
+
+- Fixed a :exc:`SyntaxError` of :file:`setup.py` script on Python 3.
+  [:issue:`10` by Swen Mun]
+
+
 Version 0.3.0
 -------------
 
