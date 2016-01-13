@@ -5,8 +5,8 @@ from pytest import raises
 from .env import key
 from .env import session
 from sider import types
-from sider.types import Boolean, ByteString, Date, DateTime, TZDateTime, UUID
-from sider.types import Tuple, Integer, String
+from sider.types import (Boolean, ByteString, Date, DateTime, Integer, String,
+                         Tuple, TZDateTime, UUID)
 from sider.datetime import FixedOffset
 
 
@@ -113,6 +113,7 @@ def test_uuid(session):
                 b'\x11\xea.X\x97bG\xf3\xa31\xf2\xfaY\x95\xb7m', ByteString)
     with raises(ValueError):
         session.get(key('test_types_uuid'), UUID)
+
 
 def test_tuple(session):
     int_str_int = Tuple(Integer, String, Integer)
