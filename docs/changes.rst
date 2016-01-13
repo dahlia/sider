@@ -6,6 +6,9 @@ Version 0.3.2
 
 To be released.
 
+- Fixed decoding error of :class:`~sider.types.Tuple` on Python 3.
+  [:issue:`11` by Paul Muston]
+
 
 Version 0.3.1
 -------------
