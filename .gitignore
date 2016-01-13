@@ -7,3 +7,4 @@ docs/_build
 *.egg
 *.egg-info
 *.pyc
+.cache

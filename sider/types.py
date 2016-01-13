@@ -509,9 +509,9 @@ class Tuple(Bulk):
         return b'\n'.join(codes)
 
     def decode(self, bulk):
-        pos = bulk.index('\n')
+        pos = bulk.index(b'\n')
         header = bulk[:pos]
-        sizes = map(int, header.split(','))
+        sizes = map(int, header.split(b','))
         pos += 1
         values = []
         for field, size in zip(self.field_types, sizes):
@@ -524,7 +524,7 @@ class Tuple(Bulk):
 
 class Integer(Bulk):
     """Stores integers as decimal strings.  For example:
-    
+
     .. sourcecode:: pycon
 
        >>> integer = Integer()
